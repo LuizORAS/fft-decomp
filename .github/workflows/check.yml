@@ -87,4 +87,4 @@ jobs:
 
       # Without the BIN the data bytes are zeros: the link proves the code (each
       # function at its hash) and the layout (each name at its address).
-      - run: make link MODULE="${{ matrix.shard.modules }}"
+      - run: make build MODULE="${{ matrix.shard.modules }}"

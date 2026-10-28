@@ -13,8 +13,9 @@ HOST_USER := $(shell id -u):$(shell id -g)
 # Optional tool overrides, passed only when given: JOBS (compile jobs, default
 # one per CPU; permuter threads, default 4), CACHE=0 (recompile everything),
 # WORK_DIR (per-function intermediates, default /tmp/fft-build in the
-# container; empty keeps them under build/work), REPORT_ALL=1 (list every
-# mismatching function) and DURATION (permuter seconds, default 300).
+# container; empty keeps them under build/work), REPORT_ALL=1 (make
+# patch-check lists every mismatching function) and DURATION (permuter
+# seconds, default 300).
 TOOL_ENV = $(if $(JOBS),--env TOOLS_JOBS=$(JOBS)) \
 	$(if $(CACHE),--env TOOLS_CACHE=$(CACHE)) \
 	$(if $(filter-out undefined,$(origin WORK_DIR)),--env TOOLS_WORK_DIR=$(WORK_DIR)) \
@@ -63,15 +64,20 @@ image-name:
 bootstrap: _docker-build ## Rebuild the Docker image, check-config, and extract scus-94221.bin if present
 	@$(TOOLS) check-config
 	@if [ -f scus-94221.bin ]; then $(MAKE) --no-print-directory extract; \
-	else echo 'No scus-94221.bin: skipped extraction. `make check` works without it; `make build` needs it.'; fi
+	else echo 'No scus-94221.bin: skipped extraction. `make check` and `make build` (function hashes, no disc) work without it.'; fi
 
 .PHONY: extract
-extract: image ## Extract scus-94221.bin (automatic for build and checksums)
+extract: image ## Extract scus-94221.bin (automatic for build, patch-check and checksums)
 	@$(TOOLS) extract
 
 .PHONY: build
-build: extract ## Build and verify every module and the disc (MODULE=x for one module)
-	@$(TOOLS) build $(if $(strip $(MODULE)),"$(MODULE)",disc)
+build: image ## Link each module whole from its objects and the bytes between them, taking each name another module places from that module's link, compare with the original (function hashes without the BIN), fail on an image past its RAM window and print each window's room; every module with the BIN also builds the disc in build/disc (MODULE=x); SHIFT=N links a test disc with every module N bytes up in build/shift and checks every word against the original (needs the BIN)
+	@if [ -f scus-94221.bin ]; then $(MAKE) --no-print-directory extract; fi
+	@$(TOOLS) build $(if $(strip $(MODULE)),--module="$(MODULE)") $(if $(strip $(SHIFT)),--shift="$(SHIFT)")
+
+.PHONY: patch-check
+patch-check: extract ## Cross-check make build the old way: compile each function alone over a copy of its original module image, require every copy identical and the disc from them in build/patch/disc exact (MODULE=x)
+	@$(TOOLS) patch-check $(if $(strip $(MODULE)),--module="$(MODULE)")
 
 .PHONY: check
 check: image ## Compile and compare with target/ hashes, no BIN needed (MODULE=x)
@@ -125,11 +131,6 @@ twins: extract ## Group byte-equivalent functions across modules under consisten
 .PHONY: trial
 trial: image ## Compile a candidate source at an entry and report the match or first difference (MODULE=x ENTRY=f SOURCE=path ARGS="--subst OLD=NEW", or BATCH=build/x.yaml, or TWINS=t0001)
 	@$(TOOLS) trial $(if $(strip $(BATCH)),--batch="$(BATCH)") $(if $(strip $(TWINS)),--twins="$(TWINS)") $(if $(strip $(MODULE)),--module="$(MODULE)") $(if $(strip $(ENTRY)),--entry="$(ENTRY)") $(if $(strip $(SOURCE)),--source="$(SOURCE)") $(ARGS)
-
-.PHONY: link
-link: image ## Link each module whole from its objects and the bytes between them, taking each name another module places from that module's link, compare with the original, fail on an image past its RAM window and print each window's room; every module with the BIN also builds the disc (MODULE=x); SHIFT=N links a test disc with every module N bytes up in build/shift and checks every word against the original (needs the BIN)
-	@if [ -f scus-94221.bin ]; then $(MAKE) --no-print-directory extract; fi
-	@$(TOOLS) link $(if $(strip $(MODULE)),--module="$(MODULE)") $(if $(strip $(SHIFT)),--shift="$(SHIFT)")
 
 .PHONY: reloc-check
 reloc-check: extract ## Fail on data words that look like RAM addresses or disc sectors and are neither relocations, disc or ram words nor values, and on RAM addresses split over two instructions outside code; link each module twice shifted to check every changed word, and list the findings in build/reloc-check (MODULE=x)
@@ -199,15 +200,15 @@ fmt-check: image ## Fail if any C source or header is not clang-formatted
 	@$(FORMAT) --dry-run --Werror
 
 .PHONY: run
-run: ## Build the disc and launch PCSX-Redux (PCSX_REDUX=path; default is the macOS app)
-	$(MAKE) --no-print-directory build MODULE=
+run: extract ## Build the disc and launch PCSX-Redux (PCSX_REDUX=path; default is the macOS app)
+	$(MAKE) --no-print-directory build MODULE= SHIFT=
 	test -x "$(PCSX_REDUX)"
 	"$(PCSX_REDUX)" \
 		-iso "$(CURDIR)/build/disc/output-scus-94221.cue" \
 		-run
 
 .PHONY: smoke
-smoke: ## Boot the original and the shifted test disc in PCSX-Redux and pass each session's checkpoints, after make link and make link SHIFT=16 (PCSX_REDUX=path; logs and screenshots in build/smoke)
+smoke: ## Boot the original and the shifted test disc in PCSX-Redux and pass each session's checkpoints, after make build and make build SHIFT=16 (PCSX_REDUX=path; logs and screenshots in build/smoke)
 	test -x "$(PCSX_REDUX)"
 	@$(TOOLS) smoke prepare
 	PCSX_REDUX="$(PCSX_REDUX)" sh tools/smoke.sh

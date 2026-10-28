@@ -1,8 +1,9 @@
-// shift_link.go is make link SHIFT=N: a test disc on which every module's
+// shift_link.go is make build SHIFT=N: a test disc on which every module's
 // image opens N bytes at its start (after MAIN's header) inside a RAM window
 // that stays put, so every function, data row and table entry moves and
 // everything that names them must follow. The disc goes to build/shift and is
-// never the product: the identical disc stays make build's and make link's.
+// never the product: the identical disc stays make build's (and
+// make patch-check's).
 package main
 
 import (
@@ -37,7 +38,7 @@ func shiftPadding(m *moduleSpec, insert uint32) uint32 {
 // with the old number; it returns the files that move.
 func (p project) shiftedConfig(config *projectConfig, insert uint32) (*projectConfig, []string, error) {
 	if config.Disc == nil {
-		return nil, nil, errors.New("make link SHIFT=N needs target/disc.yaml")
+		return nil, nil, errors.New("make build SHIFT=N needs target/disc.yaml")
 	}
 	shifted := *config
 	shifted.Modules = make([]*moduleSpec, len(config.Modules))
@@ -90,9 +91,9 @@ func (p project) shiftedConfig(config *projectConfig, insert uint32) (*projectCo
 // original (shiftCheck), prints the room each window has left with the grown
 // images, and writes the disc to build/shift/disc.
 func (p project) finishShiftedLink(resolver symbolResolver, config, shifted *projectConfig, results map[string]linkResult, built map[string]string, failed int) error {
-	fmt.Fprintf(p.stdout(), "link: %d of %d modules linked whole, %d bytes up\n", len(results), len(results)+failed, p.linkInsert)
+	fmt.Fprintf(p.stdout(), "build: %d of %d modules linked whole, %d bytes up\n", len(results), len(results)+failed, p.linkInsert)
 	if failed > 0 {
-		return fmt.Errorf("link: %d modules failed", failed)
+		return fmt.Errorf("build: %d modules failed", failed)
 	}
 	report, err := p.shiftCheck(resolver, config, results)
 	if err != nil {

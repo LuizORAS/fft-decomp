@@ -1,5 +1,5 @@
 # The RAM the modules load into. A window runs from its modules' load address
-# to where the next thing resident with them starts (why); `make link` fails
+# to where the next thing resident with them starts (why); `make build` fails
 # when a module's image passes its window's end and prints the room each
 # window has left. A state lists windows resident at one time, which never
 # overlap. MAIN stays resident below the overlays, the game heap is 64 cells

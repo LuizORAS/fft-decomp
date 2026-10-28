@@ -1,10 +1,11 @@
 // link.go links each module whole, as the original linker did: every
 // function's relocatable object and the original bytes between them, in
 // address order, with an ASSERT that each name lands at its original address
-// (`make link`). The data bytes come from the extracted disc; without it they
+// (`make build`). The data bytes come from the extracted disc; without it they
 // are zeros of the right size, which still proves the code and the layout.
 // When every module links equal to its original file, the disc is built from
-// them under build/link/disc, as `make build` does from its copies.
+// them under build/disc; `make patch-check` builds it again from copies of
+// the original images.
 package main
 
 import (
@@ -49,7 +50,7 @@ type linkWord struct {
 // addresses: those past the file, and those inside a function that name
 // another module's object (see linkRowIsForeign); and the end of the module's
 // RAM window, which the image must not pass (0 for none). On the shifted test
-// disc (make link SHIFT=N), insert bytes open at the image's start (after
+// disc (make build SHIFT=N), insert bytes open at the image's start (after
 // MAIN's header) and MAIN ends in padding up to a whole sector.
 type linkLayout struct {
 	pieces   []linkPiece
@@ -568,7 +569,7 @@ func linkObjects(script, elfPath string, inputs []string) error {
 // compares the image with the original file (or, without it, every function
 // and rodata range with its hash). Each name another module defines is bound
 // where target/ puts it, or at the address in values (another module's link
-// output, linkCommand's second pass).
+// output, buildCommand's second pass).
 func (p project) linkModule(resolver symbolResolver, m *moduleSpec, values map[string]uint32) (linkResult, error) {
 	var result linkResult
 	layout, err := moduleLinkLayout(m)
@@ -856,7 +857,7 @@ func (p project) checkLinkedSizes(elfPath string, layout linkLayout) error {
 	return nil
 }
 
-// linkCrossModule is make link's second pass. Each name another module's link
+// linkCrossModule is make build's second pass. Each name another module's link
 // places (symbolResolver.owner) takes the address that link gave it, and a
 // module whose bindings change links again. Sizes and places never depend on
 // those addresses, so the two passes settle every module; in the identical
@@ -910,17 +911,20 @@ func crossModuleValues(resolver symbolResolver, m *moduleSpec, bindings map[stri
 	return values, owned, absolute
 }
 
-func (p project) linkCommand(args []string) error {
-	flags := flag.NewFlagSet("link", flag.ContinueOnError)
-	selection := flags.String("module", "", "modules to link (default: all)")
+// buildCommand is make build: every selected module linked whole and
+// compared with its original, and with all of them identical the disc in
+// build/disc; --shift=N links the test disc in build/shift instead.
+func (p project) buildCommand(args []string) error {
+	flags := flag.NewFlagSet("build", flag.ContinueOnError)
+	selection := flags.String("module", "", "modules to build (default: all, and the disc)")
 	shift := flags.Uint("shift", 0, "bytes every module's image opens at its start, a multiple of 16: a test disc in build/shift (needs the BIN)")
 	if err := flags.Parse(args); err != nil {
 		return err
 	}
 	if flags.NArg() != 0 {
-		return errors.New("usage: tools link [--module=M] [--shift=N]")
+		return errors.New("usage: tools build [--module=M] [--shift=N]")
 	}
-	config, err := p.loadProjectConfig()
+	config, err := p.loadCheckedConfig()
 	if err != nil {
 		return err
 	}
@@ -936,7 +940,7 @@ func (p project) linkCommand(args []string) error {
 	var shifted *projectConfig
 	if *shift != 0 {
 		if *shift%16 != 0 || *shift >= 1<<16 || *selection != "" {
-			return errors.New("make link SHIFT=N takes a multiple of 16 below 0x10000 and links every module")
+			return errors.New("make build SHIFT=N takes a multiple of 16 below 0x10000 and links every module")
 		}
 		if !p.validExtraction() {
 			return errNotExtracted
@@ -982,7 +986,11 @@ func (p project) linkCommand(args []string) error {
 	if shifted != nil {
 		return p.finishShiftedLink(resolver, config, shifted, results, built, failed)
 	}
-	fmt.Fprintf(p.stdout(), "link: %d of %d modules linked whole and identical\n", len(results), len(results)+failed)
+	compared := "identical to the original"
+	if !original {
+		compared = "each function at its hash (no BIN: the data bytes are zeros)"
+	}
+	fmt.Fprintf(p.stdout(), "build: %d of %d modules linked whole, %s\n", len(results), len(results)+failed, compared)
 	if config.RAM != nil && len(linkedModules) > 0 {
 		fmt.Fprintln(p.stdout(), "ram: the room each window has left after its largest module")
 		for _, line := range ramRoom(config.RAM, config, linkedModules) {
@@ -990,15 +998,15 @@ func (p project) linkCommand(args []string) error {
 		}
 	}
 	if failed > 0 {
-		return fmt.Errorf("link: %d modules failed", failed)
+		return fmt.Errorf("build: %d modules failed", failed)
 	}
 	switch {
 	case len(built) != len(config.Modules):
 		return nil
 	case !original:
-		fmt.Fprintln(p.stdout(), "link: no disc without the BIN (the data bytes were zeros)")
+		fmt.Fprintln(p.stdout(), "build: no disc without the BIN (the data bytes were zeros)")
 		return nil
 	}
 	// Every module, each equal to its original file: the disc from them.
-	return p.writeDisc(config, built, filepath.Join(p.root, "build", "link", "disc"), true)
+	return p.writeDisc(config, built, filepath.Join(p.root, "build", "disc"), true)
 }

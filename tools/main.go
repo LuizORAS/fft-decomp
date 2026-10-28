@@ -37,8 +37,8 @@ type project struct {
 	filesRoot     string
 	xmlPath       string
 	inventoryPath string
-	// out receives module build progress; nil means os.Stdout. buildDisc
-	// gives each concurrently built module its own buffer so the log keeps
+	// out receives module build progress; nil means os.Stdout. patch-check
+	// gives each concurrently patched module its own buffer so the log keeps
 	// module order.
 	out io.Writer
 	// inputRoot, when set, is a container-local mirror of src/ and include/
@@ -46,7 +46,7 @@ type project struct {
 	inputRoot string
 	// progress, when set, counts compiled functions across modules.
 	progress *compileProgress
-	// linkInsert, when set, is make link SHIFT=N's insertion: every module's
+	// linkInsert, when set, is make build SHIFT=N's insertion: every module's
 	// image opens that many bytes at its start, in build/shift.
 	linkInsert uint32
 }
@@ -213,7 +213,7 @@ type inventoryRecord struct {
 	StackSize    int    `json:"stack_size,omitempty"`
 }
 
-const usage = "usage: tools build [module|disc]|check [--module=M]|diff [--module=M] FUNC|library-diff --name=N --source=S --addr=A --size=B [--module=M] [--profile=P]|permute [--module=M] [--duration=S] [--jobs=N] FUNC|checksums|check-config|config-fmt|decl-check|declarations ...|share-audit [--module=M] [--min-bytes=N] [--prefix=P]|twins [--module=M] [--min-bytes=N] [--max-near=N] [--out=D]|trial --module=M --entry=E --source=S [--symbol=F] [--subst OLD=NEW]... [--include H]... | trial --batch=FILE | trial --twins=ID[,ID]...|unit-check [--module=M] [--unit=NAME]|link [--module=M]|reloc-check [--module=M]|smoke prepare|smoke report|symbols <action> ...|map [--out=build/DIR] [--pull-docs]|warnings [--module=M]|extract"
+const usage = "usage: tools build [--module=M] [--shift=N]|patch-check [--module=M]|check [--module=M]|diff [--module=M] FUNC|library-diff --name=N --source=S --addr=A --size=B [--module=M] [--profile=P]|permute [--module=M] [--duration=S] [--jobs=N] FUNC|checksums|check-config|config-fmt|decl-check|declarations ...|share-audit [--module=M] [--min-bytes=N] [--prefix=P]|twins [--module=M] [--min-bytes=N] [--max-near=N] [--out=D]|trial --module=M --entry=E --source=S [--symbol=F] [--subst OLD=NEW]... [--include H]... | trial --batch=FILE | trial --twins=ID[,ID]...|unit-check [--module=M] [--unit=NAME]|reloc-check [--module=M]|smoke prepare|smoke report|symbols <action> ...|map [--out=build/DIR] [--pull-docs]|warnings [--module=M]|extract"
 
 func main() {
 	if len(os.Args) < 2 {
@@ -221,6 +221,7 @@ func main() {
 	}
 	commandsWithArguments := map[string]bool{
 		"build":                  true,
+		"patch-check":            true,
 		"check":                  true,
 		"diff":                   true,
 		"library-diff":           true,
@@ -231,7 +232,6 @@ func main() {
 		"twins":                  true,
 		"trial":                  true,
 		"unit-check":             true,
-		"link":                   true,
 		"reloc-check":            true,
 		"smoke":                  true,
 		"map":                    true,
@@ -249,6 +249,8 @@ func main() {
 	switch os.Args[1] {
 	case "build":
 		err = p.buildCommand(os.Args[2:])
+	case "patch-check":
+		err = p.patchCheckCommand(os.Args[2:])
 	case "check":
 		err = p.checkCommand(os.Args[2:])
 	case "checksums":
@@ -277,8 +279,6 @@ func main() {
 		err = p.trialCommand(os.Args[2:])
 	case "unit-check":
 		err = p.unitCheckCommand(os.Args[2:])
-	case "link":
-		err = p.linkCommand(os.Args[2:])
 	case "reloc-check":
 		err = p.relocCheckCommand(os.Args[2:])
 	case "smoke":

@@ -12,7 +12,8 @@ func TestCommandDispatchRejectsUnknownSelections(t *testing.T) {
 		run  func() error
 		want string
 	}{
-		{name: "build", run: func() error { return p.buildCommand([]string{"unknown"}) }, want: "unknown module"},
+		{name: "build", run: func() error { return p.buildCommand([]string{"--module=unknown"}) }, want: "unknown module"},
+		{name: "patch-check", run: func() error { return p.patchCheckCommand([]string{"--module=unknown"}) }, want: "unknown module"},
 		{name: "check", run: func() error { return p.checkCommand([]string{"--module=unknown"}) }, want: "unknown module"},
 		{name: "diff", run: func() error { return p.diffCommand([]string{"unknown"}) }, want: "no function"},
 		{name: "permute", run: func() error { return p.permuteCommand([]string{"--module=unknown", "battle_helper"}) }, want: "unknown module"},

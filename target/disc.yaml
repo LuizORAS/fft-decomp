@@ -2,11 +2,11 @@
 # directory record, file and dummy (sectors the original mastering left
 # empty) at its first sector, in sector order. A file's size is its byte
 # count; a mixed file (an STR movie or XA audio) has 2336-byte sectors, and a
-# module's file takes its size from the module. `make build` and `make link`
-# write the mkpsxiso project from this file, with the extracted files and the
-# rebuilt modules as sources. Every directory has the root's XA attributes. A
-# fixed directory holds files whose sectors other disc data stores, so they
-# stay where they are.
+# module's file takes its size from the module. `make build` and
+# `make patch-check` write the mkpsxiso project from this file, with the
+# extracted files and the rebuilt modules as sources. Every directory has the
+# root's XA attributes. A fixed directory holds files whose sectors other disc
+# data stores, so they stay where they are.
 license: license_data.dat
 volume: {system: PLAYSTATION, application: PLAYSTATION, volume: FINALFANTASYTACTICS, volume_set: SQUARE, publisher: SQUARE, data_preparer: SQUARE, creation_date: "1997101718372100+36", modification_date: "1997101718372100+36"}
 attributes: {gmt_offs: 36, xa_attrib: 56, xa_perm: 1, xa_gid: 10752, xa_uid: 10752, hidden: 1}

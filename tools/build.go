@@ -1,7 +1,8 @@
 // build.go compiles configured functions and verifies them: against the
-// original module images (`build`), against the configured hashes without
-// the disc (`check`), and records those hashes from the original bytes
-// (`checksums`).
+// configured hashes without the disc (`check`), and written over copies of
+// the original module images (`patch-check`, the cross-check of the linked
+// `make build`); it records those hashes from the original bytes
+// (`checksums`) and writes the disc from built modules (writeDisc).
 package main
 
 import (
@@ -22,7 +23,7 @@ import (
 )
 
 // compileSlots, when non-nil, bounds concurrent compiles across modules
-// that buildDisc builds in parallel.
+// that check and patch-check compile in parallel.
 var compileSlots chan struct{}
 
 // toolJobs is the compile parallelism: TOOLS_JOBS, or one per CPU.
@@ -139,7 +140,7 @@ func (p project) compileModule(config *projectConfig, resolver symbolResolver, m
 	// Per-function intermediates go to the container-local work directory:
 	// thousands of small files are much faster there than on the host bind
 	// mount. They are namespaced by module because many effect overlays share
-	// a helper name and buildDisc builds modules concurrently.
+	// a helper name and modules compile concurrently.
 	workBase := toolWorkDir()
 	if workBase == "" {
 		workBase = filepath.Join(p.root, "build", "work")
@@ -152,8 +153,8 @@ func (p project) compileModule(config *projectConfig, resolver symbolResolver, m
 		go func() {
 			defer workers.Done()
 			for index := range work {
-				// A disc build runs every module at once; compileSlots caps the
-				// total number of concurrent compiles across all of them.
+				// A check of every module runs them all at once; compileSlots caps
+				// the total number of concurrent compiles across all of them.
 				if compileSlots != nil {
 					compileSlots <- struct{}{}
 				}
@@ -267,22 +268,10 @@ func (p project) readModuleImage(m *moduleSpec) ([]byte, error) {
 	return data, nil
 }
 
-func moduleBuildOutput(root string, m *moduleSpec) string {
-	base := strings.ToLower(filepath.Base(filepath.FromSlash(m.File)))
-	switch {
-	case m.ID == mainModuleID:
-		return filepath.Join(root, "build", "main", base)
-	case strings.HasPrefix(m.ID, "event-") && m.ID != "event-small":
-		name := strings.TrimSuffix(base, filepath.Ext(base))
-		return filepath.Join(root, "build", "event", name, base)
-	}
-	return filepath.Join(root, "build", strings.ToLower(filepath.Dir(filepath.FromSlash(m.File))), base)
-}
-
-// buildModule replaces every configured function in a copy of the original
+// patchModule replaces every configured function in a copy of the original
 // image with its compiled bytes, failing on the first difference unless
-// TOOLS_REPORT_ALL_MISMATCHES is set, and writes the rebuilt image.
-func (p project) buildModule(config *projectConfig, resolver symbolResolver, m *moduleSpec) (string, error) {
+// TOOLS_REPORT_ALL_MISMATCHES is set, and writes the copy under build/patch.
+func (p project) patchModule(config *projectConfig, resolver symbolResolver, m *moduleSpec) (string, error) {
 	want, err := p.readModuleImage(m)
 	if err != nil {
 		return "", err
@@ -348,7 +337,7 @@ func (p project) buildModule(config *projectConfig, resolver symbolResolver, m *
 		}
 		return "", fmt.Errorf("%d function(s) did not match", len(mismatched))
 	}
-	output := moduleBuildOutput(p.root, m)
+	output := filepath.Join(p.root, "build", "patch", m.ID, filepath.Base(filepath.FromSlash(m.File)))
 	if err := os.MkdirAll(filepath.Dir(output), 0o755); err != nil {
 		return "", err
 	}
@@ -389,45 +378,37 @@ func (p project) loadCheckedConfig() (*projectConfig, error) {
 	return config, nil
 }
 
-func (p project) buildCommand(args []string) error {
-	if len(args) > 1 {
-		return errors.New("usage: tools build [module|disc]")
+// patchCheckCommand is make patch-check, make build's cross-check the way
+// the disc was built before the link: each selected module's functions
+// compiled alone at their addresses and written over a copy of its original
+// image, which must stay identical, and with every module the disc from the
+// copies in build/patch/disc.
+func (p project) patchCheckCommand(args []string) error {
+	flags := flag.NewFlagSet("patch-check", flag.ContinueOnError)
+	selection := flags.String("module", "", "modules to check (default: all, and the disc)")
+	if err := flags.Parse(args); err != nil {
+		return err
 	}
-	if len(args) == 0 || args[0] == "" || args[0] == "disc" || args[0] == "all" {
-		return p.buildDisc()
+	if flags.NArg() != 0 {
+		return errors.New("usage: tools patch-check [--module=M]")
 	}
 	config, err := p.loadCheckedConfig()
 	if err != nil {
 		return err
 	}
-	m, err := resolveModuleName(config, args[0])
-	if err != nil {
-		return err
-	}
-	if len(m.Functions) == 0 {
-		return fmt.Errorf("module %s has no functions", m.ID)
-	}
-	mirrored, err := p.withInputMirror()
-	if err != nil {
-		return err
-	}
-	mirrored.progress = newCompileProgress("build", []*moduleSpec{m})
-	_, err = mirrored.buildModule(config, newSymbolResolver(config), m)
-	return err
-}
-
-func (p project) buildDisc() error {
-	config, err := p.loadCheckedConfig()
-	if err != nil {
-		return err
+	modules := config.Modules
+	if *selection != "" {
+		if modules, err = resolveModuleSelection(config, *selection); err != nil {
+			return err
+		}
 	}
 	p, err = p.withInputMirror()
 	if err != nil {
 		return err
 	}
-	p.progress = newCompileProgress("build", config.Modules)
+	p.progress = newCompileProgress("patch-check", modules)
 	resolver := newSymbolResolver(config)
-	// Build every module concurrently (most overlays hold only a few
+	// Patch every module concurrently (most overlays hold only a few
 	// functions); compileSlots caps the total concurrent compiles at toolJobs.
 	jobs, err := toolJobs()
 	if err != nil {
@@ -440,9 +421,9 @@ func (p project) buildDisc() error {
 		err    error
 		log    bytes.Buffer
 	}
-	results := make([]*moduleResult, len(config.Modules))
+	results := make([]*moduleResult, len(modules))
 	var moduleWorkers sync.WaitGroup
-	for index, m := range config.Modules {
+	for index, m := range modules {
 		if len(m.Functions) == 0 {
 			continue
 		}
@@ -453,7 +434,7 @@ func (p project) buildDisc() error {
 			defer moduleWorkers.Done()
 			modulePass := p
 			modulePass.out = &result.log
-			result.output, result.err = modulePass.buildModule(config, resolver, m)
+			result.output, result.err = modulePass.patchModule(config, resolver, m)
 		}(m, result)
 	}
 	moduleWorkers.Wait()
@@ -466,9 +447,12 @@ func (p project) buildDisc() error {
 		if result.err != nil {
 			return result.err
 		}
-		built[config.Modules[index].ID] = result.output
+		built[modules[index].ID] = result.output
 	}
-	return p.writeDisc(config, built, filepath.Join(p.root, "build", "disc"), true)
+	if *selection != "" {
+		return nil
+	}
+	return p.writeDisc(config, built, filepath.Join(p.root, "build", "patch", "disc"), true)
 }
 
 // writeDisc runs mkpsxiso on the project target/disc.yaml describes, with

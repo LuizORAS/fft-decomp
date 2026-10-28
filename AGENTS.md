@@ -97,7 +97,9 @@ authoritative for each function's source, address, size, profile and hash.
 ```sh
 make bootstrap             # build the Docker image (extracts the BIN if present)
 make check [MODULE=x]      # compile and compare with target/ hashes; no BIN needed
-make build [MODULE=x]      # full byte-exact build and disc (needs the BIN)
+make build [MODULE=x]      # link each module whole from its objects and the bytes between them, taking each name another module places from that module's link (a second pass); compare with the original file (function hashes without the BIN, the data bytes then zeros); fail on an image past its RAM window and print each window's room; every module with the BIN also builds the disc in build/disc and checks its sha256
+make build SHIFT=16        # a test disc in build/shift: every module's image opens 16 bytes (break instructions) at its start, MAIN pads to whole sectors and a file that outgrows its sectors moves; fail on a word that changed unexplained (needs the BIN)
+make patch-check [MODULE=x] # cross-check make build the way the disc was built before the link: each function compiled alone and written over a copy of its original module image, every copy identical, and every module's copy makes the disc in build/patch/disc, sha256 checked (needs the BIN)
 make extract               # extract the BIN (build/checksums/diff do it on demand)
 make checksums             # refresh hashes from the ORIGINAL bytes only
 make check-config          # validate target/, sources and declarations
@@ -109,9 +111,7 @@ make share-audit [MODULE=x] # report shared C implementation candidates as JSON
 make twins [MODULE=x]      # group functions identical under renames across modules (needs the BIN)
 make trial TWINS=t0001     # compile each twin's source at the others' entries (or MODULE ENTRY SOURCE)
 make unit-check [MODULE=x] # compile each original translation unit whole from its members' sources
-make link [MODULE=x]       # link each module whole from its objects and the bytes between them, taking each name another module places from that module's link (a second pass); compare with the original file (function hashes without the BIN); fail on an image past its RAM window and print each window's room; every module with the BIN also builds the disc in build/link/disc
-make link SHIFT=16         # a test disc in build/shift: every module's image opens 16 bytes (break instructions) at its start, MAIN pads to whole sectors and a file that outgrows its sectors moves; fail on a word that changed unexplained (needs the BIN)
-make smoke                 # boot the original and the shifted test disc in PCSX-Redux (PCSX_REDUX=path) from tools/smoke.lua: a new game through Orbonne (ATTACK.OUT, an effect file's code) to the save screen, then Continue through Gariland to the world map's formation screen, each checkpoint checking the code in RAM; logs and screenshots in build/smoke, about 50 minutes (after make link and make link SHIFT=16)
+make smoke                 # boot the original and the shifted test disc in PCSX-Redux (PCSX_REDUX=path) from tools/smoke.lua: a new game through Orbonne (ATTACK.OUT, an effect file's code) to the save screen, then Continue through Gariland to the world map's formation screen, each checkpoint checking the code in RAM; logs and screenshots in build/smoke, about 50 minutes (after make build and make build SHIFT=16)
 make reloc-check [MODULE=x] # fail on a data word that looks like a RAM address or a disc sector and is neither relocation, disc or ram word nor value, and on a RAM address split over two instructions outside code; link each module twice shifted to check every changed word, and list the findings in build/reloc-check (needs the BIN)
 make diff FUNC=f           # compare one function with the original bytes (needs the BIN)
 make library-diff ARGS="..." # compare a scratch library candidate without registering it
@@ -128,12 +128,12 @@ make compile-commands      # editor compile_commands.json (host clang)
 ```
 
 `MODULE` takes an id (`battle`, `event-attack`) or an alias (`attack`,
-`bunit`, `equip`, `jobstts`); for `check` it may be a list, and `event` or
-`effect` selects every such module. `diff` and `permute` need it only when
-several modules define `FUNC`. Both compile exactly as `check` does. Every change
-ends with `make check` passing. Before handing off, also run `make build`
-and `make link` (disc exact both ways), `make link SHIFT=16` (nothing
-unexplained), `make reloc-check`,
+`bunit`, `equip`, `jobstts`); for `check`, `build` and `patch-check` it may
+be a list, and `event` or `effect` selects every such module. `diff` and
+`permute` need it only when several modules define `FUNC`. Both compile
+exactly as `check` does. Every change ends with `make check` passing. Before
+handing off, also run `make build` and `make patch-check` (disc exact both
+ways), `make build SHIFT=16` (nothing unexplained), `make reloc-check`,
 `make check-config`, `make decl-check`, `make fmt-check` and `make test`.
 
 Every target runs in a fresh `docker run --rm` container of the pinned
@@ -144,7 +144,7 @@ old GCC `cc1` binaries (native on x86-64, through `qemu-i386` elsewhere), maspsx
 `cpp`, mkpsxiso, asm-differ (`make diff` listings), decomp-permuter, Go and
 clang-format 22.1.8. CI (`.github/workflows/check.yml`) runs `fmt-check`,
 `check-config`, `test`, `decl-check` and `map` in one job and `check` and
-`link` in four module shards, without the BIN; `check-config` fails unless
+`build` in four module shards, without the BIN; `check-config` fails unless
 the shards' module lists cover every module once. Optional overrides: `JOBS`,
 `CACHE=0`, `WORK_DIR`, `REPORT_ALL=1`, `DURATION` (see the Makefile).
 
@@ -169,18 +169,18 @@ addresses, decimal sizes, one flow mapping per line, sorted rows) and
   points). A data row inside a function names that place in the code and
   moves with it; one named with another module's prefix is that module's
   object at a fixed address. A row or import outside the image that names
-  another module's object gives that module in `in`; `make link` takes its
+  another module's object gives that module in `in`; `make build` takes its
   address from that module's link while the two are in RAM together
   (`ram.yaml` states). A row outside every image with no `in` is a fixed area
   and keeps its address. A row's `page` is the high half of its address
   that code loads as a number where no symbol spelling matches the bytes;
-  `make link` asserts the row stays in that page. `imports`: names from
+  `make build` asserts the row stays in that page. `imports`: names from
   overlays that linking cannot otherwise reach. `overrides`: per-function
   bindings. `regions`: bytes deliberately left original, with the reason.
 - `relocations`: data words that hold an address, `{addr, to}` plus
   `offset` when the word points past the start of `to` (any name the module
   resolves, or with `in` a function or data row that module places);
-  `make link` writes each word from its symbol, so it follows the
+  `make build` writes each word from its symbol, so it follows the
   symbol. `values`: words that look like RAM addresses or disc sectors but
   are not, `{addr, why}` for one word or `{addr, end, why}` for a range.
   Each word lies outside code and is classified once; `make reloc-check`
@@ -190,7 +190,7 @@ addresses, decimal sizes, one flow mapping per line, sorted rows) and
 - `disc`: data words that hold a file's place on the disc, `{addr, sector:
   FILE}` for its first sector (plus `offset` in sectors past it),
   `{addr, size: FILE}` for its size rounded up to whole sectors (0 when
-  empty) and `{addr, extent: FILE}` for the two words in a row. `make link`
+  empty) and `{addr, extent: FILE}` for the two words in a row. `make build`
   writes each from `disc.yaml`, so it follows the file. `make reloc-check`
   checks each against the original and fails on a word that reads as a
   file's first sector followed by its size, or as one of three or more first
@@ -198,7 +198,7 @@ addresses, decimal sizes, one flow mapping per line, sorted rows) and
 - `ram`: data words that hold a RAM window's size, `{addr, size: WINDOW}`,
   its start, `{addr, start: WINDOW}` (a list of the windows that start there
   when several do), or its start past another window's,
-  `{addr, start: WINDOW, from: OTHER}`; `make link` writes each from
+  `{addr, start: WINDOW, from: OTHER}`; `make build` writes each from
   `ram.yaml`, and `make reloc-check` checks each against the original.
 - `units`: the original translation units, `{addr, end, name}` plus `profile`
   when the file was not built with the module default, matched by address
@@ -206,7 +206,7 @@ addresses, decimal sizes, one flow mapping per line, sorted rows) and
   `[addr, end)` were one source file; each keeps its own source, and
   `make unit-check` rebuilds the unit from them.
 - Linking one function binds each name it uses from its own module, then
-  each `links` module in order, then main. `make link` then binds each name
+  each `links` module in order, then main. `make build` then binds each name
   another module places at the address that module's link gave it, when the
   two are in RAM together; a name from a module never resident with it
   (WORLD's copies of BATTLE and EVENT code) keeps its target address.
@@ -216,7 +216,7 @@ dummy (sectors the original mastering left empty) at its first sector
 (`lba`), in sector order. A file row gives its byte `size` (a `mixed` file,
 an STR movie or XA audio, has 2336-byte sectors), except a module's file,
 which takes its size from its module; each file or dummy ends where the next
-row starts. `make build` and `make link` write the mkpsxiso project from it.
+row starts. `make build` and `make patch-check` write the mkpsxiso project from it.
 A `fixed` directory holds files whose sectors other disc data stores (MAP:
 the GNS rows), so they stay where they are. Every dummy is the gap between
 two rows, and `make config-fmt` writes them: a file that outgrows the
@@ -234,7 +234,7 @@ load address (`addr`) to where the next thing resident with them starts
 (`effect`), is in one window, starts at its start and ends by its end. A
 state lists the windows resident at one time, which never overlap; two
 modules are in RAM together when one state lists both their windows (two
-modules of one window never are). `make link` fails on an image that passes its window's end and prints the
+modules of one window never are). `make build` fails on an image that passes its window's end and prints the
 room each window has left. A window's size in code is
 `RAM_WINDOW_BYTES_<WINDOW>` and its start past another's
 `RAM_WINDOW_START_<WINDOW>_FROM_<OTHER>`, which `make config-fmt` writes to

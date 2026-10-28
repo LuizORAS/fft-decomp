@@ -49,7 +49,7 @@ make bootstrap
 
 # Then use one of the following (make help for more):
 make check     # verify all code against checksums (without BIN)
-make build     # build every module and a byte-matching disc (needs the BIN)
+make build     # link every module and a byte-matching disc (the disc needs the BIN)
 ```
 
 `make build` writes `build/disc/output-scus-94221.bin` and `.cue`.

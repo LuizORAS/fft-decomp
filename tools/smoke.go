@@ -1,6 +1,6 @@
 // smoke.go prepares and reports `make smoke`, the run of tools/smoke.lua in
 // PCSX-Redux on the original disc and on the shifted test disc that
-// `make link SHIFT=N` writes. The emulator runs on the host, so tools/smoke.sh
+// `make build SHIFT=N` writes. The emulator runs on the host, so tools/smoke.sh
 // launches it between `smoke prepare` and `smoke report`.
 package main
 
@@ -93,7 +93,7 @@ func (p project) smokePrepare() error {
 	}
 	shiftCue := filepath.Join("build", "shift", "disc", targetOutput+".cue")
 	if _, err := os.Stat(filepath.Join(p.root, shiftCue)); err != nil {
-		return errors.New("no shifted disc: run make link SHIFT=16 first")
+		return errors.New("no shifted disc: run make build SHIFT=16 first")
 	}
 	root := p.smokeRoot()
 	var runs []string
@@ -168,7 +168,7 @@ func (p project) writeSmokeNames(config *projectConfig, disc smokeDisc, path str
 		elfPath := filepath.Join(p.root, "build", disc.link, m.ID, m.ID+".elf")
 		found, err := readSmokeNames(m.ID, elfPath)
 		if err != nil {
-			return 0, fmt.Errorf("%s: %w (run make link and make link SHIFT=16 first)", disc.name, err)
+			return 0, fmt.Errorf("%s: %w (run make build and make build SHIFT=16 first)", disc.name, err)
 		}
 		names = append(names, found...)
 	}
