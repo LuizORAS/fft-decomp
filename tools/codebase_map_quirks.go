@@ -50,6 +50,7 @@ var mapQuirkSwitches = map[string]string{
 	"Calls that disagree with the callee": "PORT, NON_MATCHING",
 	"Declaration leads":                   "NON_MATCHING (type debt)",
 	"Pointers held in 32-bit integers":    "PORT (64-bit)",
+	"Names that share an address":         "PORT (one object)",
 	"Duplicated code":                     "NON_MATCHING (refactor)",
 	"Other surprises":                     "review",
 	quirksAssemblySection:                 "PORT (C twin)",

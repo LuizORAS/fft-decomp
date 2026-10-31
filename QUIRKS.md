@@ -1319,6 +1319,7 @@ translation unit. Share their types and constants through headers.
   refused reads and stalls in `error_count`, which nothing reads, so a disc error
   restarts the read indefinitely. `main_file_poll_load` also counts `wait_frames`,
   which nothing reads; its stall timeout uses `g_main_system_frame_timer`.
+
 ## Pointers held in 32-bit integers
 
 The PS1's pointers and `s32` are both 32 bits wide, so some code passes or
@@ -1332,6 +1333,61 @@ computes addresses as integers. A 64-bit build must give these pointer types.
   `script_get_variable_word_pointer_from_id` (offsets from
   `g_script_variables`) and `battle_ai_is_ability_known` (the
   learned-ability row).
+
+## Names that share an address
+
+Some memory has two names: a record and a name for its first field or element,
+one table read in two shapes, a second name the matching spelling needs to
+reload or store again, an overlay's own name for a word another module owns, or
+a second link name of one function. The PS1 build links every name to its
+address, so the names share the bytes; a native build gives each name its own
+storage, so each group below must become one object there (one name, a field or
+a union). Labels that hold no storage of their own are left out: the startup's
+constructor and destructor tables and counts, and a patch template's end label,
+which is the next function's address.
+
+- A record and a name for its first field or element: `g_menu_text_state` and
+  `g_script_variables` (its `script_variables` pointer, in BATTLE and WORLD),
+  `g_move_find_tile_result` and `g_battle_move_find_result_flags`,
+  `g_wldcore_script_state` and `g_wldcore_script_flags`,
+  `g_wldcore_map_projection_view` and `g_wldcore_map_projection_origin`,
+  `g_wldcore_menu_stack_types` and `g_wldcore_menu_root_window_index`,
+  `g_world_menu_frame_input_state` and `g_world_menu_frame_new_buttons`,
+  `g_world_input_frame_state` and `g_world_input_frame_new`,
+  `g_bunit_input_event_state` and `g_bunit_input_event`,
+  `g_require_status_display_thread_params` and
+  `g_require_status_display_origin_x`, `g_require_numeric_editor_thread_params`
+  and `g_require_numeric_editor_origin_x`, `g_menu_status_panel_fields` and
+  DEBUGCHR's `g_debugchr_editor_move`, `g_menu_panel_status_texture`, the first
+  point of DEBUGCHR's `g_menu_status_panel_numeric_geometry` and of REQUIRE's
+  `g_require_editor_numeric_geometry`, and LIBCD's `g_psyq_cd_backloc` and
+  `g_psyq_cd_backloc_position`.
+- One table in two shapes: ATTACK's `g_attack_deploy_slot_offsets` (five `s32`)
+  and `g_attack_panel_status_y_offsets` (`u16` pairs),
+  `g_require_gfx_poly_gt4_buffers` (two rows of 40) and
+  `g_require_gfx_poly_gt4_array_32`, REQUIRE's two names for one buffer in
+  MAIN's RAM, OPEN's `g_open_controller_records_next` and the title-menu view
+  `g_open_title_menu_states` that `open_title_push_menu_controller` declares,
+  and JOBSTTS's `g_menu_selected_ability_data` and
+  `g_menu_selected_ability_secondary_data`, one pointer read as two record
+  types.
+- A second name that makes the matching spelling reload or store again:
+  `g_bunit_help_nodes_reload` for `g_bunit_help_nodes`,
+  `g_bunit_help_node_index_reload` and `g_bunit_help_node_index_reload_2` for
+  `g_bunit_help_node_index`, and the one-function views
+  `g_battle_action_current_ability_view` (in
+  `battle_action_run_pre_formula_setup`) and
+  `g_wldcore_sound_novel_countdown_frames_reset` (in
+  `wldcore_sound_novel_update_countdown_timer`).
+- OPTION's own names for two BATTLE menu words: `g_option_menu_state`, which
+  `option_entrypoint` clears, is `g_menu_hide_numeric_values`, and
+  `g_option_menu_transition_timer` (`s16`) is `g_battle_menu_transition_state`
+  (`u16`).
+- Second link names of one function: `psyq_api_memcpy` is `memcpy` (it keeps
+  LIBAPI's call where `memcpy` would expand inline) and
+  `main_item_get_data_pointer_no_argument` is `main_item_get_data_pointer`,
+  which `battle_gfx_set_thrown_item_graphic_palette` calls with no argument; a
+  native build defines each as the other.
 
 ## Hand-written assembly
 
