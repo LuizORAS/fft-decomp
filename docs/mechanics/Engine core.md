@@ -42,8 +42,10 @@ frame (menu cursors, dialogue text, event actors).
 
 ## Data and structures
 
-**Memory map.** MAIN stays resident; the overlays share fixed windows. The
-words at the start of MAIN's data (`0x80010000`) hold the load addresses.
+**Memory map.** MAIN stays resident; the overlays share fixed windows, which
+`target/ram.yaml` describes. The words at the start of MAIN's data
+(`0x80010000`) hold the load addresses; `make build` writes them from that
+file and fails on an image that passes its window's end.
 
 | Range | Holds |
 |---|---|
@@ -81,10 +83,10 @@ words at the start of MAIN's data (`0x80010000`) hold the load addresses.
    starts a session. Then [[main_overlay_exec_open_bin_main_loop]] runs the
    title, and [[main_overlay_exec_wldcore_and_world_bin]] and
    [[main_overlay_exec_battle_bin]] alternate until a reset or the ending.
-   Each loads its overlay from a fixed sector and calls its entry point;
-   BATTLE's entry call lands on MAIN's 4 KB of nops
-   (`main_overlay_battle_entry_stub`), and the game loop runs
-   [[battle_state_run_game_loop]] itself.
+   Each loads its overlay from its file's first sector (a `DISC_SECTOR_*`
+   name from `target/disc.yaml`) and calls its entry point; BATTLE's entry
+   call lands on MAIN's 4 KB of nops (`main_overlay_battle_entry_stub`), and
+   the game loop runs [[battle_state_run_game_loop]] itself.
 3. **A frame inside an overlay.** The overlay's main loop is thread slot 0.
    Once a frame its event or menu frame function
    ([[battle_script_run_event_frame]], [[world_script_run_event_frame]]) yields:
@@ -118,8 +120,9 @@ words at the start of MAIN's data (`0x80010000`) hold the load addresses.
 - **Load a file:** [[main_file_alloc_and_load]] for a temporary buffer,
   [[main_file_load_to_address]] for a fixed one, or
   [[main_file_request_read_bytes]] plus polling to keep the frame running.
-  Sector numbers are constants in the callers, so moving or growing a file
-  waits for the shiftable build.
+  The callers name each file's sector and length with the `DISC_SECTOR_*`
+  and `DISC_SECTOR_COUNT_*` names `make config-fmt` writes from
+  `target/disc.yaml`, so a file that moves takes its reads with it.
 - **Run a task beside the main loop:** take a slot from
   [[battle_thread_resolve_id]], pass inputs with
   [[thread_set_parameters]], start it with [[thread_start]],
@@ -127,10 +130,10 @@ words at the start of MAIN's data (`0x80010000`) hold the load addresses.
   the same functions under `world_thread_`.
 - **Memory:** [[main_heap_alloc]] gives 2 KB cells (128 KB in all);
   [[battle_heap_alloc_block]] serves the battle effects.
-- **Today's limits:** every change must keep the original bytes; code or data
-  that grows or moves waits for the shiftable build (`CODEBASE.md`, "What
-  can change today"). The context switch and the main-stack bridge are
-  hand-written MIPS, so a port rewrites them.
+- **Today's limits:** every change must keep the original bytes until build 3
+  lets code or data grow or move; everything that names it already follows
+  (`CODEBASE.md`, "What can change today"). The context switch and the
+  main-stack bridge are hand-written MIPS, so a port rewrites them.
 
 ## Quirks and debts
 

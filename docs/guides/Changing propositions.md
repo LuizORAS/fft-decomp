@@ -47,5 +47,5 @@ original hash. To try an idea, change the game's memory in an emulator:
 `make run` launches PCSX-Redux, and `make map` writes the symbol maps that
 name these tables in its debugger. While WLDCORE is loaded, the proposition
 rows start at `0x8009d344` + the first offset (row `n` at + `n` * 23), and
-the extra-day percentages are record 12 and 13's ten 16-bit values. Code changes
-wait for the shiftable build, then build 3.
+the extra-day percentages are record 12 and 13's ten 16-bit values. Code
+changes wait for build 3.

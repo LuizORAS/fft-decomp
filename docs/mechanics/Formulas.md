@@ -251,9 +251,9 @@ retail abilities, weapons, consumables or commands that select the formula.
 - **How a status set lands:** [[battle_formula_apply_status_to_action]].
 - **Steal, Break and Might Sword targets:**
   [[battle_formula_select_target_equipment]].
-- **Today's limits:** every change must keep the original bytes; code that
-  grows or moves waits for the shiftable build (`CODEBASE.md`, "What can
-  change today").
+- **Today's limits:** every change must keep the original bytes until build 3
+  lets code grow or move; everything that names it already follows
+  (`CODEBASE.md`, "What can change today").
 
 ## Quirks and debts
 

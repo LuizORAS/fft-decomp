@@ -175,9 +175,9 @@ reacts.
   [[battle_reaction_prepare_hamedo_for_pending_action]].
 - **Mime:** [[battle_action_prepare_mimic]].
 - **Effect messages:** [[battle_action_queue_unit_effect_messages]].
-- **Today's limits:** every change must keep the original bytes; code that
-  grows or moves waits for the shiftable build (`CODEBASE.md`, "What can
-  change today").
+- **Today's limits:** every change must keep the original bytes until build 3
+  lets code grow or move; everything that names it already follows
+  (`CODEBASE.md`, "What can change today").
 
 ## Quirks and debts
 

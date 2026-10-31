@@ -41,4 +41,4 @@ Nothing that changes a byte: the tables are data in BATTLE.BIN and WORLD.BIN,
 and `make check` compares every function with its original hash. To try an
 idea, edit the tables in an emulator's memory: `make run` launches PCSX-Redux,
 and `make map` writes the symbol maps that name them. Code changes wait for
-the shiftable build, then build 3.
+build 3.

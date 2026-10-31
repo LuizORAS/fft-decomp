@@ -18,6 +18,11 @@ upstream.
   [`docs/`](docs/README.md) explains each game mechanic and where to change
   it, and `make map` generates an Obsidian vault with a page for every
   function, type and global. Every function has a summary.
+- **Build 2.5** (tag and branch `build-2.5`): the shiftable build.
+  `make build` links each module whole, and every word that holds an address
+  or a disc sector follows what it names, while the disc still comes out byte
+  for byte; `make build SHIFT=16` and `make smoke` prove it on a disc where
+  everything moves.
 
 A matching decompilation of the North American PlayStation release of *Final
 Fantasy Tactics* (`SCUS-94221` [redump](http://redump.org/disc/55/)). Every game

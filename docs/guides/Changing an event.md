@@ -43,4 +43,4 @@ original hash, and `TEST.EVT` is disc data. To try an idea, change the
 game's memory in an emulator: `make run` launches PCSX-Redux, and `make map`
 writes the symbol maps that name `g_main_script_event_block` and the script
 variables in its debugger. While an event runs, its block is loaded there.
-Code changes wait for the shiftable build, then build 3.
+Code changes wait for build 3.

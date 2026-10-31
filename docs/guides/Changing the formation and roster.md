@@ -51,4 +51,4 @@ original hash. To try an idea, change the game's memory in an emulator:
 name these tables in its debugger. For example, the Order Unit keys are the
 `-1`-terminated bytes at [[g_main_item_type_order_1]], and the field each
 key compares is the byte at `0x8018d7cc + key` while WORLD is loaded. Code
-changes wait for the shiftable build, then build 3.
+changes wait for build 3.

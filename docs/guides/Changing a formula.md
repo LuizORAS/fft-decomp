@@ -62,8 +62,7 @@ the weapon's formula for Attack and Charge).
 
 Nothing that changes a byte: `make check` compares every function with its
 original hash, so a new step in a handler or a different constant fails until
-the build accepts different code (the shiftable build, then build 3). Formula
-ids, X, Y and Z are disc data, which the repository does not hold. To try an
-idea, change the game's memory in an emulator: `make run` launches
-PCSX-Redux, and `make map` writes the symbol maps that name these functions
-in its debugger.
+the build accepts different code (build 3). Formula ids, X, Y and Z are disc
+data, which the repository does not hold. To try an idea, change the game's
+memory in an emulator: `make run` launches PCSX-Redux, and `make map` writes
+the symbol maps that name these functions in its debugger.

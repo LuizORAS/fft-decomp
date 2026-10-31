@@ -117,7 +117,7 @@ pushes the next one, replaces itself (index - 1, then a push) or pops.
 | The birthday's calendar | `g_open_birthday_month_lengths` and [[open_birthday_handle_menu_input]] |
 | The soft reset | [[open_input_update_buttons_and_check_game_reset]] (L1 + R1 + Select + Start) |
 | Opening the Music Test | Step 5 of [[open_title_step_new_game_start]], which nothing sets today |
-| A movie's sector or length | The `open_movie_push_*` callers; the sectors are constants, so a moved file needs the shiftable build |
+| A movie's sector or length | The `open_movie_push_*` callers, through the `DISC_SECTOR_*` and `DISC_SECTOR_COUNT_*` names `make config-fmt` writes from `target/disc.yaml`, so the reads follow a moved file |
 
 ## Quirks and debts
 

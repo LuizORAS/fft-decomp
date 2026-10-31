@@ -62,5 +62,5 @@ original hash, and the status data and infliction records are disc data,
 which the repository does not hold. To try an idea, change the game's memory
 in an emulator: `make run` launches PCSX-Redux, and `make map` writes the
 symbol maps that name these functions and tables in its debugger (the status
-data starts at `0x80065de4`, 16 bytes per status). Code changes wait for the
-shiftable build, then build 3.
+data starts at `0x80065de4`, 16 bytes per status). Code changes wait for
+build 3.

@@ -201,9 +201,9 @@ The other statuses weigh 0.
 - **Which abilities a unit considers:** [[battle_ai_build_unit_ability_list]]
   and [[battle_ai_set_ability_considerations]].
 - The [[Changing the AI's decisions]] guide lists every lever.
-- **Today's limits:** every change must keep the original bytes; code that
-  grows or moves waits for the shiftable build (`CODEBASE.md`, "What can
-  change today").
+- **Today's limits:** every change must keep the original bytes until build 3
+  lets code grow or move; everything that names it already follows
+  (`CODEBASE.md`, "What can change today").
 
 ## Quirks and debts
 

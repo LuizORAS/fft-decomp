@@ -83,8 +83,8 @@ The four routines of `src/psyq/suzuki/` are the sound driver's CPU heap; the
 | PAL or NTSC display | The video mode stays 0 (NTSC): nothing calls [[SetVideoMode]] |
 | A port | These libraries are the hardware boundary: a port replaces them, the BIOS veneers (`PSYQ_BIOS_TAIL_CALL` in `abi_inline.h`) and the GTE helpers (`gte_inline.h`) with its own equivalents |
 
-Like the game, every routine here matches its original bytes; a change that
-moves code waits for the shiftable build.
+Like the game, every routine here matches its original bytes; a change to one
+waits for build 3.
 
 ## Quirks and debts
 

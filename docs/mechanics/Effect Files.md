@@ -38,7 +38,7 @@ Each file's routines say which ability or effect id uses it.
 
 | Record | What it holds |
 |---|---|
-| `g_battle_effect_native_callbacks` | The fixed address of each native callback id. A file's code is laid out so that each of its callbacks sits at the address its id names |
+| `g_battle_effect_native_callbacks` | The address of each native callback id. In the original, each file's code sits so that its callbacks land on the addresses their ids name; the build writes each entry from its routine (a relocation), so it follows the code. Ids 1 and 90 name no routine |
 | `battle_effect_record_t.callback_phase` ([[effect_callback_phase_e]]) | The phase of a bound callback: INIT allocates its work block, UPDATE runs once a frame, DESTROY frees the block two frames before its keyframe ends |
 | [[effect_geometry_entry_t]] and its views | The emitter record a callback reads through its own layout: [[effect_radial_mesh_geometry_t]] (ring, tube and summon-dome meshes), [[effect_polar_mesh_geometry_view_t]], [[effect_textured_quad_geometry_view_t]], [[effect_particle_ribbon_geometry_view_t]], [[effect_tentacle_mesh_geometry_view_t]] |
 | The work blocks of `fft/effect.h` | Each renderer's double-buffered `POLY_GT4` quads and its spin, scroll and wave state, allocated from the effect heap |
@@ -91,7 +91,7 @@ to a family means a fix to every copy.
 | What a family draws | Its routine in each file that carries it (see the table) and its record in `fft/effect.h` |
 | Which callback an effect uses, and when | The file's script (opcodes 06 and 07) and keyframes: data in the file |
 | The curves a renderer follows | The emitter record and the animation curves of the file: data |
-| Adding code to an effect file | Waits for the shiftable build: each callback must sit at the address its id names |
+| Adding code to an effect file | Waits for build 3. The callback table and the file header offsets already follow the code, so a file can then grow up to the effect window's end (`make build` prints the room), which shrinks the battle heap that runs from its palette section to there |
 
 ## Quirks and debts
 

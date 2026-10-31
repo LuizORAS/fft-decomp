@@ -67,4 +67,4 @@ does not hold. To try an idea, change the game's memory in an emulator:
 `make run` launches PCSX-Redux, and `make map` writes the symbol maps that
 name these tables in its debugger (the ability records start at
 `0x8005ebf0`, 8 bytes per id; the action abilities' data at `0x8005fbf0`, 14
-bytes per id). Code changes wait for the shiftable build, then build 3.
+bytes per id). Code changes wait for build 3.

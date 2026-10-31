@@ -45,7 +45,8 @@ The [[AI]] page explains the whole decision. Each lever sits in one place:
 - **Time.** More work per candidate makes enemy turns take more frames; the
   `VSync(1)` limits keep the screen running while the plan waits.
 - **The workspace.** [[battle_ai_data_t]] has a fixed size and address
-  (`0x8019f3c4`, `0x19c8` bytes); a new field waits for the shiftable build.
+  (`0x8019f3c4`, `0x19c8` bytes); a new field waits for build 3, since the
+  build reads the data bytes from the disc at their original size.
 - **Mode names.** The Auto-Battle menu shows the game's text for each mode
   ([[battle_auto_battle_setting_e]]); the text is separate from the code.
 - **Quirks.** The [[AI]] page lists the `QUIRKS.md` entries that touch the
@@ -59,5 +60,4 @@ repository does not hold. To try an idea, change the game's memory in an
 emulator during a battle: `make run` launches PCSX-Redux, and `make map`
 writes the symbol maps that name these tables in its debugger (the status
 weights at `0x8019f308`, 2 bytes per status id; an ability's AI flags at
-`0x8005ebf0` + 8 × id + 4). Code changes wait for the shiftable build, then
-build 3.
+`0x8005ebf0` + 8 × id + 4). Code changes wait for build 3.

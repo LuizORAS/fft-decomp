@@ -286,7 +286,7 @@ retail. The same overlay draws the Status screen of a rider or a mount
 | The war trophies | [[require_reward_collect_war_trophies_and_bonus_money]] |
 | The next story event and the scenario setup | [[attack_scenario_load_conditionals]] |
 | Deployment | [[attack_deploy_run_screen]], [[attack_deploy_prepare_valid_tiles]] |
-| An overlay's size or load place | `g_battle_menu_companion_executable_*` (BATTLE.BIN data); growing a file needs the shiftable build |
+| An overlay's size or load place | `g_battle_menu_companion_executable_*` (BATTLE.BIN data): `make build` writes each file's sectors and size from `target/disc.yaml` and each window's size and start from `target/ram.yaml`; a file that grows waits for build 3 |
 
 ## Quirks and debts
 

@@ -54,5 +54,5 @@ original hash. To try an idea, change the game's memory in an emulator:
 `make run` launches PCSX-Redux, and `make map` writes the symbol maps that
 name these tables in its debugger. For example, the encounter table is the
 pointer at `g_wldcore_random_battle_data` while WLDCORE is loaded; the tier
-chances are the bytes at +3, +6, +9 and +12 of each 24-byte road. Code
-changes wait for the shiftable build, then build 3.
+chances are the bytes at +3, +6, +9 and +12 of each 24-byte road. Code changes
+wait for build 3.

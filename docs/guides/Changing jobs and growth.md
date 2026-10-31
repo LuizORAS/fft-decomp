@@ -58,4 +58,4 @@ which the repository does not hold. To try an idea, change the game's memory
 in an emulator: `make run` launches PCSX-Redux, and `make map` writes the
 symbol maps that name these functions and tables in its debugger (a job's
 record is at `0x800610b8 + job id * 0x30`, its growths and multipliers at
-`+0x0d`). Code changes wait for the shiftable build, then build 3.
+`+0x0d`). Code changes wait for build 3.

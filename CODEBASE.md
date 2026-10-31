@@ -17,8 +17,11 @@ Related pages:
 The game is one resident executable plus overlays that it loads from the CD
 to fixed addresses. Each module has a configuration in [`target/`](target/)
 and a source folder in [`src/`](src/). The configuration holds the address,
-size and hash of every function, the names of its data, and the regions kept
-as original bytes.
+size and hash of every function, the names of its data, the data words that
+hold an address, a disc sector or a RAM window's size, and the regions kept
+as original bytes. Beside them, [`target/disc.yaml`](target/disc.yaml)
+describes the disc's files and [`target/ram.yaml`](target/ram.yaml) the RAM
+windows the modules load into.
 
 | Module | Disc file | Loaded at | What it runs |
 |---|---|---|---|
@@ -52,7 +55,8 @@ is swapped out. A file offset is the address minus the module's `load`.
    - opens the memory card events and the generic sound effects;
    - loads the zodiac frame and seeds `rand` with 1.
 2. **Saves its stack pointer**, which
-   `main_restore_game_loop_stack_pointer.s` (the one assembly file) restores on a
+   `main_restore_game_loop_stack_pointer.s` (an original hand-written routine;
+   `QUIRKS.md` lists them all under "Hand-written assembly") restores on a
    reset (`main_system_reset_game`) before jumping back to the top of the game
    loop.
 3. **Enters [`main_system_run_game_loop`](src/main/main_system_run_game_loop.c)**,
@@ -96,13 +100,17 @@ works like this:
   (`main_file_poll_load`, then `VSync`) and keeps the loading indicator
   current.
 
-The sectors are constants in the code:
-- 1000 for BATTLE.BIN, in `main_overlay_exec_battle_bin`;
-- 84041 (`0x14849`) for WLDCORE.BIN and 84261 (`0x14925`) for WORLD.BIN, in
-  `main_overlay_exec_wldcore_and_world_bin`.
+Each sector and length in the code is a name from
+[`include/fft/disc.h`](include/fft/disc.h), which `make config-fmt` writes
+from [`target/disc.yaml`](target/disc.yaml):
+- `DISC_SECTOR_BATTLE_BIN` in `main_overlay_exec_battle_bin`;
+- `DISC_SECTOR_WORLD_WLDCORE_BIN` and `DISC_SECTOR_WORLD_WORLD_BIN` in
+  `main_overlay_exec_wldcore_and_world_bin`, which reads WORLD's whole RAM
+  window (`RAM_WINDOW_BYTES_WORLD`) from that sector.
 
-So a file that moves or grows on the disc breaks these reads. This is one
-reason today's build cannot change file sizes (see
+The data tables that hold sectors (the effect files', the event overlays',
+the music's) are `disc` words, which `make build` writes from the same file.
+So a file that moves on the disc takes its reads with it (see
 [What can change today](#what-can-change-today)).
 
 ### Memory
@@ -259,7 +267,8 @@ does for the game.
   have no C caller. Their pages say so.
 - **Debugging:** `make map` also writes PCSX-Redux symbol maps to
   `build/symbols/`, so the debugger shows these names. `make run` launches
-  the emulator.
+  the emulator, and `make smoke` boots the original and the shifted test
+  disc in it from a script that checks the code in RAM at each checkpoint.
 - **Upstream names:** the vault's Upstream renames page translates
   upstream's names to this fork's, by address.
   [`docs/upstream-renames.tsv`](docs/upstream-renames.tsv) is its committed
@@ -267,17 +276,34 @@ does for the game.
 
 ## What can change today
 
-Every function is compiled and compared with its original bytes, and
-`make build` reproduces the original disc. There is no switch yet for a build
-that differs. So today the tree supports:
-- renames, types, comments and documentation;
-- rewrites that keep the bytes.
+`make build` links each module whole, as the original linker did: every
+function's object and, between them, the original data bytes read from the
+BIN. A data word that holds an address is a relocation, a word that holds a
+disc sector or a RAM window's size comes from `target/disc.yaml` or
+`target/ram.yaml`, and a name another module places takes the address that
+module's link gives it. So when code or data moves, what names it follows:
+- `make build SHIFT=16` writes a test disc on which every module's image
+  opens 16 bytes at its start, and checks that every changed word moved with
+  what it names;
+- `make smoke` boots that disc and the original in PCSX-Redux, from a new
+  game through Orbonne and Gariland to the world map.
 
-Gameplay changes wait for two later steps:
-- **The shiftable build** (planned after this one):
-  - each module links as a whole, so functions can grow and move;
-  - data gets symbols;
-  - the disc sectors above come from the disc layout instead of constants.
-- **Build 3:** the `QUIRKS.md` entries and the "Type debt / Port debt"
-  comments become optional fixes. The vault's Build 3 backlog page collects
-  them.
+The product is still the original disc: every function must match its hash,
+every module its original file and the disc its SHA-256 (`make patch-check`
+builds it again the old way). So today the tree supports renames, types,
+comments and documentation, and rewrites that keep the bytes.
+
+A few addresses stay fixed on purpose: the RAM areas outside every module
+image, the GTE matrix stack's page, the names WORLD's never-run copies of
+BATTLE and EVENT code bind, and the MAP files, whose sectors the GNS files
+store.
+
+Gameplay changes wait for build 3, which accepts a disc that differs:
+- code that grows or moves links where the layout puts it, up to its RAM
+  window's end (`make build` prints each window's room), and
+  `make config-fmt` moves a file that outgrows its sectors to the disc's free
+  run;
+- a table that grows needs its bytes in source, since the build reads data
+  from the BIN at its original size;
+- the `QUIRKS.md` entries and the "Type debt / Port debt" comments become
+  optional fixes (the vault's Build 3 backlog page).

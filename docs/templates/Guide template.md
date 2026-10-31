@@ -20,5 +20,5 @@ entries that must stay consistent with the change.
 
 ## What can be done today
 
-What works in the byte-exact build, and what waits for the shiftable build
-(code or data that grows or moves).
+What works in the byte-exact build, and what waits for build 3 (code or data
+that changes).

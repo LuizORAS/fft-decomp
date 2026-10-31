@@ -279,9 +279,9 @@ The [[Movement rules]] guide details the movement classes.
 - **Its animation and effect:** [[g_battle_ability_animation_data]] and
   [[g_battle_effect_ability_files]] (disc data).
 - The [[Changing an ability]] guide walks through a change.
-- **Today's limits:** every change must keep the original bytes; code that
-  grows or moves waits for the shiftable build (`CODEBASE.md`, "What can
-  change today").
+- **Today's limits:** every change must keep the original bytes until build 3
+  lets code grow or move; everything that names it already follows
+  (`CODEBASE.md`, "What can change today").
 
 ## Quirks and debts
 

@@ -204,9 +204,9 @@ along scripted paths that ignore the other units.
   `battle_action_init_movement_ability_benefit`.
 - **Undoing a move:** `battle_state_handle_move_confirm_menu_state` and
   [[battle_move_undo_unit_move]].
-- **Today's limits:** every change must keep the original bytes; code that
-  grows or moves waits for the shiftable build (`CODEBASE.md`, "What can
-  change today").
+- **Today's limits:** every change must keep the original bytes until build 3
+  lets code grow or move; everything that names it already follows
+  (`CODEBASE.md`, "What can change today").
 
 ## Quirks and debts
 
