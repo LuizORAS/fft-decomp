@@ -54,11 +54,11 @@ is swapped out. A file offset is the address minus the module's `load`.
    - draws the SCEA and Squaresoft logos;
    - opens the memory card events and the generic sound effects;
    - loads the zodiac frame and seeds `rand` with 1.
-2. **Saves its stack pointer**, which
-   `main_restore_game_loop_stack_pointer.s` (an original hand-written routine;
-   `QUIRKS.md` lists them all under "Hand-written assembly") restores on a
-   reset (`main_system_reset_game`) before jumping back to the top of the game
-   loop.
+2. **Saves its stack pointer** with `main_system_store_stack_pointer.s`, which
+   `main_restore_game_loop_stack_pointer.s` restores on a reset
+   (`main_system_reset_game`) before jumping back to the top of the game loop.
+   Both are original hand-written routines; `QUIRKS.md` lists them all under
+   "Hand-written assembly".
 3. **Enters [`main_system_run_game_loop`](src/main/main_system_run_game_loop.c)**,
    which never returns:
 

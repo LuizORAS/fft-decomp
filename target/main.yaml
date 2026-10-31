@@ -55,7 +55,7 @@ functions:
   - {addr: 0x80010ad0, size: 112, name: __main, hash: 1dec58075cb55f11, source: src/lib/psyq/crt/__main.c}
   - {addr: 0x80010b40, size: 104, name: __do_global_dtors, hash: 30e458972df14eda, source: src/lib/psyq/crt/__do_global_dtors.c}
   - {addr: 0x80010ba8, size: 4104, name: main_overlay_battle_entry_stub, hash: 4e7233ea675790b1, asm: "4 KB of nops and a return that MAIN calls as BATTLE's entry point; no C function holds 1024 nops."}
-  - {addr: 0x80011bb0, size: 16, name: main_system_store_stack_pointer, hash: 972f7e917252ee42}
+  - {addr: 0x80011bb0, size: 16, name: main_system_store_stack_pointer, hash: 972f7e917252ee42, asm: "Stores sp into a caller-supplied word, the counterpart of main_restore_game_loop_stack_pointer; ordinary C cannot read sp."}
   - {addr: 0x80011bc0, size: 16, name: main_restore_game_loop_stack_pointer, hash: 8b9c9cab30efada8, asm: "Stack-replacing ABI tail transfer to main_system_run_game_loop; ordinary C cannot assign sp."}
   - {addr: 0x80011bd0, size: 36, name: main_file_request_read_quiet, hash: 323354187cbfd5ba}
   - {addr: 0x80011bf4, size: 484, name: main_file_request_read, hash: 2289317868ab7dd4}

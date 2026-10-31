@@ -109,7 +109,8 @@ file and fails on an image that passes its window's end.
    blocks.
 6. **Soft reset.** [[main_system_reset_game]] stops the display and audio and
    jumps back to the top of the game loop on the stack saved at boot
-   ([[main_restore_game_loop_stack_pointer]]).
+   ([[main_system_store_stack_pointer]] and
+   [[main_restore_game_loop_stack_pointer]]).
 
 ## Where to change
 

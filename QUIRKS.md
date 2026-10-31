@@ -1339,6 +1339,10 @@ The original programmers wrote these routines in assembly; each is a `.s`
 file whose opening comment says why it is not C. Port debt: a native build
 needs a portable C twin of each.
 
+- `main_system_store_stack_pointer`: stores `$sp` in the word at its
+  argument, which is how `main` saves the game loop's base stack in
+  `g_main_system_game_loop_stack_pointer` before the loop starts; a native
+  build saves that context another way (for example `setjmp`).
 - `main_restore_game_loop_stack_pointer`: replaces `$sp` with the stack
   address `main` saved at boot and jumps to the top of
   `main_system_run_game_loop`, abandoning every frame above it on a soft

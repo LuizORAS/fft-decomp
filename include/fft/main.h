@@ -30,9 +30,9 @@ typedef struct card_save_icon {
 } card_save_icon_t;
 
 /* system */
-/* The top-level game loop and its soft reset (main_restore_game_loop_stack_pointer, the one assembly
- * routine, puts the loop's stack back), the game flow states and error codes, the VSync play-time counter
- * and hsync counts, the empty error hooks and the debug output switches. */
+/* The top-level game loop and its soft reset (main_system_store_stack_pointer saves the loop's stack at boot and
+ * main_restore_game_loop_stack_pointer puts it back, both hand-written assembly), the game flow states and error
+ * codes, the VSync play-time counter and hsync counts, the empty error hooks and the debug output switches. */
 
 /* g_main_system_game_flow_state: what follows when the BATTLE.BIN loop
  * closes a battle or event. */

@@ -277,19 +277,20 @@ none), and prefer the profile of its neighbors.
   when it expresses something the original contained.
 - C, except the routines the original programmers wrote in assembly. Each is
   one `.s` file per routine and module, named after it. Its opening comment
-  says which original range it reproduces and why it cannot be C (it replaces
-  `$sp`, saves `k0`/`k1`/`$gp` in a context switch, keeps trapping `addi`,
-  runs code after its own `jr ra`, or another measured reason), and its
+  says which original range it reproduces and why it cannot be C (it reads or
+  replaces `$sp`, saves `k0`/`k1`/`$gp` in a context switch, keeps trapping
+  `addi`, runs code after its own `jr ra`, or another measured reason), and its
   `functions` row carries that reason in `asm`. Only a range no C spelling
   under the pinned compilers reproduces becomes `.s`: a `handwritten` region,
-  or a `blocked` one, whose comment then says it was probably C. Addresses in
-  a `.s` are symbols, never numbers. Each routine has a Port debt entry under
-  "Hand-written assembly" in `QUIRKS.md`, because a native build needs a
-  portable C twin. `make check-config` checks each of these and fails on a
-  region left over a routine that has its source and on a handwritten or
-  blocked range no function covers. Instruction-emitting inline asm
-  remains in the hand-written thread/copy helpers and the PS1 hardware/ABI
-  helpers in `include/psx/`.
+  or a `blocked` one, whose comment then says it was probably C. A game routine
+  that reads or replaces `$sp` is `.s` as well, since C reaches `$sp` only
+  through a register pin. Addresses in a `.s` are symbols, never numbers. Each
+  routine has a Port debt entry under "Hand-written assembly" in `QUIRKS.md`,
+  because a native build needs a portable C twin. `make check-config` checks
+  each of these and fails on a region left over a routine that has its source
+  and on a handwritten or blocked range no function covers.
+  Instruction-emitting inline asm remains in the hand-written thread/copy
+  helpers and the PS1 hardware/ABI helpers in `include/psx/`.
   Library algorithms stay C; each hardware instruction or register constraint
   must have a measured PS1 dependency or byte-exact ABI reason.
 - Typed access: structs and named fields, never raw offsets such as
