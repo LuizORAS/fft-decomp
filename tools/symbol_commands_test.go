@@ -50,6 +50,29 @@ func TestRenameFunctionMovesSourceConfigAndCallers(t *testing.T) {
 	}
 }
 
+func TestRenameFunctionRewritesDocuments(t *testing.T) {
+	p := validTestProject(t)
+	quirks := "- `main_first` in `src/main/main_first.c`.\n"
+	page := "---\nscope:\n  - main_first()\n---\nSee [[main_first]].\n"
+	writeSymbolRenameFixture(t, p.root, "QUIRKS.md", quirks)
+	writeSymbolRenameFixture(t, p.root, "docs/mechanics/Page.md", page)
+	if err := p.symbolsCommand([]string{"rename-function", "--old", "main_first", "--new", "main_start", "--dry-run"}); err != nil {
+		t.Fatal(err)
+	}
+	if got := readTestFile(t, p, "QUIRKS.md"); got != quirks {
+		t.Fatalf("dry run wrote QUIRKS.md: %q", got)
+	}
+	if err := p.symbolsCommand([]string{"rename-function", "--old", "main_first", "--new", "main_start"}); err != nil {
+		t.Fatal(err)
+	}
+	if got := readTestFile(t, p, "QUIRKS.md"); got != "- `main_start` in `src/main/main_start.c`.\n" {
+		t.Fatalf("QUIRKS.md = %q", got)
+	}
+	if got := readTestFile(t, p, "docs/mechanics/Page.md"); got != "---\nscope:\n  - main_start()\n---\nSee [[main_start]].\n" {
+		t.Fatalf("docs page = %q", got)
+	}
+}
+
 func TestRenameFunctionUpdatesOverridesAndRejectsCollisions(t *testing.T) {
 	p := validTestProject(t)
 	if err := p.symbolsCommand([]string{"rename-function", "--old", "attack_entry", "--new", "attack_start"}); err != nil {

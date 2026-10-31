@@ -62,6 +62,9 @@ func (p project) renameSymbolCommand(action string, args []string) error {
 		state = "planned"
 	}
 	fmt.Printf("symbols: %s %d symbol(s) across %d files\n", state, len(renames), result.ChangedFiles)
+	if len(result.Documents) != 0 {
+		fmt.Printf("symbols: documents %s\n", strings.Join(result.Documents, ", "))
+	}
 	return nil
 }
 

@@ -35,7 +35,8 @@ page under `mechanics/` it reads two frontmatter properties:
   only what no name entry matches.
 
 The vault's Metrics page counts mechanic pages, guides and the functions in
-a scope. Its Stale mentions page lists scope entries that match no function
+a scope. Its Stale mentions page lists scope entries that match no function,
+code spans that name a path, project symbol or type the code no longer has,
 and wikilinks to pages that do not exist.
 
 ## Editing

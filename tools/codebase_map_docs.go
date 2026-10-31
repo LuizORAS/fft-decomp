@@ -282,8 +282,9 @@ func mapHash(data []byte) string {
 // addDocs names the hand-written pages. They keep their repository paths, so
 // a name a generated page already took is an error. It then resolves each
 // mechanic's scope (a function belongs to its longest matching entry) and
-// reports scope entries that match nothing and wikilinks to missing pages
-// as stale mentions.
+// reports scope entries that match nothing, code spans that name code that
+// does not exist (the QUIRKS.md rule) and wikilinks to missing pages as stale
+// mentions.
 func (vault *mapVault) addDocs(docs []*mapDoc) error {
 	vault.docs = docs
 	vault.mechanic = map[string]*mapDoc{}
@@ -351,6 +352,13 @@ func (vault *mapVault) addDocs(docs []*mapDoc) error {
 			}
 			if fenced {
 				continue
+			}
+			for _, match := range mapBacktickPattern.FindAllStringSubmatch(line, -1) {
+				// A name prefix, as in a scope entry, names its family.
+				family := vault.index.hasIdentifierPrefix(match[1] + "_")
+				if key, exists, ok := vault.index.resolveMention(match[1]); ok && key == "" && !exists && !family && mapCheckedMention(match[1]) {
+					vault.index.stale = append(vault.index.stale, mapStale{doc.path, i + 1, match[1], "a code span names it, but nothing in the code does"})
+				}
 			}
 			for _, match := range mapWikilinkPattern.FindAllStringSubmatch(mapCodeSpanPattern.ReplaceAllString(line, ""), -1) {
 				// A table cell escapes the alias pipe: [[name\|alias]].

@@ -31,9 +31,12 @@ so.
 | LIBGS | WORLD | 24 | WLDCORE's drawing: double buffers, ordering tables and sorted sprites, polygons, lines and boxes |
 | LIBPRESS | OPEN | 18 | The MDEC decoder behind OPEN's movies |
 
-The four routines of `src/psyq/suzuki/` are the sound driver's CPU heap; the
-[[Sound Driver]] page covers them. `target/main.yaml`, `world.yaml` and
-`opening.yaml` list each module's library ranges under `libraries:`.
+The sound driver's four CPU heap routines, [[suzuki_sound_init_heap]],
+[[suzuki_sound_alloc]], [[suzuki_sound_free]] and
+[[suzuki_sound_get_largest_free_block]], live in `src/lib/suzuki/` with the
+rest of the driver; the [[Sound Driver]] page covers them. `target/main.yaml`,
+`world.yaml` and `opening.yaml` list each module's library ranges under
+`libraries:`.
 
 ## Data and structures
 

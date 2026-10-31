@@ -184,6 +184,66 @@ func TestPlanSourceIdentifierRenamesSkipsIncludesAndCoversAssembly(t *testing.T)
 	}
 }
 
+func TestPlanSourceIdentifierRenamesFollowsProjectNamesIntoComments(t *testing.T) {
+	root := t.TempDir()
+	writeSymbolRenameFixture(t, root, "src/main/caller.c", "#include \"fft/main_startup.h\"\n/* main_startup runs once; load stays */\nchar *s = \"main_startup\";\nvoid caller(void) { main_startup(); load(); } // main_startup again\n")
+	plan, err := planSourceIdentifierRenames(root, []sourceIdentifierRename{{"main_startup", "main_boot_run_startup"}, {"load", "main_file_load"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := "#include \"fft/main_startup.h\"\n/* main_boot_run_startup runs once; load stays */\nchar *s = \"main_startup\";\nvoid caller(void) { main_boot_run_startup(); main_file_load(); } // main_boot_run_startup again\n"
+	if got := string(plan.changes[filepath.Join(root, "src", "main", "caller.c")].replacement); got != want {
+		t.Fatalf("got:\n%s\nwant:\n%s", got, want)
+	}
+}
+
+func TestRenameDocumentIdentifierKeepsPlainWordsInProse(t *testing.T) {
+	for _, test := range []struct{ oldName, newName, source, want string }{
+		{"main_startup", "main_boot_run_startup",
+			"`main_startup()` and [[main_startup|startup]] in `src/main/main_startup.c`; main_startup runs once, main_startup_extra stays.\n  - main_startup()\n",
+			"`main_boot_run_startup()` and [[main_boot_run_startup|startup]] in `src/main/main_boot_run_startup.c`; main_boot_run_startup runs once, main_startup_extra stays.\n  - main_boot_run_startup()\n"},
+		{"load", "main_file_load",
+			"---\nscope:\n  - load\n  - load()\n  - loader\n---\n`load`, `load()`, `make load`, [[load]], [[load|the loader]], [[load#top]] and load in prose\n  - load\n",
+			"---\nscope:\n  - main_file_load\n  - main_file_load()\n  - loader\n---\n`load`, `main_file_load()`, `make load`, [[main_file_load]], [[main_file_load|the loader]], [[main_file_load#top]] and load in prose\n  - load\n"},
+		{"build", "main_file_build", "no front matter\n  - build\n", "no front matter\n  - build\n"},
+	} {
+		if got := string(renameDocumentIdentifier([]byte(test.source), test.oldName, test.newName)); got != test.want {
+			t.Errorf("%s:\ngot:  %q\nwant: %q", test.oldName, got, test.want)
+		}
+	}
+}
+
+func TestPlanDocumentIdentifierRenamesReadsOnlyTheDocuments(t *testing.T) {
+	root := t.TempDir()
+	for path, body := range map[string]string{
+		"QUIRKS.md":                 "- `g_old`: a quirk.\n",
+		"docs/mechanics/Page.md":    "---\nscope:\n  - g_old\n---\nSee [[g_old]].\n",
+		"docs/upstream-renames.tsv": "g_upstream\tg_old\n",
+		"meta/notes.md":             "g_old\n",
+		"build/map/Page.md":         "g_old\n",
+		"CLAUDE-RULES.md":           "g_old\n",
+	} {
+		writeSymbolRenameFixture(t, root, path, body)
+	}
+	changes, err := planDocumentIdentifierRenames(root, []sourceIdentifierRename{{"g_old", "g_new"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := map[string]string{
+		"QUIRKS.md":              "- `g_new`: a quirk.\n",
+		"docs/mechanics/Page.md": "---\nscope:\n  - g_new\n---\nSee [[g_new]].\n",
+	}
+	if len(changes) != len(want) {
+		t.Fatalf("changed %d documents, want %d", len(changes), len(want))
+	}
+	for path, body := range want {
+		change, ok := changes[filepath.Join(root, filepath.FromSlash(path))]
+		if !ok || string(change.replacement) != body {
+			t.Fatalf("%s = %q, want %q", path, change.replacement, body)
+		}
+	}
+}
+
 func TestReplaceIdentifierOutsideIncludesSkipsCommentsAndLiterals(t *testing.T) {
 	source := []byte("#include \"fft/load.h\"\n/* the load-game overlay */\n// load here\nchar *s = \"load\";\nint load(void);\nload();\n")
 	want := []byte("#include \"fft/load.h\"\n/* the load-game overlay */\n// load here\nchar *s = \"load\";\nint main_file_build_header_nnl(void);\nmain_file_build_header_nnl();\n")

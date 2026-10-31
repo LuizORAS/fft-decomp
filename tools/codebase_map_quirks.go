@@ -168,15 +168,23 @@ func parseQuirks(source string) []*mapQuirkSection {
 	return sections
 }
 
-// resolveMention maps a name written in QUIRKS.md or a comment to its page
-// key, and reports whether the name exists in the code at all. ok is false
-// for text that is not a symbol mention (expressions, wildcards, shorthand).
+// resolveMention maps a name written in QUIRKS.md, a document or a comment to
+// its page key, and reports whether the name exists in the code at all. ok is
+// false for text that is not a symbol mention (expressions, wildcards,
+// shorthand, <placeholder> paths).
 func (index *codebaseIndex) resolveMention(text string) (key string, exists bool, ok bool) {
 	text = strings.TrimSuffix(strings.TrimSpace(text), "()")
-	if strings.ContainsAny(text, "*{} ") || strings.Contains(text, "NNN") || strings.HasSuffix(text, "_") {
+	if strings.ContainsAny(text, "*{}< ") || strings.Contains(text, "NNN") || strings.HasSuffix(text, "_") {
 		return "", false, false
 	}
 	switch {
+	case (strings.HasPrefix(text, "src/") || strings.HasPrefix(text, "include/")) && strings.HasSuffix(text, "/"):
+		for path := range index.files {
+			if strings.HasPrefix(path, text) {
+				return "", true, true
+			}
+		}
+		return "", false, true
 	case strings.HasSuffix(text, ".c") || strings.HasSuffix(text, ".s") || strings.HasSuffix(text, ".h"):
 		if strings.Contains(text, "/") {
 			if name, found := index.functionBySource[text]; found {
@@ -297,11 +305,12 @@ func (index *codebaseIndex) collectDebtsAndStale() {
 	}
 }
 
-// mapCheckedMention reports whether a missing QUIRKS.md mention is a stale
-// name rather than prose in backticks (an instruction, a disc file, a local
-// variable or a shortened family name): only repository paths, project-prefixed
-// symbols and _t/_e types are checked.
+// mapCheckedMention reports whether a missing mention in backticks is a stale
+// name rather than prose (an instruction, a disc file, a local variable or a
+// shortened family name): only repository paths, project-prefixed symbols
+// (called or not) and _t/_e types are checked.
 func mapCheckedMention(mention string) bool {
+	mention = strings.TrimSuffix(strings.TrimSpace(mention), "()")
 	switch {
 	case strings.HasPrefix(mention, "src/") || strings.HasPrefix(mention, "include/"):
 		return true

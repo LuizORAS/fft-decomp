@@ -243,7 +243,8 @@ room each window has left. A window's size in code is
 To add a function: write `src/<module>/<name>.c`, add its `functions` row and
 any new `data` rows, then `make config-fmt`, `make checksums`,
 `make check MODULE=…`, `make build`. Rename with `make symbols` so sources,
-headers, `target/` and the file name change together.
+headers, comments, `target/`, the file name and the Markdown documents change
+together.
 
 ## Compiler profiles
 

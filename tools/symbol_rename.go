@@ -1,5 +1,6 @@
-// symbol_rename.go renames functions and data symbols across target/*.yaml
-// and the sources in one all-or-nothing file transaction.
+// symbol_rename.go renames functions and data symbols across target/*.yaml,
+// the sources and the Markdown documents in one all-or-nothing file
+// transaction.
 package main
 
 import (
@@ -12,10 +13,12 @@ import (
 	"regexp"
 	"sort"
 	"strconv"
+	"strings"
 )
 
 type symbolMutationResult struct {
 	ChangedFiles int
+	Documents    []string
 }
 
 type symbolFileChange struct {
@@ -240,6 +243,81 @@ func validateRenameIdentifier(value string) error {
 
 var sourceExtensions = map[string]bool{".c": true, ".h": true, ".ld": true, ".s": true}
 
+// documentFiles are the Markdown documents at the root whose symbol names
+// follow a rename; every .md page under docs/ follows too.
+var documentFiles = []string{"AGENTS.md", "CODEBASE.md", "QUIRKS.md", "README.md"}
+
+// renameDocumentIdentifier rewrites oldName in a Markdown document. A name
+// with an underscore is a project symbol wherever it is written, prose
+// included. A plain name (load, build, main) is also an English word, a make
+// target or a field, so it changes only in a `name()` code span, a wikilink
+// target and an entry of the front matter's lists (the scope).
+func renameDocumentIdentifier(source []byte, oldName, newName string) []byte {
+	name := regexp.QuoteMeta(oldName)
+	if strings.Contains(oldName, "_") {
+		return regexp.MustCompile(`\b`+name+`\b`).ReplaceAll(source, []byte(newName))
+	}
+	replacement := []byte("${1}" + newName + "${2}")
+	source = regexp.MustCompile("(`)"+name+"(\\(\\)`)").ReplaceAll(source, replacement)
+	source = regexp.MustCompile(`(\[\[)`+name+`([|#\]])`).ReplaceAll(source, replacement)
+	if end := frontMatterEnd(source); end > 0 {
+		header := regexp.MustCompile(`(?m)^([ \t]*- )`+name+`((?:\(\))?)$`).ReplaceAll(source[:end], replacement)
+		source = append(header, source[end:]...)
+	}
+	return source
+}
+
+// frontMatterEnd returns where the closing --- line of a document's front
+// matter starts, or 0 when the document has none.
+func frontMatterEnd(source []byte) int {
+	if !bytes.HasPrefix(source, []byte("---\n")) {
+		return 0
+	}
+	if end := bytes.Index(source[3:], []byte("\n---\n")); end >= 0 {
+		return 3 + end + 1
+	}
+	return 0
+}
+
+// planDocumentIdentifierRenames applies the renames to documentFiles and to
+// every .md page under docs/.
+func planDocumentIdentifierRenames(root string, renames []sourceIdentifierRename) (map[string]sourceTextChange, error) {
+	paths := make([]string, 0, len(documentFiles))
+	for _, name := range documentFiles {
+		paths = append(paths, filepath.Join(root, name))
+	}
+	err := filepath.WalkDir(filepath.Join(root, "docs"), func(path string, entry os.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
+		}
+		if !entry.IsDir() && filepath.Ext(path) == ".md" {
+			paths = append(paths, path)
+		}
+		return nil
+	})
+	if err != nil && !errors.Is(err, os.ErrNotExist) {
+		return nil, err
+	}
+	changes := make(map[string]sourceTextChange)
+	for _, path := range paths {
+		info, body, err := readRegularSymbolFile(path)
+		if err != nil {
+			if errors.Is(err, os.ErrNotExist) {
+				continue
+			}
+			return nil, err
+		}
+		current := body
+		for _, rename := range renames {
+			current = renameDocumentIdentifier(current, rename.oldName, rename.newName)
+		}
+		if !bytes.Equal(body, current) {
+			changes[path] = sourceTextChange{original: body, replacement: current, mode: info.Mode()}
+		}
+	}
+	return changes, nil
+}
+
 type sourceTextChange struct {
 	original    []byte
 	replacement []byte
@@ -303,7 +381,11 @@ func planSourceIdentifierRenames(root string, renames []sourceIdentifierRename) 
 				if !bytes.Contains(current, []byte(rename.oldName)) {
 					continue
 				}
-				after := replaceIdentifierOutsideIncludes(patterns[index], current, []byte(rename.newName))
+				replace := replaceIdentifierOutsideIncludes
+				if strings.Contains(rename.oldName, "_") {
+					replace = replaceIdentifierInCodeAndComments
+				}
+				after := replace(patterns[index], current, []byte(rename.newName))
 				if bytes.Equal(current, after) {
 					continue
 				}
@@ -606,8 +688,9 @@ type symbolRename struct {
 }
 
 // renameSymbols renames functions (function true) or data symbols across the
-// configuration and every source under src/ and include/. A function
-// definition rename also moves its source file to <dir>/<new>.c.
+// configuration, every source under src/ and include/ and the Markdown
+// documents. A function definition rename also moves its source file to
+// <dir>/<new>.c.
 func (p project) renameSymbols(renames []symbolRename, function, dryRun bool) (result symbolMutationResult, err error) {
 	seen := make(map[string]bool)
 	for _, rename := range renames {
@@ -655,6 +738,10 @@ func (p project) renameSymbols(renames []symbolRename, function, dryRun bool) (r
 				return fmt.Errorf("function definition already exists: %s", sources.newDefinition[index][0])
 			}
 		}
+		documents, err := planDocumentIdentifierRenames(p.root, identifierRenames)
+		if err != nil {
+			return err
+		}
 		transaction := newSymbolFileTransaction()
 		for path, data := range renderConfigFiles(config) {
 			full := filepath.Join(p.root, filepath.FromSlash(path))
@@ -690,6 +777,17 @@ func (p project) renameSymbols(renames []symbolRename, function, dryRun bool) (r
 				return err
 			}
 		}
+		for path, change := range documents {
+			if err := transaction.addExistingSnapshot(path, change.original, change.replacement, change.mode); err != nil {
+				return err
+			}
+			relative, err := filepath.Rel(p.root, path)
+			if err != nil {
+				return err
+			}
+			result.Documents = append(result.Documents, filepath.ToSlash(relative))
+		}
+		sort.Strings(result.Documents)
 		result.ChangedFiles = len(transaction.changes)
 		if dryRun {
 			return nil
@@ -848,9 +946,23 @@ func replaceIdentifierOutsideIncludes(pattern *regexp.Regexp, source, replacemen
 	return rewriteCodeOutsideIncludes(source, func(code []byte) []byte { return pattern.ReplaceAll(code, replacement) })
 }
 
+// replaceIdentifierInCodeAndComments renames a project symbol, a name with an
+// underscore that no prose word spells, in code and in comments alike; include
+// lines and literals still never change.
+func replaceIdentifierInCodeAndComments(pattern *regexp.Regexp, source, replacement []byte) []byte {
+	rewrite := func(text []byte) []byte { return pattern.ReplaceAll(text, replacement) }
+	return rewriteSourceText(source, rewrite, rewrite)
+}
+
 // rewriteCodeOutsideIncludes applies rewrite to every run of code text,
 // passing include lines, comments and literals through unchanged.
 func rewriteCodeOutsideIncludes(source []byte, rewrite func([]byte) []byte) []byte {
+	return rewriteSourceText(source, rewrite, func(comment []byte) []byte { return comment })
+}
+
+// rewriteSourceText applies code to every run of code text and comment to
+// every comment, passing include lines and literals through unchanged.
+func rewriteSourceText(source []byte, rewrite, comment func([]byte) []byte) []byte {
 	var output []byte
 	code := make([]byte, 0, len(source))
 	flush := func() {
@@ -876,21 +988,21 @@ func rewriteCodeOutsideIncludes(source []byte, rewrite func([]byte) []byte) []by
 			flush()
 			stop := bytes.Index(source[index+2:], []byte("*/"))
 			if stop < 0 {
-				output = append(output, source[index:]...)
+				output = append(output, comment(source[index:])...)
 				index = len(source)
 				continue
 			}
-			output = append(output, source[index:index+2+stop+2]...)
+			output = append(output, comment(source[index:index+2+stop+2])...)
 			index += 2 + stop + 2
 		case bytes.HasPrefix(source[index:], []byte("//")):
 			flush()
 			stop := bytes.IndexByte(source[index:], '\n')
 			if stop < 0 {
-				output = append(output, source[index:]...)
+				output = append(output, comment(source[index:])...)
 				index = len(source)
 				continue
 			}
-			output = append(output, source[index:index+stop]...)
+			output = append(output, comment(source[index:index+stop])...)
 			index += stop
 		case source[index] == '"' || source[index] == '\'':
 			flush()
