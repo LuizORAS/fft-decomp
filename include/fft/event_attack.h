@@ -77,8 +77,8 @@ typedef enum attack_deployment_orientation {
 
 /* The same slots while the confirm prompt or the unit detail view is up. */
 typedef enum attack_prompt_thread_slot {
-    ATTACK_PROMPT_THREAD_SLOT_CONFIRM_MENU_CHILD = 3, /* the child of the confirm menu */
-    ATTACK_PROMPT_THREAD_SLOT_CONFIRM_MENU = 4,       /* the menu that sets g_attack_deploy_confirm_result */
+    ATTACK_PROMPT_THREAD_SLOT_CONFIRM_MENU_CHILD = 3, /* the choice that sets g_attack_deploy_confirm_result */
+    ATTACK_PROMPT_THREAD_SLOT_CONFIRM_MENU = 4,       /* the confirm prompt, which opens the choice in slot 3 */
     ATTACK_PROMPT_THREAD_SLOT_DETAIL_MARKER = 13,     /* a wait-forever thread while the unit detail panels are open */
 } attack_prompt_thread_slot_e;
 
@@ -204,7 +204,16 @@ extern RECT g_attack_deploy_cursor_clut_rect;
 extern palette_t g_attack_deploy_cursor_palette_cycle[2];
 extern const palette_t g_attack_deploy_cursor_palette_source[2];
 extern s32 g_attack_deploy_deployed_unit_count;
+
+/* The deployment screen's menu entries (g_menu_thread_menu_data while it runs); entries 2 to 4 are its prompts.
+ * Entry 2 is the notice, whose text_id the screen sets before each use: its row action -1
+ * (g_attack_deploy_notice_row_actions) closes it. Entry 3 is the confirm prompt: its row action 4
+ * (g_attack_deploy_confirm_prompt_row_actions) opens entry 4 in the slot below. Entry 4 is the prompt's two-row
+ * choice: both row actions -2 (g_attack_deploy_confirm_choice_row_actions) close the two menus. The menu writes
+ * the confirmed row into each entry's value cell (g_attack_deploy_notice_result,
+ * g_attack_deploy_confirm_prompt_result and g_attack_deploy_confirm_result); the screen reads only the last. */
 extern world_menu_entry_t g_attack_deploy_menu_entries[];
+
 extern RECT g_attack_deploy_rect_09c;
 extern RECT g_attack_deploy_rect_0ac;
 extern RECT g_attack_deploy_rect_0cc;

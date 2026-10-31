@@ -193,9 +193,9 @@ data:
   - {addr: 0x801cd0c4, name: g_attack_deploy_tile_clut_rect}
   - {addr: 0x801cd0cc, name: g_attack_deploy_rect_0cc}
   - {addr: 0x801cd0d4, name: g_attack_deploy_texture_location}
-  - {addr: 0x801cd0dc, name: D_801cd0dc}
-  - {addr: 0x801cd0de, name: D_801cd0de}
-  - {addr: 0x801cd0e0, name: D_801cd0e0}
+  - {addr: 0x801cd0dc, name: g_attack_deploy_notice_row_actions}
+  - {addr: 0x801cd0de, name: g_attack_deploy_confirm_prompt_row_actions}
+  - {addr: 0x801cd0e0, name: g_attack_deploy_confirm_choice_row_actions}
   - {addr: 0x801cd0e4, name: g_attack_deploy_menu_entries}
   - {addr: 0x801cd210, name: g_attack_status_display_thread_params}
   - {addr: 0x801cd214, name: g_attack_status_display_offset_y}
@@ -282,8 +282,8 @@ data:
   - {addr: 0x801dcb1c, name: g_attack_deploy_cursor_clut}
   - {addr: 0x801dcb3c, name: g_attack_deploy_tile_clut_buffer}
   - {addr: 0x801dcb9c, name: g_attack_deploy_semitrans_clut_buffer}
-  - {addr: 0x801dcbbc, name: D_801dcbbc}
-  - {addr: 0x801dcbc0, name: D_801dcbc0}
+  - {addr: 0x801dcbbc, name: g_attack_deploy_notice_result}
+  - {addr: 0x801dcbc0, name: g_attack_deploy_confirm_prompt_result}
   - {addr: 0x801dcbc4, name: g_attack_deploy_confirm_result}
   - {addr: 0x801dcbc8, name: g_attack_deploy_valid_tiles}
   - {addr: 0x801dcbe4, name: g_attack_deploy_roster_id_by_tile}
@@ -372,13 +372,13 @@ relocations:
   - {addr: 0x801cab80, to: D_801ca128, offset: 0x20}
   - {addr: 0x801cab8c, to: D_801ca128, offset: 0x18}
   - {addr: 0x801cab98, to: D_801ca128, offset: 0x22}
-  - {addr: 0x801cd180, to: D_801cd0dc}
+  - {addr: 0x801cd180, to: g_attack_deploy_notice_row_actions}
   - {addr: 0x801cd184, to: battle_menu_icon_linked_entry_thread}
-  - {addr: 0x801cd190, to: D_801dcbbc}
-  - {addr: 0x801cd1bc, to: D_801cd0de}
+  - {addr: 0x801cd190, to: g_attack_deploy_notice_result}
+  - {addr: 0x801cd1bc, to: g_attack_deploy_confirm_prompt_row_actions}
   - {addr: 0x801cd1c0, to: battle_menu_icon_linked_entry_thread}
-  - {addr: 0x801cd1cc, to: D_801dcbc0}
-  - {addr: 0x801cd1f8, to: D_801cd0e0}
+  - {addr: 0x801cd1cc, to: g_attack_deploy_confirm_prompt_result}
+  - {addr: 0x801cd1f8, to: g_attack_deploy_confirm_choice_row_actions}
   - {addr: 0x801cd1fc, to: battle_menu_run_icon_selection_loop}
   - {addr: 0x801cd208, to: g_attack_deploy_confirm_result}
   - {addr: 0x801cd270, to: g_attack_deploy_squad_data_storage}
