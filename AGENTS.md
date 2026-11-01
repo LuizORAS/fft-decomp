@@ -202,7 +202,8 @@ addresses, decimal sizes, one flow mapping per line, sorted rows) and
   `ram.yaml`, and `make reloc-check` checks each against the original.
 - `units`: the original translation units, `{addr, end, name}` plus `profile`
   when the file was not built with the module default, matched by address
-  from upstream's unit tables and named with its labels. The functions in
+  from the unit tables of the decompilation this project started from
+  (`adamrt/fft_decomp`) and named with its labels. The functions in
   `[addr, end)` were one source file; each keeps its own source, and
   `make unit-check` rebuilds the unit from them.
 - Linking one function binds each name it uses from its own module, then
