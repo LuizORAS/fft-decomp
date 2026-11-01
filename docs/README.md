@@ -11,7 +11,7 @@ and module) into `build/map/`, an Obsidian vault.
 | `mechanics/` | One page per game mechanic (movement, formulas, AI...) with the `scope` of code it covers |
 | `guides/` | Walkthroughs of a common change ("where to change X") |
 | `templates/` | The skeleton of each kind of page |
-| `upstream-renames.tsv` | Generated, not hand-written: each upstream name that differs from this fork's at the same module and address. `make map` rewrites it when the clone has the `upstream/master` ref |
+| `upstream-renames.tsv` | Each name the decompilation this project started from ([adamrt/fft_decomp](https://github.com/adamrt/fft_decomp), at its last merge, `f59f939d`) gave where ours differs, by module and address. Those names are frozen; `make map` keeps the last column on our current names |
 
 Pages link to generated pages with wikilinks such as `[[name]]`. A generated
 page is named after its function, type or global, so on GitHub a link still

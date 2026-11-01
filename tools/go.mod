@@ -1,4 +1,4 @@
-module github.com/adamrt/fft_decomp/tools
+module github.com/LuizORAS/fft-decomp/tools
 
 go 1.24.0
 
