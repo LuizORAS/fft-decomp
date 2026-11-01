@@ -70,11 +70,16 @@ make build     # link every module and a byte-matching disc (the disc needs the 
   matching) and every `make` command.
 - [`QUIRKS.md`](QUIRKS.md): retail bugs and code that looks wrong on purpose.
 
-## Thanks
+## Credits
 
-This project is an ode to the [FFHacktics](https://ffhacktics.com/wiki/)
-community. ❤️
+- **Original source:** [adamrt/fft_decomp](https://github.com/adamrt/fft_decomp)
+  by Adam Patterson ([@adamrt](https://github.com/adamrt)), the decompilation
+  this project started from. Its history is kept here, and he gave the
+  go-ahead to build on it. 🙏⚔️✨
+- **[FFHacktics](https://ffhacktics.com/wiki/):** this project is an ode to
+  its community. ❤️
 
-And thanks to Adam ([@adamrt](https://github.com/adamrt)) for
-[the decompilation](https://github.com/adamrt/fft_decomp) this project
-started from, and for the go-ahead to build on it. 🙏⚔️✨
+## License
+
+The source code, tools and documentation are released under the
+[MIT License](LICENSE).
