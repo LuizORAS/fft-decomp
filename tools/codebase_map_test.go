@@ -101,19 +101,22 @@ func TestMapAsmSourceSummary(t *testing.T) {
 func TestMapSymbolMapsAndUpstreamRenames(t *testing.T) {
 	p := testMapProject(t)
 	table := filepath.Join(p.root, filepath.FromSlash(mapUpstreamTable))
-	// Without an upstream export the committed copy is left alone.
+	// Without the table nothing writes one.
 	if err := p.mapCommand(nil); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := os.Stat(table); !os.IsNotExist(err) {
-		t.Fatalf("%s written without an upstream export: %v", mapUpstreamTable, err)
+		t.Fatalf("%s written without a table: %v", mapUpstreamTable, err)
 	}
-	// Upstream still calls main_second "main_old_second" and g_battle_value
-	// "g_battle_old_value".
-	writeTestFile(t, filepath.Join(p.root, "build", "upstream", "target", "main.yaml"),
-		[]byte(strings.Replace(testMainYAML, "name: main_second,", "name: main_old_second,", 1)))
-	writeTestFile(t, filepath.Join(p.root, "build", "upstream", "target", "battle.yaml"),
-		[]byte(strings.Replace(testBattleYAML, "name: g_battle_value}", "name: g_battle_old_value}", 1)))
+	// The frozen upstream names: main_old_second's row still names our former
+	// main_renamed, g_old_value's row the alias it chose; upstream's main_first
+	// is ours again, and no name of ours sits at 0x80010300.
+	writeTestFile(t, table, []byte(mapUpstreamHeader+"\n"+
+		"battle\t0x80067100\tg_battle_old_value\tg_battle_value\n"+
+		"main\t0x80010000\tmain_first\tmain_old_first\n"+
+		"main\t0x80010008\tmain_old_second\tmain_renamed\n"+
+		"main\t0x80010100\tg_old_value\tg_main_value_alias\n"+
+		"main\t0x80010300\tg_gone\tg_gone_ours\n"))
 	if err := p.mapCommand(nil); err != nil {
 		t.Fatal(err)
 	}
@@ -139,9 +142,10 @@ func TestMapSymbolMapsAndUpstreamRenames(t *testing.T) {
 			t.Fatalf("upstream page lacks %q:\n%s", row, page)
 		}
 	}
-	wantTable := "module\taddress\tupstream\tours\n" +
+	wantTable := mapUpstreamHeader + "\n" +
 		"battle\t0x80067100\tg_battle_old_value\tg_battle_value\n" +
-		"main\t0x80010008\tmain_old_second\tmain_second\n"
+		"main\t0x80010008\tmain_old_second\tmain_second\n" +
+		"main\t0x80010100\tg_old_value\tg_main_value_alias\n"
 	if got := read(table); got != wantTable {
 		t.Fatalf("%s:\n%s\nwant:\n%s", mapUpstreamTable, got, wantTable)
 	}

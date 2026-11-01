@@ -269,10 +269,13 @@ does for the game.
   `build/symbols/`, so the debugger shows these names. `make run` launches
   the emulator, and `make smoke` boots the original and the shifted test
   disc in it from a script that checks the code in RAM at each checkpoint.
-- **Upstream names:** the vault's Upstream renames page translates
-  upstream's names to this fork's, by address.
-  [`docs/upstream-renames.tsv`](docs/upstream-renames.tsv) is its committed
-  copy, which GitHub shows as a searchable table.
+- **Original names:** the vault's Upstream renames page translates the
+  names of the decompilation this project started from
+  ([adamrt/fft_decomp](https://github.com/adamrt/fft_decomp), as of its last
+  merge, `f59f939d`) into this project's, by address.
+  [`docs/upstream-renames.tsv`](docs/upstream-renames.tsv) holds that table,
+  which GitHub shows as a searchable one; `make map` keeps its last column
+  on the current names.
 
 ## What can change today
 

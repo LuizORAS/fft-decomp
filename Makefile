@@ -145,10 +145,6 @@ symbols: image ## Rename a symbol: ACTION=rename-function|rename-global ARGS="--
 	@test -n "$(ACTION)" || { echo "ACTION is required: rename-function or rename-global"; exit 2; }
 	@$(TOOLS) symbols "$(ACTION)" $(ARGS)
 
-MAP_UPSTREAM ?= upstream/master
-
-# The upstream target/ files are exported on the host, where git runs, so the
-# map can translate upstream names; a clone without that ref skips the page.
 # MAP_EXPORT copies the vault to a directory outside build/ (a Windows drive:
 # Obsidian cannot watch a vault inside WSL), keeping that copy's own .obsidian/
 # settings. The copy's docs/ pages, CODEBASE.md and hash manifest come back
@@ -156,13 +152,6 @@ MAP_UPSTREAM ?= upstream/master
 # changed files are rewritten, so Obsidian re-reads only those.
 .PHONY: map
 map: image ## Generate the Obsidian codebase map in build/map (MAP_EXPORT=dir also copies it)
-	@rm -rf build/upstream
-	@if git rev-parse --verify -q "$(MAP_UPSTREAM)" >/dev/null 2>&1; then \
-		mkdir -p build/upstream/target && \
-		for file in $$(git ls-tree --name-only "$(MAP_UPSTREAM)" target/); do \
-			git show "$(MAP_UPSTREAM):$$file" > "build/upstream/$$file" || exit 1; \
-		done; \
-	fi
 	@if [ -n "$(MAP_EXPORT)" ] && [ -f "$(MAP_EXPORT)/.docs.sha256" ] && [ -d "$(MAP_EXPORT)/docs" ]; then \
 		mkdir -p build/map/docs && \
 		rsync -r --checksum --delete "$(MAP_EXPORT)/docs/" build/map/docs/ && \

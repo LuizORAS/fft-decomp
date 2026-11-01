@@ -117,7 +117,7 @@ make diff FUNC=f           # compare one function with the original bytes (needs
 make library-diff ARGS="..." # compare a scratch library candidate without registering it
 make permute FUNC=f        # run decomp-permuter on it [DURATION=300 JOBS=4]
 make test                  # vet and test the Go tooling
-make map                   # write the codebase map (Obsidian vault) to build/map and the upstream rename table to docs/upstream-renames.tsv; ARGS=--pull-docs copies docs edited in the vault back
+make map                   # write the codebase map (Obsidian vault) to build/map and keep docs/upstream-renames.tsv on the current names; ARGS=--pull-docs copies docs edited in the vault back
 make warnings              # list cc1 -Wall warnings per function in build/warnings [MODULE=x]
 make verify                # fmt-check, check-config, decl-check and check
 make fmt                   # clang-format src/ and include/ in place

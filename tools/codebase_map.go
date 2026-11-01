@@ -45,7 +45,7 @@ func (p project) mapCommand(args []string) error {
 	// before docs/ is read and copied into the vault.
 	renames, upstreamAvailable, upstreamErr := upstreamRenames(p.root, config)
 	if upstreamErr != nil {
-		fmt.Fprintf(p.stdout(), "map: upstream target/ not read, %s left as is: %v\n", mapUpstreamTable, upstreamErr)
+		fmt.Fprintf(p.stdout(), "map: %s not read, left as is: %v\n", mapUpstreamTable, upstreamErr)
 	}
 	if upstreamAvailable && upstreamErr == nil {
 		changed, err := writeUpstreamRenames(p.root, renames)
