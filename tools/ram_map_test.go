@@ -58,13 +58,42 @@ func TestRAMMapPlacesModulesInWindows(t *testing.T) {
 	if battle, _ := config.module("battle"); battle.ramEnd != 0x801bf000 {
 		t.Fatalf("battle's window ends at 0x%08x", battle.ramEnd)
 	}
-	room := strings.Join(ramRoom(config.RAM, config, config.Modules), "\n")
+	room := strings.Join(ramRoom(config.RAM, config, nil, config.Modules), "\n")
 	for _, line := range []string{
 		"  main               0x80010000-0x80067000  354304 bytes left after main",
 		"  companion          0x801bf000-0x801df000  130816 bytes left after event-attack",
 	} {
 		if !strings.Contains(room, line) {
 			t.Fatalf("room lacks %q:\n%s", line, room)
+		}
+	}
+}
+
+func TestRAMRoomComparesAnEditionWithTheOriginal(t *testing.T) {
+	p := ramTestProject(t, testMainYAML, testRAMMapYAML, nil)
+	original, err := loadRAMTest(t, p)
+	if err != nil {
+		t.Fatal(err)
+	}
+	grown, err := loadRAMTest(t, p)
+	if err != nil {
+		t.Fatal(err)
+	}
+	grown.byID["main"].Size += 16
+	grown.byID["event-attack"].Size -= 16
+	grown.byID["event-card"].Size -= 16
+	room := ramRoom(grown.RAM, grown, original, grown.Modules)
+	for _, want := range []string{
+		"  main               0x80010000-0x80067000  354288 bytes left after main (16 fewer than the original)",
+		"  companion          0x801bf000-0x801df000  130832 bytes left after event-attack (16 more than the original)",
+		"  battle             0x80067000-0x801bf000 ",
+	} {
+		found := false
+		for _, line := range room {
+			found = found || strings.HasPrefix(line, want) && (strings.Contains(want, "original") || !strings.Contains(line, "original"))
+		}
+		if !found {
+			t.Fatalf("room lacks %q:\n%s", want, strings.Join(room, "\n"))
 		}
 	}
 }

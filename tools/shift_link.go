@@ -116,7 +116,7 @@ func (p project) finishShiftedLink(resolver symbolResolver, config, shifted *pro
 	}
 	if config.RAM != nil {
 		fmt.Fprintln(p.stdout(), "ram: the room each window has left after its largest module, shifted")
-		for _, line := range ramRoom(config.RAM, shifted, shifted.Modules) {
+		for _, line := range ramRoom(config.RAM, shifted, nil, shifted.Modules) {
 			fmt.Fprintln(p.stdout(), line)
 		}
 	}

@@ -245,7 +245,8 @@ load address (`addr`) to where the next thing resident with them starts
 state lists the windows resident at one time, which never overlap; two
 modules are in RAM together when one state lists both their windows (two
 modules of one window never are). `make build` fails on an image that passes its window's end and prints the
-room each window has left. A window's size in code is
+room each window has left; an edition's build says where that room differs
+from the original's. A window's size in code is
 `RAM_WINDOW_BYTES_<WINDOW>` and its start past another's
 `RAM_WINDOW_START_<WINDOW>_FROM_<OTHER>`, which `make config-fmt` writes to
 `include/fft/ram.h` for each one the code uses.

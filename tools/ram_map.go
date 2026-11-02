@@ -410,30 +410,54 @@ func (p project) writeRAMHeader(config *projectConfig) (bool, error) {
 }
 
 // ramRoom lists, for each window that holds one of the modules, the bytes
-// left between its largest module's end and the window's end.
-func ramRoom(ram *ramMap, config *projectConfig, modules []*moduleSpec) []string {
+// left between its largest module's end and the window's end. With original,
+// the configuration an edition's modules grew from, a window whose room
+// differs says by how much.
+func ramRoom(ram *ramMap, config, original *projectConfig, modules []*moduleSpec) []string {
 	windows, _ := ram.moduleWindows(config)
 	type room struct {
 		window *ramWindow
 		module *moduleSpec
 		end    uint32
 	}
-	rooms := make(map[*ramWindow]*room)
-	for _, m := range modules {
-		window := windows[m.ID]
-		if window == nil {
-			continue
+	largest := func(modules []*moduleSpec) map[*ramWindow]*room {
+		rooms := make(map[*ramWindow]*room)
+		for _, m := range modules {
+			window := windows[m.ID]
+			if window == nil {
+				continue
+			}
+			_, end := moduleRAM(m)
+			if current := rooms[window]; current == nil || end > current.end {
+				rooms[window] = &room{window, m, end}
+			}
 		}
-		_, end := moduleRAM(m)
-		if current := rooms[window]; current == nil || end > current.end {
-			rooms[window] = &room{window, m, end}
+		return rooms
+	}
+	rooms := largest(modules)
+	var before map[*ramWindow]*room
+	if original != nil {
+		var originals []*moduleSpec
+		for _, m := range modules {
+			originals = append(originals, original.byID[m.ID])
 		}
+		before = largest(originals)
 	}
 	var lines []string
 	for index := range ram.Windows {
-		if r := rooms[&ram.Windows[index]]; r != nil {
-			lines = append(lines, fmt.Sprintf("  %-18s 0x%08x-0x%08x %7d bytes left after %s", r.window.Name, r.window.Addr, r.window.End, r.window.End-r.end, r.module.ID))
+		r := rooms[&ram.Windows[index]]
+		if r == nil {
+			continue
 		}
+		line := fmt.Sprintf("  %-18s 0x%08x-0x%08x %7d bytes left after %s", r.window.Name, r.window.Addr, r.window.End, r.window.End-r.end, r.module.ID)
+		switch b := before[r.window]; {
+		case b == nil || b.end == r.end:
+		case r.end > b.end:
+			line += fmt.Sprintf(" (%d fewer than the original)", r.end-b.end)
+		default:
+			line += fmt.Sprintf(" (%d more than the original)", b.end-r.end)
+		}
+		lines = append(lines, line)
 	}
 	return lines
 }

@@ -337,7 +337,8 @@ func (p project) editionLayouts(config *projectConfig, resolver symbolResolver) 
 
 // finishEditionLink checks every module an edition linked against its
 // original (editionCheck), prints the room each window has left with the
-// grown images and, with every module and the BIN, writes the edition's disc.
+// grown images, against the original's, and, with every module and the BIN,
+// writes the edition's disc.
 func (p project) finishEditionLink(resolver symbolResolver, config, grown *projectConfig, results map[string]linkResult, built map[string]string, failed int, linked []*moduleSpec) error {
 	compared := "not checked: a module failed"
 	if failed == 0 {
@@ -369,8 +370,8 @@ func (p project) finishEditionLink(resolver symbolResolver, config, grown *proje
 		for _, m := range linked {
 			modules = append(modules, grown.byID[m.ID])
 		}
-		fmt.Fprintln(p.stdout(), "ram: the room each window has left after its largest module")
-		for _, line := range ramRoom(config.RAM, grown, modules) {
+		fmt.Fprintln(p.stdout(), "ram: the room each window has left after its largest module, against the original")
+		for _, line := range ramRoom(config.RAM, grown, config, modules) {
 			fmt.Fprintln(p.stdout(), line)
 		}
 	}

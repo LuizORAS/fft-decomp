@@ -1119,7 +1119,7 @@ func (p project) buildCommand(args []string) error {
 	fmt.Fprintf(p.stdout(), "build: %d of %d modules linked whole, %s\n", len(results), len(results)+failed, compared)
 	if config.RAM != nil && len(linkedModules) > 0 {
 		fmt.Fprintln(p.stdout(), "ram: the room each window has left after its largest module")
-		for _, line := range ramRoom(config.RAM, config, linkedModules) {
+		for _, line := range ramRoom(config.RAM, config, nil, linkedModules) {
 			fmt.Fprintln(p.stdout(), line)
 		}
 	}
