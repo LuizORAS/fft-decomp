@@ -184,7 +184,7 @@ func (p project) functionLinker(resolver symbolResolver, m *moduleSpec, f *funct
 	if profile, ok := compilerProfileNamed(m.profileOf(f)); ok && profile.smallDataLimit != 0 {
 		bindings["_gp"] = profile.globalPointer
 	}
-	script, err := linkerScript(f, bindings)
+	script, err := linkerScript(f, bindings, p.changes(f))
 	return source, script, err
 }
 
@@ -222,7 +222,7 @@ func (p project) compileFunction(resolver symbolResolver, m *moduleSpec, f *func
 			if profile.smallDataLimit != 0 {
 				bindings["_gp"] = profile.globalPointer
 			}
-			if expanded, scriptErr := linkerScript(f, bindings); scriptErr == nil && expanded != script {
+			if expanded, scriptErr := linkerScript(f, bindings, p.changes(f)); scriptErr == nil && expanded != script {
 				if _, writeErr := writeLinkerScript(workDir, f.Name, expanded); writeErr == nil {
 					return p.compileHistoricalSections(source, linker, filepath.Join(workDir, f.Name), profile)
 				}
@@ -617,7 +617,8 @@ func (p project) checkCommand(args []string) error {
 					}
 				}
 			}
-			if section := undeclaredSection(f, result.sections); section != "" {
+			// A changed function may add a .rodata, which follows its .text.
+			if section := undeclaredSection(f, result.sections); section != "" && !(p.changes(f) && section == ".rodata") {
 				problems = append(problems, fmt.Sprintf("%s: emitted undeclared allocatable section %s", where, section))
 			}
 			functions++

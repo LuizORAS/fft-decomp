@@ -8,7 +8,6 @@ package main
 
 import (
 	"encoding/binary"
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -30,27 +29,35 @@ func shiftPadding(m *moduleSpec, insert uint32) uint32 {
 	return (discDataSectorBytes - (uint32(m.Size)+insert)%discDataSectorBytes) % discDataSectorBytes
 }
 
-// shiftedConfig is the configuration of the shifted disc: each module's file
-// grows by the insertion (and MAIN's padding), the disc layout is fitted to
-// the new sizes as config-fmt would fit it, and every module's disc words take
-// their values from that layout. It fails when a file whose sector or length
-// the code names (include/fft/disc.h) would change, since the code compiles
-// with the old number; it returns the files that move.
+// shiftedConfig is the configuration of the shifted disc, on which each
+// module's file grows by the insertion and MAIN's padding (grownConfig).
 func (p project) shiftedConfig(config *projectConfig, insert uint32) (*projectConfig, []string, error) {
+	return p.grownConfig(config, func(m *moduleSpec) uint32 { return insert + shiftPadding(m, insert) },
+		"the shifted disc", "a smaller SHIFT keeps it in place")
+}
+
+// grownConfig is the configuration of a disc (named disc in messages) on
+// which each module's file grows by grow(module) bytes: the disc layout is
+// fitted to the new sizes as config-fmt would fit it, and every module's disc
+// words take their values from that layout. It fails when a file whose sector
+// or length the code names (include/fft/disc.h) would change, since the code
+// compiles with the old number (hint says what to do); it returns the files
+// that move.
+func (p project) grownConfig(config *projectConfig, grow func(*moduleSpec) uint32, disc, hint string) (*projectConfig, []string, error) {
 	if config.Disc == nil {
-		return nil, nil, errors.New("make build SHIFT=N needs target/disc.yaml")
+		return nil, nil, fmt.Errorf("%s needs target/disc.yaml", disc)
 	}
 	shifted := *config
 	shifted.Modules = make([]*moduleSpec, len(config.Modules))
 	shifted.byID = make(map[string]*moduleSpec, len(config.Modules))
 	for index, m := range config.Modules {
 		grown := *m
-		grown.Size += int(insert + shiftPadding(m, insert))
+		grown.Size += int(grow(m))
 		shifted.Modules[index], shifted.byID[m.ID] = &grown, &grown
 	}
 	layout, problems := config.Disc.fitted(&shifted)
 	if len(problems) > 0 {
-		return nil, nil, fmt.Errorf("the shifted disc: %s", problems[0])
+		return nil, nil, fmt.Errorf("%s: %s", disc, problems[0])
 	}
 	shifted.Disc = layout
 	shifted.discFiles = layout.files(&shifted)
@@ -68,7 +75,7 @@ func (p project) shiftedConfig(config *projectConfig, insert uint32) (*projectCo
 		after, before := shifted.discFiles[file], config.discFiles[file]
 		name := discName(file)
 		if names[discSectorPrefix+name] && after.lba != before.lba || names[discCountPrefix+name] && after.sectors != before.sectors {
-			return nil, nil, fmt.Errorf("%s would move or grow on the shifted disc, but the code names its sector (include/fft/disc.h); a smaller SHIFT keeps it in place", file)
+			return nil, nil, fmt.Errorf("%s would move or grow on %s, but the code names its sector (include/fft/disc.h); %s", file, disc, hint)
 		}
 		if after.lba != before.lba {
 			moved = append(moved, file)

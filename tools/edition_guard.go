@@ -496,61 +496,6 @@ func (p project) guardModules(modules []*moduleSpec) ([]string, int, int, error)
 	return problems, len(candidates), changed, nil
 }
 
-// checkEditionImage compares an edition's linked image of m with the
-// original: each changed function, code and .rodata, with its dc_hash; every
-// other byte with the original file or, without the BIN, every other
-// function with its hash. The edition's code keeps the original addresses,
-// so a changed function keeps its size (the link fails otherwise).
-func (p project) checkEditionImage(m *moduleSpec, want, got []byte) (bool, string, error) {
-	restored := slices.Clone(got)
-	changed := 0
-	for index := range m.Functions {
-		f := &m.Functions[index]
-		ranges := [][2]int{{m.offset(f.Addr), m.offset(f.Addr) + f.Size}}
-		hashes := []string{f.Hash}
-		for _, rodata := range f.Rodata {
-			ranges = append(ranges, [2]int{m.offset(rodata.Addr), m.offset(rodata.Addr) + rodata.Size})
-			hashes = append(hashes, rodata.Hash)
-		}
-		if !p.changes(f) {
-			if want == nil {
-				for at, span := range ranges {
-					if shortHash(got[span[0]:span[1]]) != hashes[at] {
-						return false, "", fmt.Errorf("%s: %s differs from its hash", m.ID, f.Name)
-					}
-				}
-			}
-			continue
-		}
-		expected, err := p.editionHashOf(f)
-		if err != nil {
-			return false, "", err
-		}
-		var code []byte
-		for _, span := range ranges {
-			code = append(code, got[span[0]:span[1]]...)
-			if want != nil {
-				copy(restored[span[0]:span[1]], want[span[0]:span[1]])
-			}
-		}
-		if shortHash(code) != expected {
-			return false, "", fmt.Errorf("%s: %s differs from its dc_hash", m.ID, f.Name)
-		}
-		changed++
-	}
-	if want == nil {
-		return false, fmt.Sprintf("%d function hashes, %d of them dc_hash (no disc: data zeroed)", len(m.Functions), changed), nil
-	}
-	if offset, differs := mismatch(want, restored); differs {
-		return false, "", fmt.Errorf("%s: linked image differs from the original at file offset 0x%x (0x%08x), outside its changed functions", m.ID, offset, m.Load+uint32(offset))
-	}
-	sum := shortHash(got)
-	if changed == 0 {
-		return true, "sha256 " + sum, nil
-	}
-	return false, fmt.Sprintf("sha256 %s; %d changed functions at their dc_hash, every other byte the original's", sum, changed), nil
-}
-
 // editionChecksums is make checksums EDITION=dc: once the guard passes, each
 // function whose change the edition builds gets the dc_hash of the code and
 // .rodata the edition compiles at its address, and every other function

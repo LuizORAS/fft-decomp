@@ -209,8 +209,10 @@ func (resolver symbolResolver) linkerBindings(m *moduleSpec, f *functionSpec, us
 }
 
 // linkerScript places .text (and .rodata when declared) at the target
-// addresses so the compiled sections are final bytes.
-func linkerScript(f *functionSpec, bindings map[string]uint32) (string, error) {
+// addresses so the compiled sections are final bytes. With newRodata (a
+// function an edition changes), a .rodata no range declares follows the
+// .text, where the edition's flowing layout puts it.
+func linkerScript(f *functionSpec, bindings map[string]uint32, newRodata bool) (string, error) {
 	names := make([]string, 0, len(bindings))
 	for name := range bindings {
 		names = append(names, name)
@@ -240,6 +242,9 @@ func linkerScript(f *functionSpec, bindings map[string]uint32) (string, error) {
 		return "", fmt.Errorf("%s declares more than one .rodata range", f.Name)
 	}
 	fmt.Fprintf(&script, "  .text 0x%x : SUBALIGN(4) { *(.text) }\n", f.Addr)
+	if newRodata && len(f.Rodata) == 0 {
+		script.WriteString("  .rodata : { *(.rodata) *(.rdata) }\n")
+	}
 	script.WriteString("  /DISCARD/ : { *(.reginfo) *(.pdr) *(.comment) *(.gnu.attributes) }\n}\n")
 	if f.SourceSymbol != "" {
 		fmt.Fprintf(&script, "ASSERT(%s == 0x%08x, \"source definition must begin at original entry\");\n", f.sourceSymbol(), f.Addr)

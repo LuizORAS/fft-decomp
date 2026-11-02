@@ -102,7 +102,7 @@ make bootstrap             # build the Docker image (extracts the BIN if present
 make check [MODULE=x]      # compile and compare with target/ hashes; no BIN needed
 make build [MODULE=x]      # link each module whole from its objects and the bytes between them, taking each name another module places from that module's link (a second pass); compare with the original file (function hashes without the BIN, the data bytes then zeros); fail on an image past its RAM window and print each window's room; every module with the BIN also builds the disc in build/disc and checks its sha256
 make build SHIFT=16        # a test disc in build/shift: every module's image opens 16 bytes (break instructions) at its start, MAIN pads to whole sectors and a file that outgrows its sectors moves; fail on a word that changed unexplained (needs the BIN)
-make build EDITION=dc      # an edition of target/editions.yaml (dc: the Developer's Cut): every source preprocessed with its options (-DFIX_BUGS ...), outputs and disc under build/dc; build and check run its change guard first; check, warnings, decl-check, diff and checksums take EDITION too, and the commands that check the original disc refuse it
+make build EDITION=dc      # an edition of target/editions.yaml (dc: the Developer's Cut): every source preprocessed with its options (-DFIX_BUGS ...), outputs and disc under build/dc; build and check run its change guard first, and build moves everything after a changed function that grows (see editions.yaml below); check, warnings, decl-check, diff and checksums take EDITION too, and the commands that check the original disc refuse it
 make patch-check [MODULE=x] # cross-check make build the way the disc was built before the link: each function compiled alone and written over a copy of its original module image, every copy identical, and every module's copy makes the disc in build/patch/disc, sha256 checked (needs the BIN)
 make extract               # extract the BIN (build/checksums/diff do it on demand)
 make checksums             # refresh hashes from the ORIGINAL bytes only
@@ -260,7 +260,19 @@ in its `change`, each alone, and each option it lists changes it. The guard
 compares the preprocessed text, then the relocatable objects (loaded
 sections, relocations by symbol name, global symbols); a function whose
 source and headers never name an option is not compared, and a routine in
-assembly takes no `change`.
+assembly takes no `change`. An edition's `make build` lets each module's
+layout flow: a changed function keeps its address, and when it grows every
+piece after it moves by the growth rounded up to 16 bytes; one that shrinks
+keeps its slot, the rest of a slot is `break` filler, and a new `.rodata`
+follows its function's `.text` (its `dc_hash` covers it). Each name another
+module places follows, the disc is fitted to the grown files, and every word
+of the image must equal the original's or be a relocation that names, through
+the address maps, what it named before. A data row inside a changed function
+(other than a second name for its entry), a literal a changed function
+shares, a row bound inside code that moves, an override that binds another
+module's name in place over the module's own row, a file whose sector or
+length the code names that would move, a new global or function and an image
+past its window each fail with the reason.
 
 To add a function: write `src/<module>/<name>.c`, add its `functions` row and
 any new `data` rows, then `make config-fmt`, `make checksums`,

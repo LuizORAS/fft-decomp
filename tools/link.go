@@ -16,6 +16,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"maps"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -32,8 +33,10 @@ type linkPiece struct {
 	kind     string // "text", "rodata", "bytes" or MAIN's "header"
 	function *functionSpec
 	labels   []symbolSpec
-	aliases  []symbolSpec // data rows inside a text or rodata piece, defined from its address
-	words    []linkWord   // words of a bytes piece the link writes
+	aliases  []symbolSpec  // data rows inside a text or rodata piece, defined from its address
+	words    []linkWord    // words of a bytes piece the link writes
+	delta    uint32        // how far an edition's flowing layout moves it
+	edition  *pieceEdition // how that layout fills a piece of changed code
 }
 
 // linkWord is a word of the bytes the link writes instead of copying it: a
@@ -51,13 +54,16 @@ type linkWord struct {
 // another module's object (see linkRowIsForeign); and the end of the module's
 // RAM window, which the image must not pass (0 for none). On the shifted test
 // disc (make build SHIFT=N), insert bytes open at the image's start (after
-// MAIN's header) and MAIN ends in padding up to a whole sector.
+// MAIN's header) and MAIN ends in padding up to a whole sector. In an
+// edition's flowing layout (flowLayout), growth is what the changed code adds
+// and MAIN pads the same way.
 type linkLayout struct {
 	pieces   []linkPiece
 	shadows  []linkPiece
 	absolute []symbolSpec
 	ramEnd   uint32
 	insert   uint32
+	growth   uint32
 	padding  uint32
 }
 
@@ -232,6 +238,9 @@ func linkObjectSections(layout linkLayout) (map[string]map[string]string, error)
 		switch piece.kind {
 		case "text":
 			err = take(piece.function, linkSectionName(piece), ".text")
+			if err == nil && piece.edition != nil && piece.edition.rodata > 0 {
+				err = take(piece.function, linkNewRodataName(piece), ".rodata", ".rdata")
+			}
 		case "rodata":
 			err = take(piece.function, linkSectionName(piece), ".rodata", ".rdata")
 		}
@@ -340,6 +349,26 @@ func linkDataAssembly(m *moduleSpec, layout linkLayout, image string) string {
 	if layout.padding > 0 {
 		fmt.Fprintf(&out, "\t.section .padding, \"a\", @progbits\n\t.space %d\n", layout.padding)
 	}
+	// An edition's filler after changed code: a break in each whole word,
+	// zeros around them (fillerBytes).
+	for _, piece := range layout.pieces {
+		if piece.edition == nil || piece.edition.fill == 0 {
+			continue
+		}
+		at, size := piece.addr+uint32(piece.edition.fillAt), piece.edition.fill
+		lead := min(int(alignUp(at, 4)-at), size)
+		words := (size - lead) / 4
+		fmt.Fprintf(&out, "\t.section %s, \"a\", @progbits\n", linkFillName(piece))
+		if lead > 0 {
+			fmt.Fprintf(&out, "\t.space %d\n", lead)
+		}
+		if words > 0 {
+			fmt.Fprintf(&out, "\t.rept %d\n\t.byte 0x0d, 0x00, 0x00, 0x00\n\t.endr\n", words)
+		}
+		if rest := size - lead - 4*words; rest > 0 {
+			fmt.Fprintf(&out, "\t.space %d\n", rest)
+		}
+	}
 	for _, piece := range layout.pieces {
 		if piece.kind != "bytes" && piece.kind != "header" {
 			continue
@@ -418,7 +447,9 @@ func linkDataAssembly(m *moduleSpec, layout linkLayout, image string) string {
 // window with them (reloc-check's shifted links); the bound names stay where
 // they are. The layout's insert moves every piece but MAIN's header inside a
 // window that stays put, after the filler section (.insert), and MAIN's
-// padding section follows its last piece.
+// padding section follows its last piece. In an edition's flowing layout each
+// piece moves by its delta, and a piece of changed code places its own
+// section, a changed function's new .rodata and its filler.
 func linkScript(layout linkLayout, dataObject string, bindings map[string]uint32, gp string, shift uint32) string {
 	var script strings.Builder
 	script.WriteString("OUTPUT_ARCH(mips)\n")
@@ -437,7 +468,7 @@ func linkScript(layout linkLayout, dataObject string, bindings map[string]uint32
 		if piece.kind == "header" {
 			return addr + shift
 		}
-		return addr + shift + layout.insert
+		return addr + shift + layout.insert + piece.delta
 	}
 	// The assembler aligns .text to 16 bytes; SUBALIGN keeps each input at its
 	// piece's address, as the per-function link does.
@@ -449,17 +480,29 @@ func linkScript(layout linkLayout, dataObject string, bindings map[string]uint32
 	if layout.insert > 0 {
 		fmt.Fprintf(&script, "  .insert 0x%08x : SUBALIGN(4) { *(.insert) }\n", first.addr+shift)
 	}
+	end := ""
+	section := func(name string, addr uint32, align int) {
+		fmt.Fprintf(&script, "  %s 0x%08x : SUBALIGN(%d) { *(%s) }\n", name, addr, align, name)
+		end = name
+	}
 	for _, piece := range layout.pieces {
 		align := 4
 		if piece.kind != "text" && piece.kind != "rodata" {
 			align = 1
 		}
-		fmt.Fprintf(&script, "  %s 0x%08x : SUBALIGN(%d) { *(%s) }\n", linkSectionName(piece), at(piece, piece.addr), align, linkSectionName(piece))
+		e := piece.edition
+		if e == nil || e.used > 0 {
+			section(linkSectionName(piece), at(piece, piece.addr), align)
+		}
+		if e != nil && e.rodata > 0 {
+			section(linkNewRodataName(piece), at(piece, piece.addr+uint32(e.rodataAt)), 4)
+		}
+		if e != nil && e.fill > 0 {
+			section(linkFillName(piece), at(piece, piece.addr+uint32(e.fillAt)), 1)
+		}
 	}
-	end := linkSectionName(last)
 	if layout.padding > 0 {
-		end = ".padding"
-		fmt.Fprintf(&script, "  .padding 0x%08x : SUBALIGN(1) { *(.padding) }\n", at(last, last.addr+uint32(last.size)))
+		section(".padding", at(last, last.addr+uint32(last.slot())), 1)
 	}
 	// Another copy of a shared literal keeps its address for its object's
 	// references and loads nothing: the loaded copy holds the same bytes.
@@ -558,6 +601,7 @@ type linkResult struct {
 	layout   linkLayout
 	inputs   []string // the data object, then each function's object
 	bindings map[string]uint32
+	targets  map[string]uint32 // the bindings as target/ gives them
 	gp       string
 }
 
@@ -628,6 +672,12 @@ func (p project) linkModule(resolver symbolResolver, m *moduleSpec, values map[s
 	if p.linkInsert > 0 {
 		outDir = filepath.Join(p.root, "build", "shift", m.ID)
 		layout.insert, layout.padding = p.linkInsert, shiftPadding(m, p.linkInsert)
+	}
+	if sizes := p.editionSizes[m.ID]; len(sizes) > 0 {
+		// The edition's flowing layout, whose locks editionLayouts checked.
+		if layout, err = flowLayout(m, layout, p.edition, sizes); err != nil {
+			return result, err
+		}
 	}
 	if err := os.MkdirAll(filepath.Join(outDir, "objects"), 0o755); err != nil {
 		return result, err
@@ -704,6 +754,16 @@ func (p project) linkModule(resolver symbolResolver, m *moduleSpec, values map[s
 			}
 		}
 	}
+	result.targets = maps.Clone(bindings)
+	if p.edition != "" {
+		// Each name another module's link places takes the address that
+		// module's flowing layout gives it (editionLayouts).
+		for name, addr := range bindings {
+			if owner, ok := resolver.owner(m, name); ok {
+				bindings[name] = p.editionMaps[owner.module].at(addr)
+			}
+		}
+	}
 	for name, value := range values {
 		if _, ok := bindings[name]; ok {
 			bindings[name] = value
@@ -723,6 +783,9 @@ func (p project) linkModule(resolver symbolResolver, m *moduleSpec, values map[s
 		inputs = append(inputs, objects[f.Name])
 	}
 	if err := linkObjects(script, elfPath, inputs); err != nil {
+		if p.edition != "" && strings.Contains(err.Error(), "undefined reference") {
+			err = fmt.Errorf("%w\n(a changed function that calls a new function or names a new global needs a place edition %s does not give yet)", err, p.edition)
+		}
 		return result, err
 	}
 	result.elf, result.layout, result.inputs, result.bindings, result.gp = elfPath, layout, inputs, bindings, gp
@@ -737,7 +800,7 @@ func (p project) linkModule(resolver symbolResolver, m *moduleSpec, values map[s
 	if err != nil {
 		return result, err
 	}
-	if size := m.Size + int(layout.insert+layout.padding); len(got) != size {
+	if size := m.Size + int(layout.insert+layout.growth+layout.padding); len(got) != size {
 		return result, fmt.Errorf("%s: linked image has %d bytes, not %d", m.ID, len(got), size)
 	}
 	if layout.insert > 0 {
@@ -745,8 +808,12 @@ func (p project) linkModule(resolver symbolResolver, m *moduleSpec, values map[s
 		return result, nil
 	}
 	if p.edition != "" {
-		result.identical, result.checked, err = p.checkEditionImage(m, want, got)
-		return result, err
+		// editionCheck compares the image once every module has linked.
+		result.checked = "checked after the second pass"
+		if grew := layout.growth + layout.padding; grew > 0 {
+			result.checked = fmt.Sprintf("%d bytes more; checked after the second pass", grew)
+		}
+		return result, nil
 	}
 	if want != nil {
 		sum := sha256.Sum256(got)
@@ -833,7 +900,8 @@ func objectHoldsOnlyCode(name, path string) error {
 }
 
 // checkLinkedSizes fails when an object's section is not the size its piece
-// declares, which would shift or hide bytes after it.
+// declares (or, for changed code in an edition, the size its object gave the
+// flowing layout), which would shift or hide bytes after it.
 func (p project) checkLinkedSizes(elfPath string, layout linkLayout) error {
 	linked, err := elf.Open(elfPath)
 	if err != nil {
@@ -842,15 +910,31 @@ func (p project) checkLinkedSizes(elfPath string, layout linkLayout) error {
 	defer linked.Close()
 	for _, piece := range layout.pieces {
 		section := linked.Section(linkSectionName(piece))
+		want := piece.size
+		if piece.edition != nil {
+			want = piece.edition.used
+		}
 		switch {
+		case want == 0 && (section == nil || section.Size == 0):
+			// A changed function's .rodata its new code no longer has.
 		case section == nil:
 			return fmt.Errorf("the link produced no %s", linkSectionName(piece))
-		case int(section.Size) != piece.size:
+		case int(section.Size) != want:
 			what := linkSectionName(piece)
 			if piece.function != nil {
 				what = piece.function.Name + " " + piece.kind
 			}
-			return fmt.Errorf("%s is %d bytes, the target %d", what, section.Size, piece.size)
+			return fmt.Errorf("%s is %d bytes, the target %d", what, section.Size, want)
+		}
+		if e := piece.edition; e != nil {
+			for _, part := range []struct {
+				name string
+				size int
+			}{{linkNewRodataName(piece), e.rodata}, {linkFillName(piece), e.fill}} {
+				if section := linked.Section(part.name); part.size > 0 && (section == nil || int(section.Size) != part.size) {
+					return fmt.Errorf("%s's %s is not %d bytes", piece.function.Name, part.name, part.size)
+				}
+			}
 		}
 	}
 	// A shadow loads nothing; `make check` compares each copy's bytes.
@@ -971,6 +1055,12 @@ func (p project) buildCommand(args []string) error {
 		fmt.Fprintf(p.stdout(), "shift: every module's image opens %d bytes at its start; files that move on the disc: %s\n", *shift, strings.Join(moved, " "))
 	}
 	resolver := newSymbolResolver(config)
+	var grown *projectConfig
+	if p.edition != "" {
+		if p, grown, err = p.editionLayouts(config, resolver); err != nil {
+			return err
+		}
+	}
 	failed := 0
 	results := make(map[string]linkResult, len(modules))
 	var linkedModules []*moduleSpec
@@ -1004,18 +1094,14 @@ func (p project) buildCommand(args []string) error {
 	if shifted != nil {
 		return p.finishShiftedLink(resolver, config, shifted, results, built, failed)
 	}
+	if grown != nil {
+		return p.finishEditionLink(resolver, config, grown, results, built, failed, linkedModules)
+	}
 	compared := "identical to the original"
 	if !original {
 		compared = "each function at its hash (no BIN: the data bytes are zeros)"
-		if p.edition != "" && p.validExtraction() {
-			compared = "not all identical to the original"
-		}
 	}
-	label := ""
-	if p.edition != "" {
-		label = " for edition " + p.edition
-	}
-	fmt.Fprintf(p.stdout(), "build: %d of %d modules linked whole%s, %s\n", len(results), len(results)+failed, label, compared)
+	fmt.Fprintf(p.stdout(), "build: %d of %d modules linked whole, %s\n", len(results), len(results)+failed, compared)
 	if config.RAM != nil && len(linkedModules) > 0 {
 		fmt.Fprintln(p.stdout(), "ram: the room each window has left after its largest module")
 		for _, line := range ramRoom(config.RAM, config, linkedModules) {
@@ -1031,8 +1117,6 @@ func (p project) buildCommand(args []string) error {
 	case !p.validExtraction():
 		fmt.Fprintln(p.stdout(), "build: no disc without the BIN (the data bytes were zeros)")
 		return nil
-	case p.edition != "":
-		return p.writeEditionDisc(config, built)
 	}
 	// Every module, each equal to its original file: the disc from them.
 	return p.writeDisc(config, built, filepath.Join(p.root, "build", "disc"), true)

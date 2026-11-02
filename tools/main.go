@@ -54,6 +54,11 @@ type project struct {
 	// -D flags (withEdition).
 	edition string
 	options []string
+	// editionSizes and editionMaps, in an edition's build, are what each
+	// changed function's object takes and each module's address map, by
+	// module (editionLayouts).
+	editionSizes map[string]map[string]objectSizes
+	editionMaps  map[string]addressMap
 }
 
 // preprocessInput maps a source under the project root to its mirrored copy
