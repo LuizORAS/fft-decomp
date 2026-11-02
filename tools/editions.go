@@ -170,10 +170,7 @@ func (p project) withEdition(config *projectConfig, name string) (project, error
 		return p, fmt.Errorf("unknown edition %q; %s declares %s", name, editionsPath, strings.Join(config.Editions.names(), ", "))
 	}
 	p.edition = name
-	p.defines = nil
-	for _, option := range edition.Options {
-		p.defines = append(p.defines, "-D"+option)
-	}
+	p.options = slices.Clone(edition.Options)
 	return p, nil
 }
 
@@ -181,7 +178,9 @@ func (p project) withEdition(config *projectConfig, name string) (project, error
 // include directory and, for an edition, its options.
 func (p project) cppCommand(source, output string) []string {
 	command := []string{"mipsel-linux-gnu-cpp", "-P", "-undef", "-nostdinc", "-Iinclude"}
-	command = append(command, p.defines...)
+	for _, option := range p.options {
+		command = append(command, "-D"+option)
+	}
 	return append(command, source, "-o", output)
 }
 

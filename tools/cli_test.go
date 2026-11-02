@@ -18,6 +18,7 @@ func TestCommandDispatchRejectsUnknownSelections(t *testing.T) {
 		{name: "build edition", run: func() error { return p.buildCommand([]string{"--edition=dc"}) }, want: "editions.yaml is missing"},
 		{name: "build edition and shift", run: func() error { return p.buildCommand([]string{"--edition=dc", "--shift=16"}) }, want: "not both"},
 		{name: "check edition", run: func() error { return p.checkCommand([]string{"--edition=dc"}) }, want: "editions.yaml is missing"},
+		{name: "checksums edition", run: func() error { return p.checksumsCommand([]string{"--edition=dc"}) }, want: "editions.yaml is missing"},
 		{name: "diff", run: func() error { return p.diffCommand([]string{"unknown"}) }, want: "no function"},
 		{name: "permute", run: func() error { return p.permuteCommand([]string{"--module=unknown", "battle_helper"}) }, want: "unknown module"},
 		{name: "symbols", run: func() error { return p.symbolsCommand([]string{"sort"}) }, want: "unknown symbols action"},

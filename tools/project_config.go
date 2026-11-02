@@ -112,10 +112,12 @@ type functionSpec struct {
 	Size         int
 	Name         string
 	Hash         string
-	Profile      string // empty: the module profile
-	Source       string // empty: <source_dir>/<name>.c, or .s when Asm is set
-	SourceSymbol string // empty: Name; C definition compiled separately for this entry
-	Asm          string // why this function is standalone assembly
+	Change       []string // the options of target/editions.yaml that change it (edition_guard.go)
+	DCHash       string   // with Change: the Developer's Cut's hash of its code and .rodata
+	Profile      string   // empty: the module profile
+	Source       string   // empty: <source_dir>/<name>.c, or .s when Asm is set
+	SourceSymbol string   // empty: Name; C definition compiled separately for this entry
+	Asm          string   // why this function is standalone assembly
 	Rodata       []rodataSpec
 }
 
@@ -587,6 +589,8 @@ type functionYAML struct {
 	Size         int          `yaml:"size"`
 	Name         string       `yaml:"name"`
 	Hash         string       `yaml:"hash"`
+	Change       []string     `yaml:"change"`
+	DCHash       string       `yaml:"dc_hash"`
 	Profile      string       `yaml:"profile"`
 	Source       string       `yaml:"source"`
 	SourceSymbol string       `yaml:"source_symbol"`
@@ -653,6 +657,7 @@ func parseModuleConfig(data []byte) (*moduleSpec, error) {
 	for _, item := range file.Functions {
 		function := functionSpec{
 			Addr: item.Addr, Size: item.Size, Name: item.Name, Hash: item.Hash,
+			Change: item.Change, DCHash: item.DCHash,
 			Profile: item.Profile, Source: item.Source, SourceSymbol: item.SourceSymbol, Asm: item.Asm,
 		}
 		for _, rodata := range item.Rodata {
@@ -725,6 +730,7 @@ func (m *moduleSpec) normalize() {
 		if function.Source == m.defaultSource(function) {
 			function.Source = ""
 		}
+		sort.Strings(function.Change)
 		sort.SliceStable(function.Rodata, func(i, j int) bool { return function.Rodata[i].Addr < function.Rodata[j].Addr })
 	}
 	sort.SliceStable(m.Functions, func(i, j int) bool { return m.Functions[i].Addr < m.Functions[j].Addr })
@@ -812,6 +818,16 @@ func renderModuleConfig(m *moduleSpec) []byte {
 		fields := []string{fmt.Sprintf("addr: 0x%08x", item.Addr), fmt.Sprintf("size: %d", item.Size), "name: " + yamlText(item.Name)}
 		if item.Hash != "" {
 			fields = append(fields, "hash: "+yamlText(item.Hash))
+		}
+		if len(item.Change) > 0 {
+			options := make([]string, len(item.Change))
+			for index, option := range item.Change {
+				options[index] = yamlText(option)
+			}
+			fields = append(fields, "change: ["+strings.Join(options, ", ")+"]")
+		}
+		if item.DCHash != "" {
+			fields = append(fields, "dc_hash: "+yamlText(item.DCHash))
 		}
 		if item.Profile != "" {
 			fields = append(fields, "profile: "+yamlText(item.Profile))
@@ -1134,6 +1150,7 @@ func (p project) validateProjectConfig(config *projectConfig) error {
 			} else if filepath.Ext(source) != ".c" {
 				fail("%s: C function requires a .c source (set asm for assembly)", where)
 			}
+			validateChange(config.Editions, f, where, fail)
 			_, sourceErr := projectPath(p.root, source, "source")
 			if sourceErr != nil {
 				fail("%s: %v", where, sourceErr)

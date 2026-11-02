@@ -525,7 +525,9 @@ func (p project) writeDisc(config *projectConfig, built map[string]string, build
 }
 
 // checkCommand compiles functions and compares their bytes with the
-// configured hashes. It never reads the disc or the extracted files.
+// configured hashes. It never reads the disc or the extracted files. With
+// an edition it runs the change guard first, and each changed function's
+// code and .rodata match its dc_hash.
 func (p project) checkCommand(args []string) error {
 	flags := flag.NewFlagSet("check", flag.ContinueOnError)
 	moduleName := flags.String("module", "", "modules to check (ids, short names, event or effect)")
@@ -553,6 +555,11 @@ func (p project) checkCommand(args []string) error {
 	if err != nil {
 		return err
 	}
+	if p.edition != "" {
+		if err := p.editionGuard(modules); err != nil {
+			return err
+		}
+	}
 	p.progress = newCompileProgress("check", modules)
 	jobs, err := toolJobs()
 	if err != nil {
@@ -576,7 +583,7 @@ func (p project) checkCommand(args []string) error {
 	}
 	workers.Wait()
 	var problems []string
-	functions, bytesChecked := 0, 0
+	functions, bytesChecked, changed := 0, 0, 0
 	for index, m := range modules {
 		if checks[index].err != nil {
 			return checks[index].err
@@ -590,20 +597,31 @@ func (p project) checkCommand(args []string) error {
 				continue
 			}
 			text := result.sections[".text"]
-			if len(text) != f.Size || shortHash(text) != f.Hash {
-				problems = append(problems, fmt.Sprintf("%s: .text is %d bytes with hash %s, expected %d bytes with hash %s", where, len(text), shortHash(text), f.Size, f.Hash))
-			}
-			for _, rodata := range f.Rodata {
-				compiled := result.sections[".rodata"]
-				if len(compiled) != rodata.Size || shortHash(compiled) != rodata.Hash {
-					problems = append(problems, fmt.Sprintf("%s: .rodata 0x%08x is %d bytes with hash %s, expected %d bytes with hash %s", where, rodata.Addr, len(compiled), shortHash(compiled), rodata.Size, rodata.Hash))
+			if p.changes(f) {
+				expected, err := p.editionHashOf(f)
+				if err != nil {
+					return err
+				}
+				if got := editionHash(result.sections); got != expected {
+					problems = append(problems, fmt.Sprintf("%s: code and .rodata are %d bytes with dc_hash %s, expected dc_hash %s", where, len(text)+len(result.sections[".rodata"]), got, expected))
+				}
+				changed++
+			} else {
+				if len(text) != f.Size || shortHash(text) != f.Hash {
+					problems = append(problems, fmt.Sprintf("%s: .text is %d bytes with hash %s, expected %d bytes with hash %s", where, len(text), shortHash(text), f.Size, f.Hash))
+				}
+				for _, rodata := range f.Rodata {
+					compiled := result.sections[".rodata"]
+					if len(compiled) != rodata.Size || shortHash(compiled) != rodata.Hash {
+						problems = append(problems, fmt.Sprintf("%s: .rodata 0x%08x is %d bytes with hash %s, expected %d bytes with hash %s", where, rodata.Addr, len(compiled), shortHash(compiled), rodata.Size, rodata.Hash))
+					}
 				}
 			}
 			if section := undeclaredSection(f, result.sections); section != "" {
 				problems = append(problems, fmt.Sprintf("%s: emitted undeclared allocatable section %s", where, section))
 			}
 			functions++
-			bytesChecked += f.Size
+			bytesChecked += len(text)
 		}
 	}
 	if len(problems) > 0 {
@@ -616,21 +634,33 @@ func (p project) checkCommand(args []string) error {
 	label := ""
 	if p.edition != "" {
 		label = ", edition " + p.edition
+		if changed > 0 {
+			label += fmt.Sprintf(", %d of them changed and at their dc_hash", changed)
+		}
 	}
 	fmt.Printf("check: %d functions in %d modules match their hashes (%d bytes%s)\n", functions, len(modules), bytesChecked, label)
 	return nil
 }
 
 // checksumsCommand records the hash of every function and .rodata range from
-// the original module images, never from compiled output.
+// the original module images, never from compiled output; with --edition=dc,
+// only each changed function's dc_hash (editionChecksums).
 func (p project) checksumsCommand(args []string) error {
-	if len(args) != 0 {
-		return errors.New("usage: tools checksums")
+	flags := flag.NewFlagSet("checksums", flag.ContinueOnError)
+	edition := flags.String("edition", "", "record each changed function's dc_hash from the code edition dc compiles (no BIN)")
+	if err := flags.Parse(args); err != nil {
+		return err
+	}
+	if flags.NArg() != 0 {
+		return errors.New("usage: tools checksums [--edition=dc]")
 	}
 	return p.withTargetLock(func() error {
 		config, err := p.loadProjectConfig()
 		if err != nil {
 			return err
+		}
+		if *edition != "" {
+			return p.editionChecksums(config, *edition)
 		}
 		changed, total := 0, 0
 		for _, m := range config.Modules {

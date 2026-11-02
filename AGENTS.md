@@ -20,8 +20,10 @@ heap routines included, is `src/lib/suzuki/` under `suzuki_` names, declared in
 
 Library C has the same byte-exact requirements as game C. Every completed
 function must match all original bytes; unmatched drafts stay in ignored
-`build/`. Generate hashes only from original bytes through `make checksums`.
-Never weaken checks, accept mismatches, or change a hash to bless edited code.
+`build/`. Generate hashes only from original bytes through `make checksums`
+(an edition's `dc_hash` alone comes from compiled code: see `editions.yaml`
+below). Never weaken checks, accept mismatches, or change a hash to bless
+edited code.
 Use `make library-diff ARGS="--name=NAME --source=build/.../NAME.c
 --addr=0xADDRESS --size=BYTES"` for scratch candidates before integration; it
 uses the normal historical compiler pipeline without modifying target metadata.
@@ -100,10 +102,11 @@ make bootstrap             # build the Docker image (extracts the BIN if present
 make check [MODULE=x]      # compile and compare with target/ hashes; no BIN needed
 make build [MODULE=x]      # link each module whole from its objects and the bytes between them, taking each name another module places from that module's link (a second pass); compare with the original file (function hashes without the BIN, the data bytes then zeros); fail on an image past its RAM window and print each window's room; every module with the BIN also builds the disc in build/disc and checks its sha256
 make build SHIFT=16        # a test disc in build/shift: every module's image opens 16 bytes (break instructions) at its start, MAIN pads to whole sectors and a file that outgrows its sectors moves; fail on a word that changed unexplained (needs the BIN)
-make build EDITION=dc      # an edition of target/editions.yaml (dc: the Developer's Cut): every source preprocessed with its options (-DFIX_BUGS ...), outputs and disc under build/dc; check, warnings, decl-check and diff take EDITION too, and the commands that check the original disc refuse it
+make build EDITION=dc      # an edition of target/editions.yaml (dc: the Developer's Cut): every source preprocessed with its options (-DFIX_BUGS ...), outputs and disc under build/dc; build and check run its change guard first; check, warnings, decl-check, diff and checksums take EDITION too, and the commands that check the original disc refuse it
 make patch-check [MODULE=x] # cross-check make build the way the disc was built before the link: each function compiled alone and written over a copy of its original module image, every copy identical, and every module's copy makes the disc in build/patch/disc, sha256 checked (needs the BIN)
 make extract               # extract the BIN (build/checksums/diff do it on demand)
 make checksums             # refresh hashes from the ORIGINAL bytes only
+make checksums EDITION=dc  # the dc_hash of each function the Developer's Cut changes, from the code it compiles, after the change guard (no BIN)
 make check-config          # validate target/, sources and declarations
 make config-fmt            # rewrite target/*.yaml in canonical form
 make decl-check            # fail on calls to undeclared functions (the build's -w hides them)
@@ -166,7 +169,10 @@ addresses, decimal sizes, one flow mapping per line, sorted rows) and
   path other than the default) or
   `source_symbol` (the neutral symbol a `src/shared/` source defines) only
   when needed. `hash` is the first 16 hex digits of the SHA-256 of the
-  original bytes; only `make checksums` writes it.
+  original bytes; only `make checksums` writes it. A function an option
+  changes lists its options in `change` and has `dc_hash`, the same digits
+  for its code and `.rodata` as the Developer's Cut compiles them at its
+  address, which only `make checksums EDITION=dc` writes.
 - `data`: named addresses with no reconstruction (globals, library entry
   points). A data row inside a function names that place in the code and
   moves with it; one named with another module's prefix is that module's
@@ -247,7 +253,14 @@ room each window has left. A window's size in code is
 combine them, `{name, title, options}`. A source tests an option only as
 defined or not (`#ifdef`, `#ifndef`, `defined()`), and `make check-config`
 fails on a conditional that tests a name neither the code `#define`s nor
-`editions.yaml` declares.
+`editions.yaml` declares. With an edition, `make check`, `make build` and
+`make checksums` first run its change guard: a function that compiles
+differently with one of the edition's options lists exactly those options
+in its `change`, each alone, and each option it lists changes it. The guard
+compares the preprocessed text, then the relocatable objects (loaded
+sections, relocations by symbol name, global symbols); a function whose
+source and headers never name an option is not compared, and a routine in
+assembly takes no `change`.
 
 To add a function: write `src/<module>/<name>.c`, add its `functions` row and
 any new `data` rows, then `make config-fmt`, `make checksums`,

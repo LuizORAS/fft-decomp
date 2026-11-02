@@ -22,8 +22,8 @@ TOOL_ENV = $(if $(JOBS),--env TOOLS_JOBS=$(JOBS)) \
 	$(if $(REPORT_ALL),--env TOOLS_REPORT_ALL_MISMATCHES=$(REPORT_ALL))
 
 # EDITION=E builds an edition of target/editions.yaml (build, check, warnings,
-# decl-check, diff): its options become -D flags and its outputs go under
-# build/E. The commands that check the original disc refuse it.
+# decl-check, diff, checksums): its options become -D flags and its outputs go
+# under build/E. The commands that check the original disc refuse it.
 EDITION_ARG = $(if $(strip $(EDITION)),--edition="$(EDITION)")
 ORIGINAL_ONLY = @test -z "$(strip $(EDITION))" || { echo "make $@ works on the original disc only: drop EDITION=$(EDITION)"; exit 2; }
 
@@ -110,9 +110,8 @@ permute: image ## Run decomp-permuter on FUNC=name (DURATION=300 JOBS=4)
 	@$(TOOLS) permute $(if $(DURATION),--duration="$(DURATION)") $(function_args)
 
 .PHONY: checksums
-checksums: extract ## Record function hashes in target/ from the original bytes
-	$(ORIGINAL_ONLY)
-	@$(TOOLS) checksums
+checksums: $(if $(strip $(EDITION)),image,extract) ## Record function hashes in target/ from the original bytes; EDITION=dc records each changed function's dc_hash from the code it compiles (no BIN)
+	@$(TOOLS) checksums $(EDITION_ARG)
 
 .PHONY: check-config
 check-config: image ## Validate project metadata (target/, sources, declarations)

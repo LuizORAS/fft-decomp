@@ -50,9 +50,10 @@ type project struct {
 	// image opens that many bytes at its start, in build/shift.
 	linkInsert uint32
 	// edition is the edition a command builds (target/editions.yaml), "" for
-	// the original disc; defines are its options as -D flags (withEdition).
+	// the original disc; options are its options, which cppCommand passes as
+	// -D flags (withEdition).
 	edition string
-	defines []string
+	options []string
 }
 
 // preprocessInput maps a source under the project root to its mirrored copy
@@ -217,7 +218,7 @@ type inventoryRecord struct {
 	StackSize    int    `json:"stack_size,omitempty"`
 }
 
-const usage = "usage: tools build [--module=M] [--shift=N] [--edition=E]|patch-check [--module=M]|check [--module=M] [--edition=E]|diff [--module=M] [--edition=E] FUNC|library-diff --name=N --source=S --addr=A --size=B [--module=M] [--profile=P]|permute [--module=M] [--duration=S] [--jobs=N] FUNC|checksums|check-config|config-fmt|decl-check [--edition=E]|declarations ...|share-audit [--module=M] [--min-bytes=N] [--prefix=P]|twins [--module=M] [--min-bytes=N] [--max-near=N] [--out=D]|trial --module=M --entry=E --source=S [--symbol=F] [--subst OLD=NEW]... [--include H]... | trial --batch=FILE | trial --twins=ID[,ID]...|unit-check [--module=M] [--unit=NAME]|reloc-check [--module=M]|smoke prepare|smoke report|symbols <action> ...|map [--out=build/DIR] [--pull-docs]|warnings [--module=M] [--edition=E]|extract"
+const usage = "usage: tools build [--module=M] [--shift=N] [--edition=E]|patch-check [--module=M]|check [--module=M] [--edition=E]|diff [--module=M] [--edition=E] FUNC|library-diff --name=N --source=S --addr=A --size=B [--module=M] [--profile=P]|permute [--module=M] [--duration=S] [--jobs=N] FUNC|checksums [--edition=dc]|check-config|config-fmt|decl-check [--edition=E]|declarations ...|share-audit [--module=M] [--min-bytes=N] [--prefix=P]|twins [--module=M] [--min-bytes=N] [--max-near=N] [--out=D]|trial --module=M --entry=E --source=S [--symbol=F] [--subst OLD=NEW]... [--include H]... | trial --batch=FILE | trial --twins=ID[,ID]...|unit-check [--module=M] [--unit=NAME]|reloc-check [--module=M]|smoke prepare|smoke report|symbols <action> ...|map [--out=build/DIR] [--pull-docs]|warnings [--module=M] [--edition=E]|extract"
 
 func main() {
 	if len(os.Args) < 2 {
@@ -227,6 +228,7 @@ func main() {
 		"build":                  true,
 		"patch-check":            true,
 		"check":                  true,
+		"checksums":              true,
 		"diff":                   true,
 		"library-diff":           true,
 		"permute":                true,
@@ -259,7 +261,7 @@ func main() {
 	case "check":
 		err = p.checkCommand(os.Args[2:])
 	case "checksums":
-		err = p.checksumsCommand(nil)
+		err = p.checksumsCommand(os.Args[2:])
 	case "check-config":
 		err = p.checkConfig()
 	case "config-fmt":

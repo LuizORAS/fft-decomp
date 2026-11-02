@@ -512,6 +512,12 @@ func (p project) compileHistoricalObject(sourcePath, buildDir string, profile co
 	if err != nil {
 		return "", err
 	}
+	return p.historicalObject(sourcePath, preprocessed, language, buildDir, profile)
+}
+
+// historicalObject is compileHistoricalObject's object for the input
+// historicalInput wrote to preprocessed.
+func (p project) historicalObject(sourcePath, preprocessed, language, buildDir string, profile compilerProfile) (string, error) {
 	key, err := compilationCacheKey(preprocessed, "", profile, language)
 	if err != nil {
 		return "", err
@@ -738,16 +744,14 @@ func (p project) linkModule(resolver symbolResolver, m *moduleSpec, values map[s
 		result.checked = fmt.Sprintf("%d bytes up; checked after the second pass", layout.insert)
 		return result, nil
 	}
+	if p.edition != "" {
+		result.identical, result.checked, err = p.checkEditionImage(m, want, got)
+		return result, err
+	}
 	if want != nil {
 		sum := sha256.Sum256(got)
 		if offset, differs := mismatch(want, got); differs {
-			if p.edition == "" {
-				return result, fmt.Errorf("%s: linked image differs at file offset 0x%x (0x%08x)", m.ID, offset, m.Load+uint32(offset))
-			}
-			// An edition may differ from the original; the guard of its
-			// changes is separate.
-			result.checked = fmt.Sprintf("sha256 %s, differs from the original at file offset 0x%x", hex.EncodeToString(sum[:8]), offset)
-			return result, nil
+			return result, fmt.Errorf("%s: linked image differs at file offset 0x%x (0x%08x)", m.ID, offset, m.Load+uint32(offset))
 		}
 		result.identical, result.checked = true, "sha256 "+hex.EncodeToString(sum[:8])
 		return result, nil
@@ -945,6 +949,11 @@ func (p project) buildCommand(args []string) error {
 	}
 	if p, err = p.withInputMirror(); err != nil {
 		return err
+	}
+	if p.edition != "" {
+		if err := p.editionGuard(modules); err != nil {
+			return err
+		}
 	}
 	var shifted *projectConfig
 	if *shift != 0 {
