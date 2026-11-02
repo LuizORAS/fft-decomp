@@ -616,10 +616,10 @@ func parentDiscPath(name string) string {
 }
 
 // mkpsxisoProject writes the mkpsxiso project of the layout. A file's source
-// is its rebuilt module in built (module id to path) or its extracted copy
-// under filesRoot. A dummy goes in the directory of the row before it, as
+// is its rebuilt module in built (module id to path), its edited copy in
+// edited (disc path to path) or its extracted copy under filesRoot. A dummy goes in the directory of the row before it, as
 // dumpsxiso writes it.
-func (layout *discLayout) mkpsxisoProject(config *projectConfig, filesRoot string, built map[string]string) []byte {
+func (layout *discLayout) mkpsxisoProject(config *projectConfig, filesRoot string, built, edited map[string]string) []byte {
 	type node struct {
 		entry    *discEntry
 		children []*node
@@ -646,6 +646,9 @@ func (layout *discLayout) mkpsxisoProject(config *projectConfig, filesRoot strin
 	source := func(name string) string {
 		if m := modules[name]; m != nil && built[m.ID] != "" {
 			return xmlAttribute(built[m.ID])
+		}
+		if edited[name] != "" {
+			return xmlAttribute(edited[name])
 		}
 		return xmlAttribute(filesRoot + "/" + name)
 	}

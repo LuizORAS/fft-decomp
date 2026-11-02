@@ -455,7 +455,8 @@ func (p project) patchCheckCommand(args []string) error {
 }
 
 // writeDisc runs mkpsxiso on the project target/disc.yaml describes, with
-// each module in built (id to rebuilt file) in place of its extracted file,
+// each module in built (id to rebuilt file) and each file an edition's data
+// edits change (p.editedFiles) in place of its extracted file,
 // writes the disc under buildDir and checks every rebuilt module at its LBA
 // and, for the identical disc (exact), the disc's SHA-256.
 func (p project) writeDisc(config *projectConfig, built map[string]string, buildDir string, exact bool) error {
@@ -470,7 +471,7 @@ func (p project) writeDisc(config *projectConfig, built map[string]string, build
 		outputs[id] = filepath.ToSlash(output)
 	}
 	buildXML := filepath.Join(buildDir, "disc.xml")
-	if err := os.WriteFile(buildXML, config.Disc.mkpsxisoProject(config, filepath.ToSlash(p.filesRoot), outputs), 0o644); err != nil {
+	if err := os.WriteFile(buildXML, config.Disc.mkpsxisoProject(config, filepath.ToSlash(p.filesRoot), outputs, p.editedFiles), 0o644); err != nil {
 		return err
 	}
 	output := filepath.Join(buildDir, targetOutput+".bin")
@@ -501,6 +502,9 @@ func (p project) writeDisc(config *projectConfig, built map[string]string, build
 			return fmt.Errorf("rebuilt disc %s mismatch at file offset 0x%x", m.File, offset)
 		}
 		fmt.Printf("disc module exact: %s at LBA %d (%d bytes)\n", m.File, m.LBA, len(got))
+	}
+	if err := p.checkEditedFiles(config, output); err != nil {
+		return err
 	}
 	discSHA256, err := sha256File(output)
 	if err != nil {
@@ -698,6 +702,11 @@ func (p project) checksumsCommand(args []string) error {
 				}
 			}
 		}
+		editsChanged, editsTotal, err := p.editHashes(config)
+		if err != nil {
+			return err
+		}
+		changed, total = changed+editsChanged, total+editsTotal
 		files, err := p.writeProjectConfig(config)
 		if err != nil {
 			return err

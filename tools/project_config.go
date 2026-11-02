@@ -30,6 +30,7 @@ type projectConfig struct {
 	Disc     *discLayout   // target/disc.yaml; nil when the checkout has none
 	RAM      *ramMap       // target/ram.yaml; nil when the checkout has none
 	Editions *editionsFile // target/editions.yaml; nil when the checkout has none
+	Edits    *editsFile    // target/edits.yaml; nil when the checkout has none
 	byID     map[string]*moduleSpec
 	// discFiles are the layout's files by path, for the disc words.
 	discFiles map[string]discFileFact
@@ -464,6 +465,12 @@ func (p project) loadProjectConfig() (*projectConfig, error) {
 		}
 		if relative == editionsPath {
 			if config.Editions, err = parseEditions(data); err != nil {
+				return nil, fmt.Errorf("%s: %w", relative, err)
+			}
+			continue
+		}
+		if relative == editsPath {
+			if config.Edits, err = parseEdits(data); err != nil {
 				return nil, fmt.Errorf("%s: %w", relative, err)
 			}
 			continue
@@ -955,6 +962,9 @@ func renderConfigFiles(config *projectConfig) map[string][]byte {
 	if config.Editions != nil {
 		files[editionsPath] = renderEditions(config.Editions)
 	}
+	if config.Edits != nil {
+		files[editsPath] = renderEdits(config.Edits)
+	}
 	for path, modules := range grouped {
 		sort.Slice(modules, func(i, j int) bool { return modules[i].ID < modules[j].ID })
 		var out bytes.Buffer
@@ -1084,6 +1094,7 @@ func (p project) validateProjectConfig(config *projectConfig) error {
 	if config.Editions != nil {
 		validateEditions(config.Editions, fail)
 	}
+	validateEdits(config, fail)
 	for _, m := range config.Modules {
 		label := m.path + " " + m.ID
 		if m.File == "" || seenFiles[m.File] != "" {

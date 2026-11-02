@@ -257,12 +257,17 @@ func objectSizesOf(path string) (objectSizes, error) {
 	return sizes, nil
 }
 
-// editionLayouts is the first step of an edition's build: each function the
-// edition changes, in every module, compiled to its object; each module's
+// editionLayouts is the first step of an edition's build: the data edits of
+// its options (editionEdits); each function the edition changes, in every
+// module, compiled to its object; each module's
 // layout flowed around what those objects take, with its locks; and the disc
 // fitted to the grown files. It returns the project the links run with (the
 // sizes and the address maps) and the grown configuration.
 func (p project) editionLayouts(config *projectConfig, resolver symbolResolver) (project, *projectConfig, error) {
+	p, err := p.editionEdits(config, resolver)
+	if err != nil {
+		return p, nil, err
+	}
 	p.editionSizes = map[string]map[string]objectSizes{}
 	p.editionMaps = map[string]addressMap{}
 	growth := map[string]uint32{}
@@ -341,8 +346,8 @@ func (p project) finishEditionLink(resolver symbolResolver, config, grown *proje
 		if err != nil {
 			return err
 		}
-		fmt.Fprintf(p.stdout(), "edition %s: %d modules checked against the original (%d identical): %d instructions, %d .rodata words and %d data words moved with what they name, %d disc words from the fitted layout, %d changed functions at their dc_hash; %d unexplained\n",
-			p.edition, report.modules, report.identical, report.code, report.rodata, report.data, report.disc, report.changed, len(report.unexplained))
+		fmt.Fprintf(p.stdout(), "edition %s: %d modules checked against the original (%d identical): %d instructions, %d .rodata words and %d data words moved with what they name, %d disc words from the fitted layout, %d changed functions at their dc_hash, %d module data edits (%d bytes); %d unexplained\n",
+			p.edition, report.modules, report.identical, report.code, report.rodata, report.data, report.disc, report.changed, report.edits, report.edited, len(report.unexplained))
 		for _, line := range report.unexplained[:min(len(report.unexplained), 10)] {
 			fmt.Fprintf(p.stdout(), "  %s\n", line)
 		}
@@ -352,6 +357,8 @@ func (p project) finishEditionLink(resolver symbolResolver, config, grown *proje
 		switch {
 		case !p.validExtraction():
 			compared = "each word against the functions compiled alone (no BIN: the data bytes are zeros)"
+		case report.identical != report.modules && report.edits > 0:
+			compared = "each word the original's, an edit's or moved with what it names"
 		case report.identical != report.modules:
 			compared = "each word the original's or moved with what it names"
 		}
@@ -382,11 +389,11 @@ func (p project) finishEditionLink(resolver symbolResolver, config, grown *proje
 // editionReport counts what an edition's check compared: the modules, those
 // identical to the original, the words that moved with what they name (in
 // code, in .rodata, in the data between functions), the disc words the
-// fitted layout changed and the changed functions at their dc_hash; and it
-// lists what nothing explains.
+// fitted layout changed, the changed functions at their dc_hash and the data
+// edits with their bytes; and it lists what nothing explains.
 type editionReport struct {
-	modules, identical, code, rodata, data, disc, changed int
-	unexplained                                           []string
+	modules, identical, code, rodata, data, disc, changed, edits, edited int
+	unexplained                                                          []string
 }
 
 // editionCheck compares every module an edition linked with its original,
@@ -691,7 +698,7 @@ func fillerBytes(addr uint32, n int) []byte {
 // neither moves nor rebinds already holds every unchanged function in place,
 // and those bytes, once their hashes prove them, serve. A changed function's
 // reference is its code compiled alone at its address, which its dc_hash
-// proves.
+// proves, and the bytes a data edit covers are the edit's.
 func (p project) editionCompareModule(report *editionReport, config *projectConfig, resolver symbolResolver, m *moduleSpec, result linkResult) error {
 	linked, err := os.ReadFile(result.output)
 	if err != nil {
@@ -790,6 +797,11 @@ func (p project) editionCompareModule(report *editionReport, config *projectConf
 			}
 			copy(reference[m.offset(literal.Addr):], rodata)
 		}
+	}
+	for _, e := range p.editionModuleEdits[m.ID] {
+		copy(reference[m.offset(e.Addr):], e.Bytes)
+		report.edits++
+		report.edited += len(e.Bytes)
 	}
 	expected, disc := map[uint32]uint32{}, map[uint32]bool{}
 	for _, relocation := range m.Relocations {

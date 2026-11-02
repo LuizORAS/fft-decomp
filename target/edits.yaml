@@ -1,0 +1,5 @@
+# The data edits: the bytes an option of editions.yaml changes in place, in a
+# module's bytes between functions (module, addr) or in a disc file that is not
+# a module (file, offset). Each holds only the new bytes and the hash of the
+# original bytes it replaces, which make checksums writes from the BIN.
+edits: []

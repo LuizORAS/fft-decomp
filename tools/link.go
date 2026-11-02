@@ -65,6 +65,7 @@ type linkLayout struct {
 	insert   uint32
 	growth   uint32
 	padding  uint32
+	edits    []dataEdit // an edition's data edits in the bytes pieces
 }
 
 // The resident executable starts with its PS-X EXE header (psxEXEHeaderSize
@@ -337,9 +338,9 @@ func linkObjectRenames(resolver symbolResolver, m *moduleSpec, layout *linkLayou
 }
 
 // linkDataAssembly writes every bytes piece as its own section: the original
-// bytes (`.incbin` of the extracted file) or, without it, zeros, with a global
-// label at each data row, each relocation's word from its symbol and each disc
-// word from the disc layout.
+// bytes (`.incbin` of the extracted file) or, without it, zeros, and the bytes
+// of each data edit of an edition, with a global label at each data row, each
+// relocation's word from its symbol and each disc word from the disc layout.
 func linkDataAssembly(m *moduleSpec, layout linkLayout, image string) string {
 	var out strings.Builder
 	fmt.Fprintf(&out, "# %s: the bytes between functions, in address order.\n", m.ID)
@@ -376,15 +377,28 @@ func linkDataAssembly(m *moduleSpec, layout linkLayout, image string) string {
 		fmt.Fprintf(&out, "\t.section %s, \"a\", @progbits\n", linkSectionName(piece))
 		at := piece.addr
 		emit := func(until uint32) {
-			if until == at {
-				return
+			for at < until {
+				next, edit := until, -1
+				for index, e := range layout.edits {
+					if e.Addr <= at && at < e.end() {
+						next, edit = min(e.end(), until), index
+						break
+					}
+					if at < e.Addr && e.Addr < next {
+						next = e.Addr
+					}
+				}
+				switch {
+				case edit >= 0:
+					e := layout.edits[edit]
+					fmt.Fprintf(&out, "\t.byte %s\n", linkByteList(e.Bytes[at-e.Addr:next-e.Addr]))
+				case image == "":
+					fmt.Fprintf(&out, "\t.space %d\n", next-at)
+				default:
+					fmt.Fprintf(&out, "\t.incbin \"%s\", %d, %d\n", image, m.offset(at), next-at)
+				}
+				at = next
 			}
-			if image == "" {
-				fmt.Fprintf(&out, "\t.space %d\n", until-at)
-			} else {
-				fmt.Fprintf(&out, "\t.incbin \"%s\", %d, %d\n", image, m.offset(at), until-at)
-			}
-			at = until
 		}
 		if piece.kind == "header" {
 			// "PS-X EXE", the entry point at 0x10 and the text address and
@@ -679,6 +693,7 @@ func (p project) linkModule(resolver symbolResolver, m *moduleSpec, values map[s
 			return result, err
 		}
 	}
+	layout.edits = p.editionModuleEdits[m.ID]
 	if err := os.MkdirAll(filepath.Join(outDir, "objects"), 0o755); err != nil {
 		return result, err
 	}
@@ -1122,10 +1137,16 @@ func (p project) buildCommand(args []string) error {
 	return p.writeDisc(config, built, filepath.Join(p.root, "build", "disc"), true)
 }
 
-// writeEditionDisc writes the edition's disc to build/<edition>/disc and says
+// writeEditionDisc writes the edition's disc to build/<edition>/disc, with the
+// files its data edits change copied under build/<edition>/files, and says
 // when it is still the original, byte for byte.
 func (p project) writeEditionDisc(config *projectConfig, built map[string]string) error {
 	dir := p.outputDir("disc")
+	edited, err := p.writeEditedFiles()
+	if err != nil {
+		return err
+	}
+	p.editedFiles = edited
 	if err := p.writeDisc(config, built, dir, false); err != nil {
 		return err
 	}

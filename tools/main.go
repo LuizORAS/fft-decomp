@@ -59,6 +59,12 @@ type project struct {
 	// module (editionLayouts).
 	editionSizes map[string]map[string]objectSizes
 	editionMaps  map[string]addressMap
+	// editionModuleEdits and editionFileEdits, in an edition's build, are the
+	// data edits of its options by module and by disc file (editionEdits), and
+	// editedFiles the edited copies its disc takes (writeEditedFiles).
+	editionModuleEdits map[string][]dataEdit
+	editionFileEdits   map[string][]dataEdit
+	editedFiles        map[string]string
 }
 
 // preprocessInput maps a source under the project root to its mirrored copy
