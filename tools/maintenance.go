@@ -82,6 +82,12 @@ func (p project) checkConfig() error {
 	fmt.Printf("  declarations: no conflicting file-scope declarations\n")
 	fmt.Printf("  placeholders: no accesses to _unused_ or _padding_ members\n")
 	fmt.Printf("  addresses: no RAM address written as a number in code outside a header #define\n")
+	fmt.Printf("  conditionals: each #if tests a name the code defines or an option of %s\n", editionsPath)
+	if config.Editions != nil {
+		for _, edition := range config.Editions.Editions {
+			fmt.Printf("  edition %s (%s): %s\n", edition.Name, edition.Title, strings.Join(edition.Options, ", "))
+		}
+	}
 	shards, err := p.checkWorkflowShards(config)
 	if err != nil {
 		return err

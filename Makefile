@@ -21,6 +21,12 @@ TOOL_ENV = $(if $(JOBS),--env TOOLS_JOBS=$(JOBS)) \
 	$(if $(filter-out undefined,$(origin WORK_DIR)),--env TOOLS_WORK_DIR=$(WORK_DIR)) \
 	$(if $(REPORT_ALL),--env TOOLS_REPORT_ALL_MISMATCHES=$(REPORT_ALL))
 
+# EDITION=E builds an edition of target/editions.yaml (build, check, warnings,
+# decl-check, diff): its options become -D flags and its outputs go under
+# build/E. The commands that check the original disc refuse it.
+EDITION_ARG = $(if $(strip $(EDITION)),--edition="$(EDITION)")
+ORIGINAL_ONLY = @test -z "$(strip $(EDITION))" || { echo "make $@ works on the original disc only: drop EDITION=$(EDITION)"; exit 2; }
+
 # Every command runs in a fresh container as the host user, so files written
 # under the bind-mounted checkout keep the caller's ownership. --init forwards
 # Ctrl-C and reaps the permuter's children. --log-driver=none keeps output on
@@ -71,17 +77,18 @@ extract: image ## Extract scus-94221.bin (automatic for build, patch-check and c
 	@$(TOOLS) extract
 
 .PHONY: build
-build: image ## Link each module whole from its objects and the bytes between them, taking each name another module places from that module's link, compare with the original (function hashes without the BIN), fail on an image past its RAM window and print each window's room; every module with the BIN also builds the disc in build/disc (MODULE=x); SHIFT=N links a test disc with every module N bytes up in build/shift and checks every word against the original (needs the BIN)
+build: image ## Link each module whole from its objects and the bytes between them, taking each name another module places from that module's link, compare with the original (function hashes without the BIN), fail on an image past its RAM window and print each window's room; every module with the BIN also builds the disc in build/disc (MODULE=x); SHIFT=N links a test disc with every module N bytes up in build/shift and checks every word against the original (needs the BIN); EDITION=E builds that edition of target/editions.yaml in build/E
 	@if [ -f scus-94221.bin ]; then $(MAKE) --no-print-directory extract; fi
-	@$(TOOLS) build $(if $(strip $(MODULE)),--module="$(MODULE)") $(if $(strip $(SHIFT)),--shift="$(SHIFT)")
+	@$(TOOLS) build $(if $(strip $(MODULE)),--module="$(MODULE)") $(if $(strip $(SHIFT)),--shift="$(SHIFT)") $(EDITION_ARG)
 
 .PHONY: patch-check
 patch-check: extract ## Cross-check make build the old way: compile each function alone over a copy of its original module image, require every copy identical and the disc from them in build/patch/disc exact (MODULE=x)
+	$(ORIGINAL_ONLY)
 	@$(TOOLS) patch-check $(if $(strip $(MODULE)),--module="$(MODULE)")
 
 .PHONY: check
-check: image ## Compile and compare with target/ hashes, no BIN needed (MODULE=x)
-	@$(TOOLS) check $(if $(strip $(MODULE)),--module="$(MODULE)")
+check: image ## Compile and compare with target/ hashes, no BIN needed (MODULE=x, EDITION=E)
+	@$(TOOLS) check $(if $(strip $(MODULE)),--module="$(MODULE)") $(EDITION_ARG)
 
 # FUNC names a configured function; MODULE is needed only when it is ambiguous.
 function_args = $(if $(strip $(MODULE)),--module="$(MODULE)") "$(FUNC)"
@@ -89,19 +96,22 @@ function_args = $(if $(strip $(MODULE)),--module="$(MODULE)") "$(FUNC)"
 .PHONY: diff
 diff: image ## Compare FUNC=name with the original bytes (needs the BIN)
 	@test -n "$(FUNC)" || { echo "FUNC is required: make diff FUNC=<function> [MODULE=<id>]"; exit 2; }
-	@$(TOOLS) diff $(function_args)
+	@$(TOOLS) diff $(EDITION_ARG) $(function_args)
 
 .PHONY: library-diff
 library-diff: image ## Compare a library candidate with original bytes (ARGS="--name=... --source=... --addr=... --size=...")
+	$(ORIGINAL_ONLY)
 	@$(TOOLS) library-diff $(ARGS)
 
 .PHONY: permute
 permute: image ## Run decomp-permuter on FUNC=name (DURATION=300 JOBS=4)
+	$(ORIGINAL_ONLY)
 	@test -n "$(FUNC)" || { echo "FUNC is required: make permute FUNC=<function> [MODULE=<id>] [DURATION=300] [JOBS=4]"; exit 2; }
 	@$(TOOLS) permute $(if $(DURATION),--duration="$(DURATION)") $(function_args)
 
 .PHONY: checksums
 checksums: extract ## Record function hashes in target/ from the original bytes
+	$(ORIGINAL_ONLY)
 	@$(TOOLS) checksums
 
 .PHONY: check-config
@@ -114,7 +124,7 @@ config-fmt: image ## Rewrite target/*.yaml in canonical form
 
 .PHONY: decl-check
 decl-check: image ## Fail on calls to undeclared functions (cc1 -Wimplicit, syntax only)
-	@$(TOOLS) decl-check
+	@$(TOOLS) decl-check $(EDITION_ARG)
 
 .PHONY: declarations
 declarations: image ## Report conflicting file-scope declarations (ARGS="...")
@@ -126,18 +136,22 @@ share-audit: image ## Report shared C implementation candidates as JSON (MODULE=
 
 .PHONY: twins
 twins: extract ## Group byte-equivalent functions across modules under consistent renames into build/analysis/twins (MODULE=x, ARGS="...")
+	$(ORIGINAL_ONLY)
 	@$(TOOLS) twins $(if $(strip $(MODULE)),--module="$(MODULE)") $(ARGS)
 
 .PHONY: trial
 trial: image ## Compile a candidate source at an entry and report the match or first difference (MODULE=x ENTRY=f SOURCE=path ARGS="--subst OLD=NEW", or BATCH=build/x.yaml, or TWINS=t0001)
+	$(ORIGINAL_ONLY)
 	@$(TOOLS) trial $(if $(strip $(BATCH)),--batch="$(BATCH)") $(if $(strip $(TWINS)),--twins="$(TWINS)") $(if $(strip $(MODULE)),--module="$(MODULE)") $(if $(strip $(ENTRY)),--entry="$(ENTRY)") $(if $(strip $(SOURCE)),--source="$(SOURCE)") $(ARGS)
 
 .PHONY: reloc-check
 reloc-check: extract ## Fail on data words that look like RAM addresses or disc sectors and are neither relocations, disc or ram words nor values, and on RAM addresses split over two instructions outside code; link each module twice shifted to check every changed word, and list the findings in build/reloc-check (MODULE=x)
+	$(ORIGINAL_ONLY)
 	@$(TOOLS) reloc-check $(if $(strip $(MODULE)),--module="$(MODULE)")
 
 .PHONY: unit-check
 unit-check: image ## Rebuild each original translation unit from its members' sources and compare (MODULE=x UNIT=name)
+	$(ORIGINAL_ONLY)
 	@$(TOOLS) unit-check $(if $(strip $(MODULE)),--module="$(MODULE)") $(if $(strip $(UNIT)),--unit="$(UNIT)")
 
 .PHONY: symbols
@@ -152,6 +166,7 @@ symbols: image ## Rename a symbol: ACTION=rename-function|rename-global ARGS="--
 # changed files are rewritten, so Obsidian re-reads only those.
 .PHONY: map
 map: image ## Generate the Obsidian codebase map in build/map (MAP_EXPORT=dir also copies it)
+	$(ORIGINAL_ONLY)
 	@if [ -n "$(MAP_EXPORT)" ] && [ -f "$(MAP_EXPORT)/.docs.sha256" ] && [ -d "$(MAP_EXPORT)/docs" ]; then \
 		mkdir -p build/map/docs && \
 		rsync -r --checksum --delete "$(MAP_EXPORT)/docs/" build/map/docs/ && \
@@ -170,7 +185,7 @@ map: image ## Generate the Obsidian codebase map in build/map (MAP_EXPORT=dir al
 
 .PHONY: warnings
 warnings: image ## List cc1 -Wall warnings per function in build/warnings (MODULE=x)
-	@$(TOOLS) warnings $(if $(strip $(MODULE)),--module="$(MODULE)")
+	@$(TOOLS) warnings $(if $(strip $(MODULE)),--module="$(MODULE)") $(EDITION_ARG)
 
 .PHONY: verify
 verify: fmt-check check-config decl-check check ## Run the per-change checks: fmt-check, check-config, decl-check, check (MODULE=x)
@@ -198,6 +213,7 @@ run: extract ## Build the disc and launch PCSX-Redux (PCSX_REDUX=path; default i
 
 .PHONY: smoke
 smoke: ## Boot the original and the shifted test disc in PCSX-Redux and pass each session's checkpoints, after make build and make build SHIFT=16 (PCSX_REDUX=path; logs and screenshots in build/smoke)
+	$(ORIGINAL_ONLY)
 	test -x "$(PCSX_REDUX)"
 	@$(TOOLS) smoke prepare
 	PCSX_REDUX="$(PCSX_REDUX)" sh tools/smoke.sh

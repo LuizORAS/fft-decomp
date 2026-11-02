@@ -141,11 +141,7 @@ func (p project) compileModule(config *projectConfig, resolver symbolResolver, m
 	// thousands of small files are much faster there than on the host bind
 	// mount. They are namespaced by module because many effect overlays share
 	// a helper name and modules compile concurrently.
-	workBase := toolWorkDir()
-	if workBase == "" {
-		workBase = filepath.Join(p.root, "build", "work")
-	}
-	workDir := filepath.Join(workBase, "modules", m.ID)
+	workDir := filepath.Join(p.workDir("modules"), m.ID)
 	work := make(chan int)
 	var workers sync.WaitGroup
 	for range min(jobs, len(m.Functions)) {
@@ -375,6 +371,9 @@ func (p project) loadCheckedConfig() (*projectConfig, error) {
 	if err := validateAddressLiterals(p.root); err != nil {
 		return nil, err
 	}
+	if err := validateConditionals(p.root, config.Editions); err != nil {
+		return nil, err
+	}
 	return config, nil
 }
 
@@ -508,6 +507,8 @@ func (p project) writeDisc(config *projectConfig, built map[string]string, build
 		return err
 	}
 	switch {
+	case !exact && p.edition != "":
+		fmt.Printf("disc image: sha256 %s (edition %s)\n", discSHA256, p.edition)
 	case !exact:
 		fmt.Printf("disc image: sha256 %s (a test disc, not the original)\n", discSHA256)
 	case discSHA256 != targetInputSHA256:
@@ -528,11 +529,12 @@ func (p project) writeDisc(config *projectConfig, built map[string]string, build
 func (p project) checkCommand(args []string) error {
 	flags := flag.NewFlagSet("check", flag.ContinueOnError)
 	moduleName := flags.String("module", "", "modules to check (ids, short names, event or effect)")
+	edition := flags.String("edition", "", "edition of target/editions.yaml to compile (default: the original disc)")
 	if err := flags.Parse(args); err != nil {
 		return err
 	}
 	if flags.NArg() != 0 {
-		return errors.New("usage: tools check [--module=MODULES]")
+		return errors.New("usage: tools check [--module=MODULES] [--edition=E]")
 	}
 	config, err := p.loadCheckedConfig()
 	if err != nil {
@@ -543,6 +545,9 @@ func (p project) checkCommand(args []string) error {
 		if modules, err = resolveModuleSelection(config, *moduleName); err != nil {
 			return err
 		}
+	}
+	if p, err = p.withEdition(config, *edition); err != nil {
+		return err
 	}
 	p, err = p.withInputMirror()
 	if err != nil {
@@ -608,7 +613,11 @@ func (p project) checkCommand(args []string) error {
 		}
 		return fmt.Errorf("check: %d of %d functions differ from their configured hashes", len(problems), functions)
 	}
-	fmt.Printf("check: %d functions in %d modules match their hashes (%d bytes)\n", functions, len(modules), bytesChecked)
+	label := ""
+	if p.edition != "" {
+		label = ", edition " + p.edition
+	}
+	fmt.Printf("check: %d functions in %d modules match their hashes (%d bytes%s)\n", functions, len(modules), bytesChecked, label)
 	return nil
 }
 

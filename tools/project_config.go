@@ -26,10 +26,11 @@ const (
 )
 
 type projectConfig struct {
-	Modules []*moduleSpec
-	Disc    *discLayout // target/disc.yaml; nil when the checkout has none
-	RAM     *ramMap     // target/ram.yaml; nil when the checkout has none
-	byID    map[string]*moduleSpec
+	Modules  []*moduleSpec
+	Disc     *discLayout   // target/disc.yaml; nil when the checkout has none
+	RAM      *ramMap       // target/ram.yaml; nil when the checkout has none
+	Editions *editionsFile // target/editions.yaml; nil when the checkout has none
+	byID     map[string]*moduleSpec
 	// discFiles are the layout's files by path, for the disc words.
 	discFiles map[string]discFileFact
 	// windows is each module's RAM window by name, for residency.
@@ -455,6 +456,12 @@ func (p project) loadProjectConfig() (*projectConfig, error) {
 		}
 		if relative == ramMapPath {
 			if config.RAM, err = parseRAMMap(data); err != nil {
+				return nil, fmt.Errorf("%s: %w", relative, err)
+			}
+			continue
+		}
+		if relative == editionsPath {
+			if config.Editions, err = parseEditions(data); err != nil {
 				return nil, fmt.Errorf("%s: %w", relative, err)
 			}
 			continue
@@ -929,6 +936,9 @@ func renderConfigFiles(config *projectConfig) map[string][]byte {
 	if config.RAM != nil {
 		files[ramMapPath] = renderRAMMap(config.RAM)
 	}
+	if config.Editions != nil {
+		files[editionsPath] = renderEditions(config.Editions)
+	}
 	for path, modules := range grouped {
 		sort.Slice(modules, func(i, j int) bool { return modules[i].ID < modules[j].ID })
 		var out bytes.Buffer
@@ -1054,6 +1064,9 @@ func (p project) validateProjectConfig(config *projectConfig) error {
 		if err := p.validateRAMHeader(config, fail); err != nil {
 			return err
 		}
+	}
+	if config.Editions != nil {
+		validateEditions(config.Editions, fail)
 	}
 	for _, m := range config.Modules {
 		label := m.path + " " + m.ID

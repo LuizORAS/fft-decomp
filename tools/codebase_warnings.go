@@ -2,8 +2,9 @@
 // each function (`make warnings`). The byte-exact build compiles with -w, so
 // a cleanup can add a warning without failing; listing before and after a
 // change and diffing the two shows any new one. Each module gets
-// build/warnings/<module>.txt of sorted "function: warning" lines, without
-// line numbers, so an edit that only moves lines does not show up.
+// build/warnings/<module>.txt (build/<edition>/warnings/ for an edition) of
+// sorted "function: warning" lines, without line numbers, so an edit that
+// only moves lines does not show up.
 package main
 
 import (
@@ -32,14 +33,18 @@ type warningTask struct {
 func (p project) warningsCommand(args []string) error {
 	flags := flag.NewFlagSet("warnings", flag.ContinueOnError)
 	selection := flags.String("module", "", "modules to check (default: all)")
+	edition := flags.String("edition", "", "edition of target/editions.yaml to compile (default: the original disc)")
 	if err := flags.Parse(args); err != nil {
 		return err
 	}
 	if flags.NArg() != 0 {
-		return errors.New("usage: tools warnings [--module=M]")
+		return errors.New("usage: tools warnings [--module=M] [--edition=E]")
 	}
 	config, err := p.loadProjectConfig()
 	if err != nil {
+		return err
+	}
+	if p, err = p.withEdition(config, *edition); err != nil {
 		return err
 	}
 	modules := config.Modules
@@ -105,7 +110,7 @@ func (p project) warningsCommand(args []string) error {
 			total++
 		}
 	}
-	out := filepath.Join(p.root, "build", "warnings")
+	out := p.outputDir("warnings")
 	if err := os.MkdirAll(out, 0o755); err != nil {
 		return err
 	}
@@ -120,14 +125,16 @@ func (p project) warningsCommand(args []string) error {
 			return err
 		}
 	}
-	fmt.Fprintf(p.stdout(), "warnings: %d in %d of %d functions (%d modules) in build/warnings\n", total, functions, len(tasks), len(modules))
+	relative, _ := filepath.Rel(p.root, out)
+	fmt.Fprintf(p.stdout(), "warnings: %d in %d of %d functions (%d modules) in %s\n", total, functions, len(tasks), len(modules), filepath.ToSlash(relative))
 	return nil
 }
 
 // functionWarnings preprocesses and compiles one function as validate does,
 // with -Wall in place of -w, and returns its warnings.
 func (p project) functionWarnings(task warningTask, preprocessed string) ([]string, error) {
-	cpp := exec.Command("mipsel-linux-gnu-cpp", "-P", "-undef", "-nostdinc", "-Iinclude", task.source, "-o", preprocessed)
+	command := p.cppCommand(task.source, preprocessed)
+	cpp := exec.Command(command[0], command[1:]...)
 	cpp.Dir = p.root
 	if output, err := cpp.CombinedOutput(); err != nil {
 		return nil, fmt.Errorf("%s: preprocessing: %w\n%s", task.function, err, output)

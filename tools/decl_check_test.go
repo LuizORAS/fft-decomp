@@ -38,7 +38,7 @@ func declCheckFixture(t *testing.T, mainFirst string) (project, *strings.Builder
 
 func TestDeclCheckFailsOnAnUndeclaredCall(t *testing.T) {
 	p, out := declCheckFixture(t, "void main_first(void) { main_helper(); }\n")
-	err := p.declCheckCommand()
+	err := p.declCheckCommand(nil)
 	if err == nil || !strings.Contains(err.Error(), "1 implicit declarations") {
 		t.Fatalf("err = %v", err)
 	}
@@ -49,7 +49,7 @@ func TestDeclCheckFailsOnAnUndeclaredCall(t *testing.T) {
 
 func TestDeclCheckPassesWhenEveryCallIsDeclared(t *testing.T) {
 	p, out := declCheckFixture(t, "void main_helper(void);\nvoid main_first(void) { main_helper(); }\n")
-	if err := p.declCheckCommand(); err != nil {
+	if err := p.declCheckCommand(nil); err != nil {
 		t.Fatal(err)
 	}
 	if !strings.Contains(out.String(), "decl-check: 5 sources declare every function they call") {

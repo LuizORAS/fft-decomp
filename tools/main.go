@@ -49,6 +49,10 @@ type project struct {
 	// linkInsert, when set, is make build SHIFT=N's insertion: every module's
 	// image opens that many bytes at its start, in build/shift.
 	linkInsert uint32
+	// edition is the edition a command builds (target/editions.yaml), "" for
+	// the original disc; defines are its options as -D flags (withEdition).
+	edition string
+	defines []string
 }
 
 // preprocessInput maps a source under the project root to its mirrored copy
@@ -213,7 +217,7 @@ type inventoryRecord struct {
 	StackSize    int    `json:"stack_size,omitempty"`
 }
 
-const usage = "usage: tools build [--module=M] [--shift=N]|patch-check [--module=M]|check [--module=M]|diff [--module=M] FUNC|library-diff --name=N --source=S --addr=A --size=B [--module=M] [--profile=P]|permute [--module=M] [--duration=S] [--jobs=N] FUNC|checksums|check-config|config-fmt|decl-check|declarations ...|share-audit [--module=M] [--min-bytes=N] [--prefix=P]|twins [--module=M] [--min-bytes=N] [--max-near=N] [--out=D]|trial --module=M --entry=E --source=S [--symbol=F] [--subst OLD=NEW]... [--include H]... | trial --batch=FILE | trial --twins=ID[,ID]...|unit-check [--module=M] [--unit=NAME]|reloc-check [--module=M]|smoke prepare|smoke report|symbols <action> ...|map [--out=build/DIR] [--pull-docs]|warnings [--module=M]|extract"
+const usage = "usage: tools build [--module=M] [--shift=N] [--edition=E]|patch-check [--module=M]|check [--module=M] [--edition=E]|diff [--module=M] [--edition=E] FUNC|library-diff --name=N --source=S --addr=A --size=B [--module=M] [--profile=P]|permute [--module=M] [--duration=S] [--jobs=N] FUNC|checksums|check-config|config-fmt|decl-check [--edition=E]|declarations ...|share-audit [--module=M] [--min-bytes=N] [--prefix=P]|twins [--module=M] [--min-bytes=N] [--max-near=N] [--out=D]|trial --module=M --entry=E --source=S [--symbol=F] [--subst OLD=NEW]... [--include H]... | trial --batch=FILE | trial --twins=ID[,ID]...|unit-check [--module=M] [--unit=NAME]|reloc-check [--module=M]|smoke prepare|smoke report|symbols <action> ...|map [--out=build/DIR] [--pull-docs]|warnings [--module=M] [--edition=E]|extract"
 
 func main() {
 	if len(os.Args) < 2 {
@@ -227,6 +231,7 @@ func main() {
 		"library-diff":           true,
 		"permute":                true,
 		"symbols":                true,
+		"decl-check":             true,
 		"declarations":           true,
 		"share-audit":            true,
 		"twins":                  true,
@@ -268,7 +273,7 @@ func main() {
 	case "symbols":
 		err = p.symbolsCommand(os.Args[2:])
 	case "decl-check":
-		err = p.declCheckCommand()
+		err = p.declCheckCommand(os.Args[2:])
 	case "declarations":
 		err = p.declarationsCommand(os.Args[2:])
 	case "share-audit":
@@ -655,8 +660,7 @@ func cc1Command(compilerPath string) []string {
 func (p project) repreprocess(sourcePath, preprocessed string) error {
 	staging := preprocessed + ".staging"
 	cppDir, cppSource := p.preprocessInput(sourcePath)
-	if err := runInDir(cppDir, "mipsel-linux-gnu-cpp", "-P", "-undef", "-nostdinc", "-Iinclude",
-		cppSource, "-o", staging); err != nil {
+	if err := runInDir(cppDir, p.cppCommand(cppSource, staging)...); err != nil {
 		return err
 	}
 	info, err := os.Stat(staging)
@@ -695,11 +699,7 @@ func (p project) historicalInput(sourcePath, buildDir string, profile compilerPr
 	// this file, so no reader may see a partial write.
 	staging := preprocessed + ".staging"
 	cppDir, cppSource := p.preprocessInput(sourcePath)
-	cpp := []string{
-		"mipsel-linux-gnu-cpp", "-P", "-undef", "-nostdinc", "-Iinclude",
-		cppSource, "-o", staging,
-	}
-	if err := runInDir(cppDir, cpp...); err != nil {
+	if err := runInDir(cppDir, p.cppCommand(cppSource, staging)...); err != nil {
 		return "", "", err
 	}
 	info, err := os.Stat(staging)

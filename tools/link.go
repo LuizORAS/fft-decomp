@@ -584,11 +584,7 @@ func (p project) linkModule(resolver symbolResolver, m *moduleSpec, values map[s
 	if imageErr == nil {
 		image = filepath.Join(p.filesRoot, filepath.FromSlash(m.File))
 	}
-	workBase := toolWorkDir()
-	if workBase == "" {
-		workBase = filepath.Join(p.root, "build", "work")
-	}
-	workDir := filepath.Join(workBase, "link", m.ID)
+	workDir := filepath.Join(p.workDir("link"), m.ID)
 	objects := make(map[string]string, len(m.Functions))
 	errs := make([]error, len(m.Functions))
 	jobs, err := toolJobs()
@@ -622,7 +618,7 @@ func (p project) linkModule(resolver symbolResolver, m *moduleSpec, values map[s
 		return result, err
 	}
 
-	outDir := filepath.Join(p.root, "build", "link", m.ID)
+	outDir := p.outputDir("link", m.ID)
 	if p.linkInsert > 0 {
 		outDir = filepath.Join(p.root, "build", "shift", m.ID)
 		layout.insert, layout.padding = p.linkInsert, shiftPadding(m, p.linkInsert)
@@ -743,10 +739,16 @@ func (p project) linkModule(resolver symbolResolver, m *moduleSpec, values map[s
 		return result, nil
 	}
 	if want != nil {
-		if offset, differs := mismatch(want, got); differs {
-			return result, fmt.Errorf("%s: linked image differs at file offset 0x%x (0x%08x)", m.ID, offset, m.Load+uint32(offset))
-		}
 		sum := sha256.Sum256(got)
+		if offset, differs := mismatch(want, got); differs {
+			if p.edition == "" {
+				return result, fmt.Errorf("%s: linked image differs at file offset 0x%x (0x%08x)", m.ID, offset, m.Load+uint32(offset))
+			}
+			// An edition may differ from the original; the guard of its
+			// changes is separate.
+			result.checked = fmt.Sprintf("sha256 %s, differs from the original at file offset 0x%x", hex.EncodeToString(sum[:8]), offset)
+			return result, nil
+		}
 		result.identical, result.checked = true, "sha256 "+hex.EncodeToString(sum[:8])
 		return result, nil
 	}
@@ -918,14 +920,21 @@ func (p project) buildCommand(args []string) error {
 	flags := flag.NewFlagSet("build", flag.ContinueOnError)
 	selection := flags.String("module", "", "modules to build (default: all, and the disc)")
 	shift := flags.Uint("shift", 0, "bytes every module's image opens at its start, a multiple of 16: a test disc in build/shift (needs the BIN)")
+	edition := flags.String("edition", "", "edition of target/editions.yaml to build, under build/<edition> (default: the original disc)")
 	if err := flags.Parse(args); err != nil {
 		return err
 	}
 	if flags.NArg() != 0 {
-		return errors.New("usage: tools build [--module=M] [--shift=N]")
+		return errors.New("usage: tools build [--module=M] [--shift=N] [--edition=E]")
+	}
+	if *shift != 0 && *edition != "" {
+		return errors.New("make build takes SHIFT=N or EDITION=E, not both: the shifted test disc is the original's")
 	}
 	config, err := p.loadCheckedConfig()
 	if err != nil {
+		return err
+	}
+	if p, err = p.withEdition(config, *edition); err != nil {
 		return err
 	}
 	modules := config.Modules
@@ -989,8 +998,15 @@ func (p project) buildCommand(args []string) error {
 	compared := "identical to the original"
 	if !original {
 		compared = "each function at its hash (no BIN: the data bytes are zeros)"
+		if p.edition != "" && p.validExtraction() {
+			compared = "not all identical to the original"
+		}
 	}
-	fmt.Fprintf(p.stdout(), "build: %d of %d modules linked whole, %s\n", len(results), len(results)+failed, compared)
+	label := ""
+	if p.edition != "" {
+		label = " for edition " + p.edition
+	}
+	fmt.Fprintf(p.stdout(), "build: %d of %d modules linked whole%s, %s\n", len(results), len(results)+failed, label, compared)
 	if config.RAM != nil && len(linkedModules) > 0 {
 		fmt.Fprintln(p.stdout(), "ram: the room each window has left after its largest module")
 		for _, line := range ramRoom(config.RAM, config, linkedModules) {
@@ -1003,10 +1019,29 @@ func (p project) buildCommand(args []string) error {
 	switch {
 	case len(built) != len(config.Modules):
 		return nil
-	case !original:
+	case !p.validExtraction():
 		fmt.Fprintln(p.stdout(), "build: no disc without the BIN (the data bytes were zeros)")
 		return nil
+	case p.edition != "":
+		return p.writeEditionDisc(config, built)
 	}
 	// Every module, each equal to its original file: the disc from them.
 	return p.writeDisc(config, built, filepath.Join(p.root, "build", "disc"), true)
+}
+
+// writeEditionDisc writes the edition's disc to build/<edition>/disc and says
+// when it is still the original, byte for byte.
+func (p project) writeEditionDisc(config *projectConfig, built map[string]string) error {
+	dir := p.outputDir("disc")
+	if err := p.writeDisc(config, built, dir, false); err != nil {
+		return err
+	}
+	sum, err := sha256File(filepath.Join(dir, targetOutput+".bin"))
+	if err != nil {
+		return err
+	}
+	if sum == targetInputSHA256 {
+		fmt.Fprintf(p.stdout(), "build: edition %s gives the original disc byte for byte (no option changes it yet)\n", p.edition)
+	}
+	return nil
 }
