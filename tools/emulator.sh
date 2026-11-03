@@ -1,14 +1,18 @@
 #!/bin/sh
-# The host side of `make smoke`: boot each run that `tools smoke prepare`
-# listed in build/smoke/runs.txt in PCSX-Redux ($PCSX_REDUX) with
-# tools/smoke.lua, and close an emulator whose log.txt stops for
-# $SMOKE_WATCHDOG seconds. world-map continues from the save new-game wrote
-# on the same disc. Under WSL the emulator is a Windows program: it gets
-# Windows paths, and the watchdog closes the pcsx-redux.main process that its
-# launcher started.
+# The host side of `make smoke` and `make scenario`: boot each run that the
+# runs file ($1, which `tools smoke prepare` or `tools scenario prepare`
+# writes) lists in PCSX-Redux ($PCSX_REDUX) with tools/emulator.lua and the
+# run's script, and close an emulator whose log.txt stops for
+# $EMULATOR_WATCHDOG seconds. A line gives the script (smoke, scenario), the
+# run's directory, the cue sheet, the memory card slot 1 takes from an
+# earlier run (- for none; the run is skipped when that card holds no save of
+# the game) and the argument of the script's entry, SCRIPT_run(DIR, ARGUMENT).
+# Under WSL the emulator is a Windows program: it gets Windows paths, and the
+# watchdog closes the pcsx-redux.main process that its launcher started.
 set -u
 : "${PCSX_REDUX:?set PCSX_REDUX to the PCSX-Redux executable}"
-watchdog=${SMOKE_WATCHDOG:-150}
+runs=${1:?usage: tools/emulator.sh RUNS}
+watchdog=${EMULATOR_WATCHDOG:-150}
 
 if command -v wslpath >/dev/null 2>&1; then
 	host_path() { wslpath -w "$1"; }
@@ -36,43 +40,42 @@ close_new_emulators() {
 	fi
 }
 
-lua=$(host_path tools/smoke.lua)
-while read -r disc session cue; do
-	dir=build/smoke/$disc/$session
-	if [ "$session" = world-map ]; then
-		card=build/smoke/$disc/new-game/memcard1.mcd
+shared=$(host_path tools/emulator.lua)
+while read -r script dir cue card argument; do
+	if [ "$card" != - ]; then
 		if ! grep -q BASCUS-94221 "$card" 2>/dev/null; then
-			echo "smoke: $disc $session skipped: new-game wrote no save"
+			echo "$script: $dir skipped: $card holds no save"
 			continue
 		fi
 		cp "$card" "$dir/memcard1.mcd" || exit 1
 	fi
 	win=$(host_path "$dir")
 	iso=$(host_path "$cue")
+	lua=$(host_path "tools/$script.lua")
 	before=" $(emulators | tr '\n' ' ') "
-	echo "smoke: $disc $session started at $(date +%T)"
-	# From the session's directory: the emulator writes its crash reporter's
-	# files into its working directory.
+	echo "$script: $dir started at $(date +%T)"
+	# From the run's directory: the emulator writes its crash reporter's files
+	# into its working directory.
 	(cd "$dir" && exec "$PCSX_REDUX" -portable "$win" -iso "$iso" \
 		-memcard1 "$win${separator}memcard1.mcd" -memcard2 "$win${separator}memcard2.mcd" \
 		-interpreter -debugger -run -logfile "$win${separator}emulator.log" \
-		-dofile "$lua" -exec "smoke_run([[$win]], '$session')" </dev/null) &
+		-dofile "$shared" -dofile "$lua" -exec "${script}_run([[$win]], '$argument')" </dev/null) &
 	pid=$!
 	# The script's heartbeat adds a line to log.txt every 1800 frames.
 	size=none
 	changed=$(date +%s)
 	while kill -0 "$pid" 2>/dev/null; do
-		sleep 10
+		sleep 2
 		now=none
 		[ -f "$dir/log.txt" ] && now=$(wc -c <"$dir/log.txt")
 		if [ "$now" != "$size" ]; then
 			size=$now
 			changed=$(date +%s)
 		elif [ $(($(date +%s) - changed)) -gt "$watchdog" ]; then
-			echo "smoke: $disc $session: log.txt unchanged for $watchdog s; closing the emulator"
+			echo "$script: $dir: log.txt unchanged for $watchdog s; closing the emulator"
 			close_new_emulators "$before" "$pid"
 		fi
 	done
 	wait "$pid"
-	echo "smoke: $disc $session ended at $(date +%T) (exit $?)"
-done <build/smoke/runs.txt
+	echo "$script: $dir ended at $(date +%T) (exit $?)"
+done <"$runs"

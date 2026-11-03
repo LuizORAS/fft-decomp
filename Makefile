@@ -5,6 +5,11 @@ IMAGE ?= fft-decomp-dev:$(IMAGE_TAG)
 BEAR ?= bear
 EDITOR_CC ?= clang
 PCSX_REDUX ?= /Applications/PCSX-Redux.app/Contents/MacOS/PCSX-Redux
+# make scenario's memory card saves, outside the checkout: never committed.
+SAVES ?= $(HOME)/fft-saves
+# make scenario's NAME counts only from the command line: WSL's environment
+# sets NAME to the computer's name.
+SCENARIO_NAME = $(if $(filter command line,$(origin NAME)),$(NAME))
 
 .DEFAULT_GOAL := help
 
@@ -22,8 +27,9 @@ TOOL_ENV = $(if $(JOBS),--env TOOLS_JOBS=$(JOBS)) \
 	$(if $(REPORT_ALL),--env TOOLS_REPORT_ALL_MISMATCHES=$(REPORT_ALL))
 
 # EDITION=E builds an edition of target/editions.yaml (build, check, warnings,
-# decl-check, diff, checksums): its options become -D flags and its outputs go
-# under build/E. The commands that check the original disc refuse it.
+# decl-check, diff, checksums) or boots its disc (smoke): its options become -D
+# flags and its outputs go under build/E. The commands that check the original
+# disc refuse it.
 EDITION_ARG = $(if $(strip $(EDITION)),--edition="$(EDITION)")
 ORIGINAL_ONLY = @test -z "$(strip $(EDITION))" || { echo "make $@ works on the original disc only: drop EDITION=$(EDITION)"; exit 2; }
 
@@ -33,11 +39,11 @@ ORIGINAL_ONLY = @test -z "$(strip $(EDITION))" || { echo "make $@ works on the o
 # the terminal only; podman's journald default copies every line to the host.
 # Rootless podman (also behind a podman-docker shim) needs the caller's uid
 # kept inside the user namespace and the SELinux label check disabled, or the
-# bind mount is unreadable.
+# bind mount is unreadable. DOCKER_VOLUMES are a target's other mounts.
 DOCKER_IS_PODMAN := $(shell $(DOCKER) --version 2>/dev/null | grep -qi podman && echo 1)
 DOCKER_RUN_FLAGS = $(if $(DOCKER_IS_PODMAN),--userns=keep-id --security-opt label=disable)
 DOCKER_RUN = $(DOCKER) run --rm --init --pull=never --log-driver=none $(DOCKER_RUN_FLAGS) \
-	--user "$(HOST_USER)" --volume "$(CURDIR):/work" $(strip $(TOOL_ENV))
+	--user "$(HOST_USER)" --volume "$(CURDIR):/work" $(DOCKER_VOLUMES) $(strip $(TOOL_ENV))
 
 # tools/ is rebuilt from the working tree on every call (incrementally, via
 # build/cache/go), so edits apply on the next command. A container-local copy
@@ -211,12 +217,24 @@ run: extract ## Build the disc and launch PCSX-Redux (PCSX_REDUX=path; default i
 		-run
 
 .PHONY: smoke
-smoke: ## Boot the original and the shifted test disc in PCSX-Redux and pass each session's checkpoints, after make build and make build SHIFT=16 (PCSX_REDUX=path; logs and screenshots in build/smoke)
-	$(ORIGINAL_ONLY)
+smoke: ## Boot the original and the shifted test disc in PCSX-Redux and pass each session's checkpoints, after make build and make build SHIFT=16; EDITION=dc boots the Developer's Cut disc alone, after make build EDITION=dc (PCSX_REDUX=path; logs and screenshots in build/smoke or build/dc/smoke)
 	test -x "$(PCSX_REDUX)"
-	@$(TOOLS) smoke prepare
-	PCSX_REDUX="$(PCSX_REDUX)" sh tools/smoke.sh
-	@$(TOOLS) smoke report
+	@$(TOOLS) smoke prepare $(EDITION_ARG)
+	PCSX_REDUX="$(PCSX_REDUX)" sh tools/emulator.sh build/$(if $(strip $(EDITION)),$(strip $(EDITION))/)smoke/runs.txt
+	@$(TOOLS) smoke report $(EDITION_ARG)
+
+# SAVES is mounted read-only for scenario prepare, which checks the save a
+# scenario names; the emulator's sha256 is part of each cached situation's key.
+.PHONY: scenario
+scenario: DOCKER_VOLUMES = --volume "$(abspath $(SAVES)):/saves:ro"
+scenario: ## Run tools/scenarios/NAME.lua in PCSX-Redux on the original and the Developer's Cut disc, after make build EDITION=dc (PCSX_REDUX=path; SAVES=dir holds its memory card save, default ~/fft-saves; CACHE=0 runs its setup again; logs, screenshots and cached situations in build/scenarios)
+	@test -z "$(strip $(EDITION))" || { echo "make scenario runs the original and the Developer's Cut disc: drop EDITION=$(EDITION)"; exit 2; }
+	@test -n "$(SCENARIO_NAME)" || { echo "make scenario needs NAME, a file of tools/scenarios without .lua"; exit 2; }
+	test -x "$(PCSX_REDUX)"
+	@test -d "$(SAVES)" || { echo "make scenario: no SAVES directory $(SAVES)"; exit 2; }
+	@$(TOOLS) scenario prepare --name="$(SCENARIO_NAME)" --saves=/saves --emulator="$$(sha256sum "$(PCSX_REDUX)" | cut -d' ' -f1)"
+	PCSX_REDUX="$(PCSX_REDUX)" sh tools/emulator.sh build/scenarios/runs.txt
+	@$(TOOLS) scenario report
 
 .PHONY: shell
 shell: image ## Open an interactive shell in the Docker image

@@ -1,13 +1,15 @@
 // smoke.go prepares and reports `make smoke`, the run of tools/smoke.lua in
 // PCSX-Redux on the original disc and on the shifted test disc that
-// `make build SHIFT=N` writes. The emulator runs on the host, so tools/smoke.sh
-// launches it between `smoke prepare` and `smoke report`.
+// `make build SHIFT=N` writes, or with an edition on that edition's disc
+// alone. The emulator runs on the host, so tools/emulator.sh launches it
+// between `smoke prepare` and `smoke report`.
 package main
 
 import (
 	"debug/elf"
 	"encoding/binary"
 	"errors"
+	"flag"
 	"fmt"
 	"image"
 	"image/color"
@@ -20,14 +22,30 @@ import (
 	"strings"
 )
 
-// smokeDisc is one disc the run boots: the original BIN with the names of the
-// identical link, or the shifted test disc with the names of its own link.
+// smokeDisc is one disc a run boots: the original BIN with the names of the
+// identical link, the shifted test disc or an edition's disc with the names
+// of its own link.
 type smokeDisc struct {
 	name string
 	link string // build/<link>/<module>/<module>.elf
+	cue  string // the cue sheet, relative to the repo root; empty: the BIN, linked beside its names
+	hint string // the command that writes the link and the disc
 }
 
-var smokeDiscs = []smokeDisc{{name: "original", link: "link"}, {name: "shift", link: "shift"}}
+var smokeDiscs = []smokeDisc{
+	{name: "original", link: "link", hint: "make build"},
+	{name: "shift", link: "shift", cue: filepath.Join("build", "shift", "disc", targetOutput+".cue"), hint: "make build SHIFT=16"},
+}
+
+// editionDisc is the disc an edition's make build writes, with its link.
+func (p project) editionDisc() smokeDisc {
+	return smokeDisc{
+		name: p.edition,
+		link: filepath.Join(p.edition, "link"),
+		cue:  filepath.Join("build", p.edition, "disc", targetOutput+".cue"),
+		hint: "make build EDITION=" + p.edition,
+	}
+}
 
 // smokeSessions are the boots of each disc, in order: a new game through the
 // first battle to the save screen, which writes the session's memory card, and
@@ -35,7 +53,7 @@ var smokeDiscs = []smokeDisc{{name: "original", link: "link"}, {name: "shift", l
 // formation screen.
 var smokeSessions = []string{"new-game", "world-map"}
 
-// smokeSettings is the emulator's portable configuration for a session: the
+// smokeSettings is the emulator's portable configuration for a run: the
 // interpreter and the debugger for breakpoints, the BIOS fallback (OpenBIOS
 // when none is set), the software renderer (it needs no OpenGL 3 driver), no
 // network servers, unthrottled and muted, and a pause on a break instruction
@@ -65,69 +83,109 @@ const smokeSettings = `{
 `
 
 func (p project) smokeCommand(args []string) error {
-	if len(args) == 1 {
-		switch args[0] {
-		case "prepare":
-			return p.smokePrepare()
-		case "report":
-			return p.smokeReport()
-		}
+	const usage = "usage: tools smoke prepare|report [--edition=E]"
+	if len(args) == 0 {
+		return errors.New(usage)
 	}
-	return errors.New("usage: tools smoke prepare|report")
-}
-
-func (p project) smokeRoot() string { return filepath.Join(p.root, "build", "smoke") }
-
-// smokePrepare writes build/smoke/<disc>/names.tsv from each disc's link,
-// links the original BIN with a cue sheet, gives every session a fresh
-// directory with its settings and lists the runs in build/smoke/runs.txt:
-// disc, session and cue sheet.
-func (p project) smokePrepare() error {
+	flags := flag.NewFlagSet("smoke "+args[0], flag.ContinueOnError)
+	edition := flags.String("edition", "", "edition of target/editions.yaml whose disc boots alone (default: the original and the shifted disc)")
+	if err := flags.Parse(args[1:]); err != nil {
+		return err
+	}
+	if flags.NArg() != 0 {
+		return errors.New(usage)
+	}
 	config, err := p.loadProjectConfig()
 	if err != nil {
 		return err
 	}
-	input := filepath.Join(p.root, targetInput)
-	if info, err := os.Stat(input); err != nil || info.Size() != targetInputBytes {
-		return fmt.Errorf("make smoke needs %s at the repo root", targetInput)
+	if p, err = p.withEdition(config, *edition); err != nil {
+		return err
 	}
-	shiftCue := filepath.Join("build", "shift", "disc", targetOutput+".cue")
-	if _, err := os.Stat(filepath.Join(p.root, shiftCue)); err != nil {
-		return errors.New("no shifted disc: run make build SHIFT=16 first")
+	switch args[0] {
+	case "prepare":
+		return p.smokePrepare(config)
+	case "report":
+		return p.smokeReport()
+	}
+	return errors.New(usage)
+}
+
+// smokeRoot is build/smoke, or build/<edition>/smoke.
+func (p project) smokeRoot() string { return p.outputDir("smoke") }
+
+// smokePrepare writes each disc's names.tsv from its link, links the
+// original BIN with a cue sheet, gives every session a fresh directory with
+// its settings and lists the runs in the smoke root's runs.txt for
+// tools/emulator.sh. An edition's one disc has its sessions in the root.
+func (p project) smokePrepare(config *projectConfig) error {
+	discs := smokeDiscs
+	if p.edition != "" {
+		discs = []smokeDisc{p.editionDisc()}
+	} else if info, err := os.Stat(filepath.Join(p.root, targetInput)); err != nil || info.Size() != targetInputBytes {
+		return fmt.Errorf("make smoke needs %s at the repo root", targetInput)
 	}
 	root := p.smokeRoot()
 	var runs []string
-	for _, disc := range smokeDiscs {
-		dir := filepath.Join(root, disc.name)
-		if err := os.MkdirAll(dir, 0o755); err != nil {
-			return err
+	for _, disc := range discs {
+		if disc.cue != "" {
+			if _, err := os.Stat(filepath.Join(p.root, disc.cue)); err != nil {
+				return fmt.Errorf("no %s disc: run %s first", disc.name, disc.hint)
+			}
 		}
-		count, err := p.writeSmokeNames(config, disc, filepath.Join(dir, "names.tsv"))
+		dir := root
+		if p.edition == "" {
+			dir = filepath.Join(root, disc.name)
+		}
+		cue, count, err := p.prepareRunDisc(config, disc, dir)
 		if err != nil {
 			return err
 		}
-		cue := shiftCue
-		if disc.name == "original" {
-			if cue, err = p.linkSmokeOriginal(dir); err != nil {
-				return err
-			}
-		}
 		fmt.Fprintf(p.stdout(), "smoke: %s disc %s, %d names from build/%s\n", disc.name, cue, count, disc.link)
+		card := "-"
 		for _, session := range smokeSessions {
 			sessionDir := filepath.Join(dir, session)
-			if err := os.RemoveAll(sessionDir); err != nil {
+			if err := freshRunDir(sessionDir); err != nil {
 				return err
 			}
-			if err := os.MkdirAll(sessionDir, 0o755); err != nil {
+			rel, err := filepath.Rel(p.root, sessionDir)
+			if err != nil {
 				return err
 			}
-			if err := os.WriteFile(filepath.Join(sessionDir, "pcsx.json"), []byte(smokeSettings), 0o644); err != nil {
-				return err
-			}
-			runs = append(runs, fmt.Sprintf("%s %s %s", disc.name, session, cue))
+			runs = append(runs, fmt.Sprintf("smoke %s %s %s %s", rel, cue, card, session))
+			// world-map continues from the save new-game writes.
+			card = filepath.Join(rel, "memcard1.mcd")
 		}
 	}
 	return os.WriteFile(filepath.Join(root, "runs.txt"), []byte(strings.Join(runs, "\n")+"\n"), 0o644)
+}
+
+// prepareRunDisc writes disc's names.tsv into dir and returns its cue sheet,
+// relative to the repo root: the disc's own, or the BIN linked into dir.
+func (p project) prepareRunDisc(config *projectConfig, disc smokeDisc, dir string) (string, int, error) {
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return "", 0, err
+	}
+	count, err := p.writeSmokeNames(config, disc, filepath.Join(dir, "names.tsv"))
+	if err != nil {
+		return "", 0, err
+	}
+	if disc.cue != "" {
+		return disc.cue, count, nil
+	}
+	cue, err := p.linkSmokeOriginal(dir)
+	return cue, count, err
+}
+
+// freshRunDir empties dir and writes the emulator's settings into it.
+func freshRunDir(dir string) error {
+	if err := os.RemoveAll(dir); err != nil {
+		return err
+	}
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return err
+	}
+	return os.WriteFile(filepath.Join(dir, "pcsx.json"), []byte(smokeSettings), 0o644)
 }
 
 // linkSmokeOriginal hard-links the BIN into dir with a cue sheet beside it, so
@@ -168,7 +226,7 @@ func (p project) writeSmokeNames(config *projectConfig, disc smokeDisc, path str
 		elfPath := filepath.Join(p.root, "build", disc.link, m.ID, m.ID+".elf")
 		found, err := readSmokeNames(m.ID, elfPath)
 		if err != nil {
-			return 0, fmt.Errorf("%s: %w (run make build and make build SHIFT=16 first)", disc.name, err)
+			return 0, fmt.Errorf("%s: %w (run %s first)", disc.name, err, disc.hint)
 		}
 		names = append(names, found...)
 	}
@@ -241,38 +299,60 @@ func readSmokeNames(module, path string) ([]smokeName, error) {
 	return names, nil
 }
 
-// smokeShotName is a screenshot the run wrote raw: its order, label, size and
-// pixel depth.
-var smokeShotName = regexp.MustCompile(`^(.+)\.(\d+)x(\d+)x(16|24)\.raw$`)
+// emulatorRun is one line of a runs file: the script, the run's directory
+// (relative to the repo root), the cue sheet, the card slot 1 takes from an
+// earlier run (- for none) and the script's argument.
+type emulatorRun struct {
+	script, dir, cue, card, argument string
+}
 
-// smokeReport turns each session's screenshots into PNG files and prints its
-// result: the first line of result.txt, which the run writes when it ends.
-func (p project) smokeReport() error {
-	root := p.smokeRoot()
-	data, err := os.ReadFile(filepath.Join(root, "runs.txt"))
+func readEmulatorRuns(path string) ([]emulatorRun, error) {
+	data, err := os.ReadFile(path)
 	if err != nil {
-		return errors.New("no build/smoke/runs.txt: run make smoke")
+		return nil, err
 	}
-	failed := 0
+	var runs []emulatorRun
 	for _, line := range strings.Split(strings.TrimSpace(string(data)), "\n") {
 		fields := strings.Fields(line)
-		if len(fields) != 3 {
-			continue
+		if len(fields) != 5 {
+			return nil, fmt.Errorf("%s: %q is no run (script, directory, cue sheet, card, argument)", path, line)
 		}
-		dir := filepath.Join(root, fields[0], fields[1])
-		shots, err := convertSmokeShots(dir)
+		runs = append(runs, emulatorRun{script: fields[0], dir: fields[1], cue: fields[2], card: fields[3], argument: fields[4]})
+	}
+	return runs, nil
+}
+
+// runResult converts a run's screenshots to PNG files and returns the first
+// line of its result.txt, which the run writes when it ends.
+func (p project) runResult(dir string) (string, int, error) {
+	shots, err := convertSmokeShots(filepath.Join(p.root, dir))
+	if err != nil {
+		return "", 0, err
+	}
+	result := "no result: the emulator ended before the script did"
+	if text, err := os.ReadFile(filepath.Join(p.root, dir, "result.txt")); err == nil {
+		result = strings.TrimSpace(strings.SplitN(string(text), "\n", 2)[0])
+	}
+	return result, shots, nil
+}
+
+// smokeReport prints each run's result and checkpoints.
+func (p project) smokeReport() error {
+	runs, err := readEmulatorRuns(filepath.Join(p.smokeRoot(), "runs.txt"))
+	if err != nil {
+		return errors.New("no runs.txt in the smoke directory: run make smoke")
+	}
+	failed := 0
+	for _, run := range runs {
+		result, shots, err := p.runResult(run.dir)
 		if err != nil {
 			return err
-		}
-		result := "no result: the emulator ended before the script did"
-		if text, err := os.ReadFile(filepath.Join(dir, "result.txt")); err == nil {
-			result = strings.TrimSpace(strings.SplitN(string(text), "\n", 2)[0])
 		}
 		if result != "pass" {
 			failed++
 		}
-		fmt.Fprintf(p.stdout(), "%-8s %-9s %s (%d screenshots in build/smoke/%s/%s)\n", fields[0], fields[1], result, shots, fields[0], fields[1])
-		if checkpoints, err := os.ReadFile(filepath.Join(dir, "checkpoints.txt")); err == nil {
+		fmt.Fprintf(p.stdout(), "%-30s %s (%d screenshots)\n", run.dir, result, shots)
+		if checkpoints, err := os.ReadFile(filepath.Join(p.root, run.dir, "checkpoints.txt")); err == nil {
 			for _, c := range strings.Split(strings.TrimSpace(string(checkpoints)), "\n") {
 				if c != "" {
 					fmt.Fprintf(p.stdout(), "    %s\n", c)
@@ -285,6 +365,10 @@ func (p project) smokeReport() error {
 	}
 	return nil
 }
+
+// smokeShotName is a screenshot the run wrote raw: its order, label, size and
+// pixel depth.
+var smokeShotName = regexp.MustCompile(`^(.+)\.(\d+)x(\d+)x(16|24)\.raw$`)
 
 // convertSmokeShots writes a PNG for each raw screenshot in dir and removes
 // the raw file.

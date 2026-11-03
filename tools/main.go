@@ -229,7 +229,7 @@ type inventoryRecord struct {
 	StackSize    int    `json:"stack_size,omitempty"`
 }
 
-const usage = "usage: tools build [--module=M] [--shift=N] [--edition=E]|patch-check [--module=M]|check [--module=M] [--edition=E]|diff [--module=M] [--edition=E] FUNC|library-diff --name=N --source=S --addr=A --size=B [--module=M] [--profile=P]|permute [--module=M] [--duration=S] [--jobs=N] FUNC|checksums [--edition=dc]|check-config|config-fmt|decl-check [--edition=E]|declarations ...|share-audit [--module=M] [--min-bytes=N] [--prefix=P]|twins [--module=M] [--min-bytes=N] [--max-near=N] [--out=D]|trial --module=M --entry=E --source=S [--symbol=F] [--subst OLD=NEW]... [--include H]... | trial --batch=FILE | trial --twins=ID[,ID]...|unit-check [--module=M] [--unit=NAME]|reloc-check [--module=M]|smoke prepare|smoke report|symbols <action> ...|map [--out=build/DIR] [--pull-docs]|warnings [--module=M] [--edition=E]|extract"
+const usage = "usage: tools build [--module=M] [--shift=N] [--edition=E]|patch-check [--module=M]|check [--module=M] [--edition=E]|diff [--module=M] [--edition=E] FUNC|library-diff --name=N --source=S --addr=A --size=B [--module=M] [--profile=P]|permute [--module=M] [--duration=S] [--jobs=N] FUNC|checksums [--edition=dc]|check-config|config-fmt|decl-check [--edition=E]|declarations ...|share-audit [--module=M] [--min-bytes=N] [--prefix=P]|twins [--module=M] [--min-bytes=N] [--max-near=N] [--out=D]|trial --module=M --entry=E --source=S [--symbol=F] [--subst OLD=NEW]... [--include H]... | trial --batch=FILE | trial --twins=ID[,ID]...|unit-check [--module=M] [--unit=NAME]|reloc-check [--module=M]|smoke prepare|report [--edition=E]|scenario prepare --name=N --saves=D --emulator=S|scenario report|symbols <action> ...|map [--out=build/DIR] [--pull-docs]|warnings [--module=M] [--edition=E]|extract"
 
 func main() {
 	if len(os.Args) < 2 {
@@ -252,6 +252,7 @@ func main() {
 		"unit-check":             true,
 		"reloc-check":            true,
 		"smoke":                  true,
+		"scenario":               true,
 		"map":                    true,
 		"warnings":               true,
 		"compile-permuter-input": true,
@@ -301,6 +302,8 @@ func main() {
 		err = p.relocCheckCommand(os.Args[2:])
 	case "smoke":
 		err = p.smokeCommand(os.Args[2:])
+	case "scenario":
+		err = p.scenarioCommand(os.Args[2:])
 	case "map":
 		err = p.mapCommand(os.Args[2:])
 	case "warnings":
