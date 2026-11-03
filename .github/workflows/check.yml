@@ -47,6 +47,7 @@ jobs:
       - run: make check-config
       - run: make test
       - run: make decl-check
+      - run: make decl-check EDITION=dc
       - run: make map
 
   check:
@@ -89,3 +90,7 @@ jobs:
       # Without the BIN the data bytes are zeros: the link proves the code (each
       # function at its hash) and the layout (each name at its address).
       - run: make build MODULE="${{ matrix.shard.modules }}"
+
+      # The Developer's Cut of the same modules: the change guard, the flowed
+      # layout, each changed function at its dc_hash and each window's room.
+      - run: make build EDITION=dc MODULE="${{ matrix.shard.modules }}"

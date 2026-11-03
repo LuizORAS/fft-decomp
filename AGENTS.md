@@ -151,10 +151,11 @@ layer proves every tool runs) and rebuilt by `make bootstrap`. It holds the
 old GCC `cc1` binaries (native on x86-64, through `qemu-i386` elsewhere), maspsx, mipsel binutils and
 `cpp`, mkpsxiso, asm-differ (`make diff` listings), decomp-permuter, xdelta3 (`make patch`), Go and
 clang-format 22.1.8. CI (`.github/workflows/check.yml`) runs `fmt-check`,
-`check-config`, `test`, `decl-check` and `map` in one job and `check` and
-`build` in four module shards, without the BIN; `check-config` fails unless
-the shards' module lists cover every module once. Optional overrides: `JOBS`,
-`CACHE=0`, `WORK_DIR`, `REPORT_ALL=1`, `DURATION` (see the Makefile).
+`check-config`, `test`, `decl-check` (also with `EDITION=dc`) and `map` in one
+job and `check`, `build` and `build EDITION=dc` in four module shards,
+without the BIN; `check-config` fails unless the shards' module lists cover
+every module once. Optional overrides: `JOBS`, `CACHE=0`, `WORK_DIR`,
+`REPORT_ALL=1`, `DURATION` (see the Makefile).
 
 ## target/*.yaml
 
