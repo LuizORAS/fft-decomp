@@ -62,6 +62,7 @@ ARG MKPSXISO_VERSION
 ARG MIPS_CPP_VERSION=12.2.0
 ARG MIPS_BINUTILS_VERSION=2.40
 ARG CLANG_FORMAT_VERSION=22.1.8
+ARG XDELTA3_VERSION=3.0.11
 
 RUN apt-get update \
     && apt-get install --yes --no-install-recommends \
@@ -71,6 +72,7 @@ RUN apt-get update \
         python3 \
         python3-venv \
         qemu-user \
+        xdelta3 \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /opt/mkpsxiso/bin/ /usr/local/bin/
@@ -122,6 +124,7 @@ RUN printf 'int f(int x) { return x / 3; }\n' >/tmp/t.c \
     && mkpsxiso --help | grep --quiet --fixed-strings "MKPSXISO ${MKPSXISO_VERSION}" \
     && dumpsxiso --help | grep --quiet --fixed-strings "DUMPSXISO ${MKPSXISO_VERSION}" \
     && clang-format --version | grep --quiet --fixed-strings " ${CLANG_FORMAT_VERSION}" \
+    && xdelta3 -V 2>&1 | grep --quiet --fixed-strings "Xdelta version ${XDELTA3_VERSION}," \
     && decomp-permuter --help >/dev/null \
     && (cd /opt/asm-differ && python3 -c 'import diff') \
     && go version

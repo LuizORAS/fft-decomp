@@ -27,9 +27,9 @@ TOOL_ENV = $(if $(JOBS),--env TOOLS_JOBS=$(JOBS)) \
 	$(if $(REPORT_ALL),--env TOOLS_REPORT_ALL_MISMATCHES=$(REPORT_ALL))
 
 # EDITION=E builds an edition of target/editions.yaml (build, check, warnings,
-# decl-check, diff, checksums) or boots its disc (smoke): its options become -D
-# flags and its outputs go under build/E. The commands that check the original
-# disc refuse it.
+# decl-check, diff, checksums), boots its disc (smoke) or makes its patch
+# (patch): its options become -D flags and its outputs go under build/E. The
+# commands that check the original disc refuse it.
 EDITION_ARG = $(if $(strip $(EDITION)),--edition="$(EDITION)")
 ORIGINAL_ONLY = @test -z "$(strip $(EDITION))" || { echo "make $@ works on the original disc only: drop EDITION=$(EDITION)"; exit 2; }
 
@@ -86,6 +86,15 @@ extract: image ## Extract scus-94221.bin (automatic for build, patch-check and c
 build: image ## Link each module whole from its objects and the bytes between them, taking each name another module places from that module's link, compare with the original (function hashes without the BIN), fail on an image past its RAM window and print each window's room; every module with the BIN also builds the disc in build/disc (MODULE=x); SHIFT=N links a test disc with every module N bytes up in build/shift and checks every word against the original (needs the BIN); EDITION=E builds that edition of target/editions.yaml in build/E
 	@if [ -f scus-94221.bin ]; then $(MAKE) --no-print-directory extract; fi
 	@$(TOOLS) build $(if $(strip $(MODULE)),--module="$(MODULE)") $(if $(strip $(SHIFT)),--shift="$(SHIFT)") $(EDITION_ARG)
+
+# make patch builds the whole edition first, so that the patch gives the
+# disc the tree builds.
+.PHONY: patch
+patch: image ## Build an edition, then its xdelta3 patch from scus-94221.bin with a cue sheet and a README.txt in build/E/release, applied to a temporary copy and checked (EDITION=dc; needs the BIN)
+	@test -n "$(strip $(EDITION))" || { echo "make patch makes an edition's patch: give EDITION=dc"; exit 2; }
+	@test -f scus-94221.bin || { echo "make patch needs scus-94221.bin, the disc image the patch applies to"; exit 2; }
+	@$(MAKE) --no-print-directory build EDITION="$(EDITION)" MODULE= SHIFT=
+	@$(TOOLS) patch $(EDITION_ARG)
 
 .PHONY: patch-check
 patch-check: extract ## Cross-check make build the old way: compile each function alone over a copy of its original module image, require every copy identical and the disc from them in build/patch/disc exact (MODULE=x)

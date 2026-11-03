@@ -103,11 +103,12 @@ make bootstrap             # build the Docker image (extracts the BIN if present
 make check [MODULE=x]      # compile and compare with target/ hashes; no BIN needed
 make build [MODULE=x]      # link each module whole from its objects and the bytes between them, taking each name another module places from that module's link (a second pass); compare with the original file (function hashes without the BIN, the data bytes then zeros); fail on an image past its RAM window and print each window's room; every module with the BIN also builds the disc in build/disc and checks its sha256
 make build SHIFT=16        # a test disc in build/shift: every module's image opens 16 bytes (break instructions) at its start, MAIN pads to whole sectors and a file that outgrows its sectors moves; fail on a word that changed unexplained (needs the BIN)
-make build EDITION=dc      # an edition of target/editions.yaml (dc: the Developer's Cut): every source preprocessed with its options (-DFIX_BUGS ...), outputs and disc under build/dc; build and check run its change guard first, and build moves everything after a changed function that grows and writes the data edits of its options (see editions.yaml and edits.yaml below); check, warnings, decl-check, diff, checksums and smoke take EDITION too, and the commands that check the original disc refuse it
+make build EDITION=dc      # an edition of target/editions.yaml (dc: the Developer's Cut): every source preprocessed with its options (-DFIX_BUGS ...), outputs and disc under build/dc; build and check run its change guard first, and build moves everything after a changed function that grows and writes the data edits of its options (see editions.yaml and edits.yaml below); check, warnings, decl-check, diff, checksums, smoke and patch take EDITION too, and the commands that check the original disc refuse it
 make patch-check [MODULE=x] # cross-check make build the way the disc was built before the link: each function compiled alone and written over a copy of its original module image, every copy identical, and every module's copy makes the disc in build/patch/disc, sha256 checked (needs the BIN)
 make extract               # extract the BIN (build/checksums/diff do it on demand)
 make checksums             # refresh hashes from the ORIGINAL bytes only (functions and data edits)
 make checksums EDITION=dc  # the dc_hash of each function the Developer's Cut changes, from the code it compiles, after the change guard (no BIN)
+make patch EDITION=dc      # build the Developer's Cut, then the xdelta3 patch from scus-94221.bin to its disc in build/dc/release, with a cue sheet for the patched image and a README.txt of both images' size and sha256; the patch has no secondary compression, so every VCDIFF patcher reads it, and make patch applies it to a temporary copy and checks the sha256 (needs the BIN)
 make check-config          # validate target/, sources and declarations
 make config-fmt            # rewrite target/*.yaml in canonical form
 make decl-check            # fail on calls to undeclared functions (the build's -w hides them)
@@ -148,7 +149,7 @@ Every target runs in a fresh `docker run --rm` container of the pinned
 the image is tagged by a checksum of its inputs, built on first use (its last
 layer proves every tool runs) and rebuilt by `make bootstrap`. It holds the
 old GCC `cc1` binaries (native on x86-64, through `qemu-i386` elsewhere), maspsx, mipsel binutils and
-`cpp`, mkpsxiso, asm-differ (`make diff` listings), decomp-permuter, Go and
+`cpp`, mkpsxiso, asm-differ (`make diff` listings), decomp-permuter, xdelta3 (`make patch`), Go and
 clang-format 22.1.8. CI (`.github/workflows/check.yml`) runs `fmt-check`,
 `check-config`, `test`, `decl-check` and `map` in one job and `check` and
 `build` in four module shards, without the BIN; `check-config` fails unless
