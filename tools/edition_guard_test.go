@@ -64,6 +64,7 @@ func TestChangeRowsRenderAndValidate(t *testing.T) {
 	writeTestFile(t, filepath.Join(p.root, "target", "editions.yaml"), []byte(testEditionsYAML))
 	main := strings.Replace(testMainYAML, "hash: 0123456789abcdef}", "hash: 0123456789abcdef, change: [FIX_BUGS, NON_MATCHING], dc_hash: 00000000000000ff}", 1)
 	writeTestFile(t, filepath.Join(p.root, "target", "main.yaml"), []byte(main))
+	writeTestFile(t, filepath.Join(p.root, "QUIRKS.md"), []byte("## Retail bugs the source reproduces\n\n- `main_first`: reads past its table.\n  Fixed under `FIX_BUGS`: it stops at the end. Fixed under `NON_MATCHING`: the same, clearer.\n"))
 	config, err := p.loadProjectConfig()
 	if err != nil {
 		t.Fatal(err)
@@ -167,5 +168,43 @@ func TestEditionGuardComparesEachOption(t *testing.T) {
 	}
 	if _, err := os.Stat(filepath.Join(p.root, "build", "work", "dc", "guard", "main", "main_first", "FIX_BUGS")); err != nil {
 		t.Fatalf("variant work directory: %v", err)
+	}
+}
+
+func TestChangeNeedsFixedEntry(t *testing.T) {
+	main := strings.Replace(testMainYAML, "hash: 0123456789abcdef}", "hash: 0123456789abcdef, change: [FIX_BUGS], dc_hash: 00000000000000ff}", 1)
+	entry := func(name, marker string) string {
+		return "# Quirks\n\n## Retail bugs the source reproduces\n\n- `" + name + "`: reads past its table.\n  " + marker + "\n"
+	}
+	missing := "main: function main_first changes under FIX_BUGS, but no QUIRKS.md entry that names it says \"Fixed under `FIX_BUGS`\""
+	for _, test := range []struct{ name, quirks, want string }{
+		{"by name", entry("main_first", "Fixed under `FIX_BUGS`: it stops at the end."), ""},
+		{"by source path", entry("src/main/main_first.c", "Fixed under `FIX_BUGS`: it stops at the end."), ""},
+		{"by file name", entry("main_first.c", "Fixed under `FIX_BUGS`: it stops at the end."), ""},
+		{"no QUIRKS.md", "", missing},
+		{"no marker", entry("main_first", "Not fixed yet."), missing},
+		{"another function's entry", entry("main_second", "Fixed under `FIX_BUGS`: it stops at the end."), missing},
+		{"another option", entry("main_first", "Fixed under `NON_MATCHING`: the same, clearer."), missing},
+		{"unknown option", entry("main_first", "Fixed under `FIX_BUGS`: it stops. Fixed under `FIX_BUG`: a typo."), "QUIRKS.md line 5: Fixed under `FIX_BUG`, which is no option of target/editions.yaml"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			p := validTestProject(t)
+			writeTestFile(t, filepath.Join(p.root, "target", "editions.yaml"), []byte(testEditionsYAML))
+			writeTestFile(t, filepath.Join(p.root, "target", "main.yaml"), []byte(main))
+			if test.quirks != "" {
+				writeTestFile(t, filepath.Join(p.root, "QUIRKS.md"), []byte(test.quirks))
+			}
+			config, err := p.loadProjectConfig()
+			if err != nil {
+				t.Fatal(err)
+			}
+			err = p.validateProjectConfig(config)
+			switch {
+			case test.want == "" && err != nil:
+				t.Fatalf("entry rejected: %v", err)
+			case test.want != "" && (err == nil || !strings.Contains(err.Error(), test.want)):
+				t.Fatalf("want %q, got %v", test.want, err)
+			}
+		})
 	}
 }

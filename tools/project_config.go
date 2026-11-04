@@ -286,13 +286,18 @@ func (m *moduleSpec) codeAt(start, end uint32) string {
 // routine's Port debt, a bullet opening with its name in backticks.
 const quirksAssemblySection = "Hand-written assembly"
 
-func quirksAssemblyEntries(root string) (map[string]bool, error) {
+// readQuirks parses QUIRKS.md; a tree without one has no entries.
+func readQuirks(root string) ([]*mapQuirkSection, error) {
 	data, err := os.ReadFile(filepath.Join(root, mapQuirksFile))
 	if err != nil && !os.IsNotExist(err) {
 		return nil, err
 	}
+	return parseQuirks(string(data)), nil
+}
+
+func quirksAssemblyEntries(quirks []*mapQuirkSection) map[string]bool {
 	names := map[string]bool{}
-	for _, section := range parseQuirks(string(data)) {
+	for _, section := range quirks {
 		if section.title != quirksAssemblySection {
 			continue
 		}
@@ -302,7 +307,7 @@ func quirksAssemblyEntries(root string) (map[string]bool, error) {
 			}
 		}
 	}
-	return names, nil
+	return names
 }
 
 var (
@@ -1059,10 +1064,11 @@ func (p project) validateProjectConfig(config *projectConfig) error {
 	sources := make(map[string]bool)
 	sourceSymbols := make(map[string]string)
 	checkedDefinitions := make(map[string]bool)
-	assemblyEntries, err := quirksAssemblyEntries(p.root)
+	quirks, err := readQuirks(p.root)
 	if err != nil {
 		return err
 	}
+	assemblyEntries := quirksAssemblyEntries(quirks)
 	resolver := newSymbolResolver(config)
 	rendered := renderConfigFiles(config)
 	paths := make([]string, 0, len(rendered))
@@ -1095,6 +1101,7 @@ func (p project) validateProjectConfig(config *projectConfig) error {
 		validateEditions(config.Editions, fail)
 	}
 	validateEdits(config, fail)
+	validateFixedMarkers(config.Editions, quirks, fail)
 	for _, m := range config.Modules {
 		label := m.path + " " + m.ID
 		if m.File == "" || seenFiles[m.File] != "" {
@@ -1162,6 +1169,7 @@ func (p project) validateProjectConfig(config *projectConfig) error {
 				fail("%s: C function requires a .c source (set asm for assembly)", where)
 			}
 			validateChange(config.Editions, f, where, fail)
+			validateChangeEntry(quirks, f, source, where, fail)
 			_, sourceErr := projectPath(p.root, source, "source")
 			if sourceErr != nil {
 				fail("%s: %v", where, sourceErr)

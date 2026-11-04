@@ -3,8 +3,13 @@
 A byte-exact matching decompilation of the USA PlayStation release of *Final
 Fantasy Tactics* (`SCUS-94221`). Every game function is C that compiles to the
 original bytes, except the routines the original programmers wrote in
-assembly, which are `.s` files that assemble to them. The work now is making
-that C better (names, types, structure) without changing a single byte.
+assembly, which are `.s` files that assemble to them. The build without an
+edition is that original disc, byte for byte, and stays so. The same source
+also builds editions (`target/editions.yaml`): the Developer's Cut
+(`EDITION=dc`) changes retail behavior behind options, each change beside the
+original code it replaces. The work now is making the C better (names, types,
+structure) without changing a byte of the original, and adding changes under
+the rules of "Changes under an option".
 
 ## Linked libraries
 
@@ -142,7 +147,11 @@ be a list, and `event` or `effect` selects every such module. `diff` and
 exactly as `check` does. Every change ends with `make check` passing. Before
 handing off, also run `make build` and `make patch-check` (disc exact both
 ways), `make build SHIFT=16` (nothing unexplained), `make reloc-check`,
-`make check-config`, `make decl-check`, `make fmt-check` and `make test`.
+`make check-config`, `make decl-check`, `make fmt-check` and `make test`. A
+change under an option also needs `make build EDITION=dc`,
+`make check EDITION=dc`, `make decl-check EDITION=dc`,
+`make warnings EDITION=dc` (no new warning), `make smoke EDITION=dc`, a
+scenario that shows it (`make scenario`) and `make patch EDITION=dc`.
 
 Every target runs in a fresh `docker run --rm` container of the pinned
 `Dockerfile` image as the host user, with the checkout mounted at `/work`;
@@ -327,10 +336,13 @@ none), and prefer the profile of its neighbors.
 
 ## Code rules
 
-- Byte-exact always. Never weaken a check or edit a hash to accept a mismatch.
+- Byte-exact always: the build without an edition is the original disc.
+  Never weaken a check or edit a hash to accept a mismatch. An edition changes
+  only what its options declare.
 - Represent only what the original game did: no abstraction, helper layer or
   scaffolding the game did not have. A macro, header or helper exists only
-  when it expresses something the original contained.
+  when it expresses something the original contained. Code behind an option
+  is the one exception.
 - C, except the routines the original programmers wrote in assembly. Each is
   one `.s` file per routine and module, named after it. Its opening comment
   says which original range it reproduces and why it cannot be C (it reads or
@@ -423,6 +435,32 @@ none), and prefer the profile of its neighbors.
   entry still compiles with its own profile and bindings.
 - Run `make fmt` after editing C or headers, then `make check`: cc1 emits
   line notes, so formatting can change the bytes.
+
+## Changes under an option
+
+A change to what the original disc does lives in the same source, behind an
+option of `target/editions.yaml`, and the build without an edition still
+compiles the original:
+
+- C behind one option: `#ifdef FIX_BUGS` with the new code and `#else` with
+  the original code untouched, or no `#else` when the change only adds code.
+  One option per conditional, none nested; the original branch never changes.
+- Above the conditional, a one-line comment says what the edition does and
+  cites `QUIRKS.md` (`make map` reports a comment that cites it about a
+  function it does not name).
+- The function's row lists the option in `change` and has its `dc_hash`
+  (`make checksums EDITION=dc`). A data change is an `edits.yaml` row, never
+  a table rewritten in C.
+- The `QUIRKS.md` entry stays, still describes the retail code and ends with
+  "Fixed under `OPTION`: what the edition does." `make check-config` fails
+  when a changed function has no entry that names it in backticks (its name,
+  its source path or its file name) with that marker for each option of its
+  change, and on a marker whose option `editions.yaml` does not declare.
+- A change keeps the function's historical compiler and adds no warning in
+  any edition (`make warnings` and `make warnings EDITION=dc`). A global or a
+  function the original lacks has no place yet: the edition's link refuses
+  it. A change to the memory card format, or to a retail behavior players
+  rely on, waits for the maintainer's decision.
 
 ## Matching levers
 

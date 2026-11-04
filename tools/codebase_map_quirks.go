@@ -1,7 +1,8 @@
 // codebase_map_quirks.go connects the codebase map to QUIRKS.md and to the
 // comments in src/ and include/: each QUIRKS entry is linked to the symbols it
-// names, "Type debt" and "Port debt" comments are collected for the build-3
-// backlog, and names that no longer exist in the code are reported as stale.
+// names and to the options its "Fixed under" markers give, "Type debt" and
+// "Port debt" comments are collected for the build-3 backlog, and names that
+// no longer exist in the code are reported as stale.
 package main
 
 import (
@@ -27,6 +28,7 @@ type mapQuirk struct {
 	keys     []string // pages of the symbols and files it names
 	missing  []string // names that exist nowhere in the code
 	function []string // functions it names, for their pages
+	fixed    []string // options an edition changes it under, from its "Fixed under" markers
 }
 
 type mapComment struct {
@@ -59,6 +61,9 @@ var mapQuirkSwitches = map[string]string{
 var (
 	mapBacktickPattern = regexp.MustCompile("`([^`]+)`")
 	mapDebtPattern     = regexp.MustCompile(`\b(Type|Port) debt\b`)
+	// mapFixedPattern finds the marker that ends an entry an edition changes:
+	// "Fixed under `OPTION`".
+	mapFixedPattern = regexp.MustCompile("Fixed under `([^`]+)`")
 	// mapSymbolPattern finds project symbol names written in prose.
 	mapSymbolPattern = regexp.MustCompile(`\b(?:g_|D_)?(?:battle|world|wldcore|main|open|effect|attack|bunit|card|debugchr|equip|etc|helpmenu|jobstts|option|require|small)_[a-z0-9_]*[a-z0-9]\b(?:\.[ch]\b)?`)
 	// mapFamilyPattern finds a family of names written as a prefix and `*`.
@@ -140,7 +145,8 @@ func (index *codebaseIndex) scanQuirksAndComments(root string) error {
 }
 
 // parseQuirks splits QUIRKS.md into `## ` sections of top-level bullets; a
-// bullet keeps its indented continuation and nested lines.
+// bullet keeps its indented continuation and nested lines, and the options of
+// its "Fixed under" markers.
 func parseQuirks(source string) []*mapQuirkSection {
 	var sections []*mapQuirkSection
 	var section *mapQuirkSection
@@ -164,6 +170,13 @@ func parseQuirks(source string) []*mapQuirkSection {
 				section.intro += " "
 			}
 			section.intro += strings.TrimSpace(line)
+		}
+	}
+	for _, section := range sections {
+		for _, quirk := range section.entries {
+			for _, match := range mapFixedPattern.FindAllStringSubmatch(quirk.text, -1) {
+				quirk.fixed = appendUnique(quirk.fixed, match[1])
+			}
 		}
 	}
 	return sections

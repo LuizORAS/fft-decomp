@@ -106,6 +106,57 @@ func validateChange(editions *editionsFile, f *functionSpec, where string, fail 
 	}
 }
 
+// validateChangeEntry checks that QUIRKS.md marks a changed function fixed:
+// for each option of its change, an entry that names the function in
+// backticks (its name, its source path or its source file's name) carries
+// that option's "Fixed under" marker.
+func validateChangeEntry(quirks []*mapQuirkSection, f *functionSpec, source, where string, fail func(string, ...any)) {
+	names := []string{f.Name, source, filepath.Base(filepath.FromSlash(source))}
+	for _, option := range f.Change {
+		if !quirksMarkFixed(quirks, option, names) {
+			fail("%s changes under %s, but no %s entry that names it says \"Fixed under `%s`\"", where, option, mapQuirksFile, option)
+		}
+	}
+}
+
+// quirksMarkFixed reports whether an entry that names one of names in
+// backticks is fixed under option.
+func quirksMarkFixed(quirks []*mapQuirkSection, option string, names []string) bool {
+	for _, section := range quirks {
+		for _, quirk := range section.entries {
+			if !slices.Contains(quirk.fixed, option) {
+				continue
+			}
+			for _, match := range mapBacktickPattern.FindAllStringSubmatch(quirk.text, -1) {
+				if slices.Contains(names, strings.TrimSuffix(strings.TrimSpace(match[1]), "()")) {
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
+// validateFixedMarkers checks that each "Fixed under" marker of QUIRKS.md
+// names an option editions.yaml declares.
+func validateFixedMarkers(editions *editionsFile, quirks []*mapQuirkSection, fail func(string, ...any)) {
+	declared := map[string]bool{}
+	if editions != nil {
+		for _, option := range editions.Options {
+			declared[option.Name] = true
+		}
+	}
+	for _, section := range quirks {
+		for _, quirk := range section.entries {
+			for _, option := range quirk.fixed {
+				if !declared[option] {
+					fail("%s line %d: Fixed under `%s`, which is no option of %s", mapQuirksFile, quirk.line, option, editionsPath)
+				}
+			}
+		}
+	}
+}
+
 // guardScan finds the options of an edition each source can see: those its
 // text, or a header it includes at any depth, names anywhere (a comment too,
 // which only costs a comparison). Every #include of the tree is a literal

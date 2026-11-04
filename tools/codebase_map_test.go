@@ -220,7 +220,7 @@ func TestCodebaseMapQuirksDebtsAndStale(t *testing.T) {
 		t.Fatal("global page lacks its quirk")
 	}
 	backlog := pages["reports/Build 3 backlog.md"]
-	for _, want := range []string{"port_debt_comments: 1", "| [[Retail bugs the source reproduces]] | 2 | FIX_BUGS |", "| port | [[card_entry]] | 1 |"} {
+	for _, want := range []string{"port_debt_comments: 1", "| [[Retail bugs the source reproduces]] | 2 | 0 | FIX_BUGS |", "fixed_quirks: 0", "| port | [[card_entry]] | 1 |"} {
 		if !strings.Contains(backlog, want) {
 			t.Fatalf("backlog lacks %q:\n%s", want, backlog)
 		}
@@ -548,5 +548,30 @@ func TestMapSharedSourceDefinition(t *testing.T) {
 	}
 	if f.line != 2 || f.summary != "Reports whether the unit is deployed." {
 		t.Fatalf("line %d, summary %q", f.line, f.summary)
+	}
+}
+
+func TestMapShowsFixedEntries(t *testing.T) {
+	p := testMapProject(t)
+	quirks := strings.Replace(testMapQuirks, "- `battle_helper` and its twin `main_second`.\n",
+		"- `battle_helper` and its twin `main_second`.\n  Fixed under `FIX_BUGS`: both stop at the end.\n", 1)
+	writeTestFile(t, filepath.Join(p.root, "QUIRKS.md"), []byte(quirks))
+	battle := strings.Replace(testBattleYAML, "hash: 00000000000000cc}", "hash: 00000000000000cc, change: [FIX_BUGS], dc_hash: 00000000000000ff}", 1)
+	writeTestFile(t, filepath.Join(p.root, "target", "battle.yaml"), []byte(battle+testMapBattleRegion))
+	if err := p.mapCommand(nil); err != nil {
+		t.Fatal(err)
+	}
+	pages := readTree(t, filepath.Join(p.root, "build", "map"))
+	backlog := pages["reports/Build 3 backlog.md"]
+	for _, want := range []string{"fixed_quirks: 1", "| [[Retail bugs the source reproduces]] | 2 | 1 | FIX_BUGS |", "battle_helper and its twin main_second. **Fixed under FIX_BUGS.**"} {
+		if !strings.Contains(backlog, want) {
+			t.Fatalf("backlog lacks %q:\n%s", want, backlog)
+		}
+	}
+	if page := pages["functions/battle/battle_helper.md"]; !strings.Contains(page, "change: [\"FIX_BUGS\"]\n") {
+		t.Fatalf("battle_helper page:\n%s", page)
+	}
+	if page := pages["functions/main/main_first.md"]; !strings.Contains(page, "change: []\n") {
+		t.Fatalf("main_first page:\n%s", page)
 	}
 }

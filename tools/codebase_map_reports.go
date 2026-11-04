@@ -126,26 +126,40 @@ func (vault *mapVault) backlogPage() string {
 	for _, debt := range index.debts {
 		counts[debt.kind]++
 	}
+	fixed, fixedTotal := map[string]int{}, 0
+	for _, section := range index.quirks {
+		for _, quirk := range section.entries {
+			if len(quirk.fixed) > 0 {
+				fixed[section.title]++
+				fixedTotal++
+			}
+		}
+	}
 	var b strings.Builder
 	b.WriteString(frontmatter(
 		mapProperty{"type", "report"},
 		mapProperty{"type_debt_comments", counts["type"]},
 		mapProperty{"port_debt_comments", counts["port"]},
+		mapProperty{"fixed_quirks", fixedTotal},
 	))
 	fmt.Fprintf(&b, "# %s\n\n", mapBacklogPage)
 	b.WriteString("Everything the byte-exact build must keep as it is and a later build can change, ")
 	b.WriteString("collected from `QUIRKS.md` and from the \"Type debt\" / \"Port debt\" comments in the sources. ")
-	b.WriteString("Nothing here is kept by hand: fix the entry or the comment, then run `make map`.\n\n")
-	b.WriteString("| Source | Entries | Build 3 switch |\n|---|---|---|\n")
+	b.WriteString("Nothing here is kept by hand: fix the entry or the comment, then run `make map`. ")
+	b.WriteString("An entry an edition already changes says the option it is fixed under (its \"Fixed under\" marker).\n\n")
+	b.WriteString("| Source | Entries | Fixed | Build 3 switch |\n|---|---|---|---|\n")
 	for _, section := range index.quirks {
-		b.WriteString(tableRow(vault.quirkSectionLink(section.title), fmt.Sprint(len(section.entries)), mapQuirkSwitches[section.title]))
+		b.WriteString(tableRow(vault.quirkSectionLink(section.title), fmt.Sprint(len(section.entries)), fmt.Sprint(fixed[section.title]), mapQuirkSwitches[section.title]))
 	}
-	b.WriteString(tableRow("\"Type debt\" comments", fmt.Sprint(counts["type"]), "NON_MATCHING (type debt)"))
-	b.WriteString(tableRow("\"Port debt\" comments", fmt.Sprint(counts["port"]), "PORT"))
+	b.WriteString(tableRow("\"Type debt\" comments", fmt.Sprint(counts["type"]), "", "NON_MATCHING (type debt)"))
+	b.WriteString(tableRow("\"Port debt\" comments", fmt.Sprint(counts["port"]), "", "PORT"))
 	for _, section := range index.quirks {
 		fmt.Fprintf(&b, "\n## %s (%d)\n\n", section.title, len(section.entries))
 		for _, quirk := range section.entries {
 			fmt.Fprintf(&b, "- Line %d: %s", quirk.line, quirkExcerpt(quirk.text))
+			if len(quirk.fixed) > 0 {
+				fmt.Fprintf(&b, " **Fixed under %s.**", strings.Join(quirk.fixed, ", "))
+			}
 			if links := vault.quirkLinks(quirk); links != "" {
 				fmt.Fprintf(&b, " → %s", links)
 			}
