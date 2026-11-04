@@ -45,10 +45,12 @@ All of it is WORLD code and a few WORLD and MAIN tables. The
 
 ## What can be done today
 
-Nothing that changes a byte: `make check` compares every function with its
-original hash. To try an idea, change the game's memory in an emulator:
-`make run` launches PCSX-Redux, and `make map` writes the symbol maps that
-name these tables in its debugger. For example, the Order Unit keys are the
-`-1`-terminated bytes at [[g_main_item_type_order_1]], and the field each
-key compares is the byte at `0x8018d7cc + key` while WORLD is loaded. Code
-changes wait for build 3.
+Nothing that changes a byte of the original build: `make check` compares every
+function with its original hash. To try an idea, change the game's memory in an
+emulator: `make run` launches PCSX-Redux, and `make map` writes the symbol maps
+that name these tables in its debugger. For example, the Order Unit keys are
+the `-1`-terminated bytes at [[g_main_item_type_order_1]], and the field each
+key compares is the byte at `0x8018d7cc + key` while WORLD is loaded. In the
+Developer's Cut, a change goes behind an option: code under `#ifdef` and a
+table's bytes in place through `target/edits.yaml` (`AGENTS.md`, "Changes under
+an option").

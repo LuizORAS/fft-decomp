@@ -65,8 +65,9 @@ Move on Lava, Walk on Water, Move in Water, Move Underwater, and normal.
 
 ## What can be done today
 
-Nothing that changes a byte: `make check` compares every function with its
-original hash, so even a one-constant change (a new teleport chance, another
-Move cap) fails until the build accepts different code (build 3). The terrain
-cost table and the Move-Find tiles are disc data, which the repository does not
-hold.
+Nothing that changes a byte of the original build: `make check` compares every
+function with its original hash, so even a one-constant change (a new teleport
+chance, another Move cap) fails it. The terrain cost table and the Move-Find
+tiles are disc data, which the repository does not hold. In the Developer's
+Cut, a change goes behind an option: code under `#ifdef` and a table's bytes in
+place through `target/edits.yaml` (`AGENTS.md`, "Changes under an option").

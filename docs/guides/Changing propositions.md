@@ -42,10 +42,12 @@ offsets, then the records ([[wldcore_proposition_data_record_e]]). The
 
 ## What can be done today
 
-Nothing that changes a byte: `make check` compares every function with its
-original hash. To try an idea, change the game's memory in an emulator:
-`make run` launches PCSX-Redux, and `make map` writes the symbol maps that
-name these tables in its debugger. While WLDCORE is loaded, the proposition
-rows start at `0x8009d344` + the first offset (row `n` at + `n` * 23), and
-the extra-day percentages are record 12 and 13's ten 16-bit values. Code
-changes wait for build 3.
+Nothing that changes a byte of the original build: `make check` compares every
+function with its original hash. To try an idea, change the game's memory in an
+emulator: `make run` launches PCSX-Redux, and `make map` writes the symbol maps
+that name these tables in its debugger. While WLDCORE is loaded, the
+proposition rows start at `0x8009d344` + the first offset (row `n` at + `n` *
+23), and the extra-day percentages are record 12 and 13's ten 16-bit values. In
+the Developer's Cut, a change goes behind an option: code under `#ifdef` and a
+table's bytes in place through `target/edits.yaml` (`AGENTS.md`, "Changes under
+an option").

@@ -123,7 +123,7 @@ the data tables.
 | A slot's line | [[card_save_build_slot_description]], [[world_card_build_save_slot_description]] |
 | The card header and icon | [[card_save_build_file_header]], [[world_card_build_save_file_header]] |
 | Retries and timing | The `card_io_*` and `card_file_*` routines and their `world_card_*` copies |
-| A larger save | The image fills one 8 KB card block; more needs a second block, a change for build 3 |
+| A larger save | The image fills one 8 KB card block; more needs a second block, a change to the save format that waits for the maintainer's decision (`AGENTS.md`, "Changes under an option") |
 
 ## Quirks and debts
 

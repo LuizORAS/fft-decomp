@@ -20,5 +20,5 @@ entries that must stay consistent with the change.
 
 ## What can be done today
 
-What works in the byte-exact build, and what waits for build 3 (code or data
-that changes).
+What works in the original build, and what a change under an option does in the
+Developer's Cut (code or data that changes).

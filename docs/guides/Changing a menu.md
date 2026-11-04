@@ -37,8 +37,10 @@ The [[Menus]] page describes the engine.
 
 ## What can be done today
 
-Nothing that changes a byte: the tables are data in BATTLE.BIN and WORLD.BIN,
-and `make check` compares every function with its original hash. To try an
-idea, edit the tables in an emulator's memory: `make run` launches PCSX-Redux,
-and `make map` writes the symbol maps that name them. Code changes wait for
-build 3.
+Nothing that changes a byte of the original build: the tables are data in
+BATTLE.BIN and WORLD.BIN, and `make check` compares every function with its
+original hash. To try an idea, edit the tables in an emulator's memory:
+`make run` launches PCSX-Redux, and `make map` writes the symbol maps that name
+them. In the Developer's Cut, a change goes behind an option: code under
+`#ifdef` and a table's bytes in place through `target/edits.yaml` (`AGENTS.md`,
+"Changes under an option").

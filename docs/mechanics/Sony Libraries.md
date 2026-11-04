@@ -86,8 +86,9 @@ rest of the driver; the [[Sound Driver]] page covers them. `target/main.yaml`,
 | PAL or NTSC display | The video mode stays 0 (NTSC): nothing calls [[SetVideoMode]] |
 | A port | These libraries are the hardware boundary: a port replaces them, the BIOS veneers (`PSYQ_BIOS_TAIL_CALL` in `abi_inline.h`) and the GTE helpers (`gte_inline.h`) with its own equivalents |
 
-Like the game, every routine here matches its original bytes; a change to one
-waits for build 3.
+Like the game, every routine here matches its original bytes in the original
+build; a change to one goes behind an option, as in the game's code
+(`AGENTS.md`, "Changes under an option").
 
 ## Quirks and debts
 

@@ -60,6 +60,25 @@ make build     # link every module and a byte-matching disc (the disc needs the 
 
 `make build` writes `build/disc/output-scus-94221.bin` and `.cue`.
 
+## The Developer's Cut
+
+The same source builds the Developer's Cut, which changes retail behavior
+(bug fixes first) behind the options of
+[`target/editions.yaml`](target/editions.yaml), while the build without an
+edition stays the original disc:
+
+```sh
+make build EDITION=dc   # its disc in build/dc/disc (needs the BIN)
+make patch EDITION=dc   # its xdelta3 patch from your BIN, in build/dc/release
+```
+
+`make patch` writes `scus-94221-dc.xdelta`, a cue sheet for the patched image
+and a `README.txt` with both discs' size and SHA-256 and how to apply the
+patch (Delta Patcher, Rom Patcher JS or `xdelta3`). The changes it holds are
+the [`QUIRKS.md`](QUIRKS.md) entries marked "Fixed under"; `make map`'s
+Build 3 backlog page counts them. [`AGENTS.md`](AGENTS.md) ("Changes under
+an option") has the rules for adding one.
+
 ## Documentation
 
 - [`CODEBASE.md`](CODEBASE.md): how the game fits together and where to find

@@ -193,9 +193,9 @@ the other names come from what each state's code does.
   [[battle_state_sync_frame]].
 - **What follows a battle:** the event results in
   [[battle_state_handle_event_state]].
-- **Today's limits:** every change must keep the original bytes until build 3
-  lets code grow or move; everything that names it already follows
-  (`CODEBASE.md`, "What can change today").
+- **Today's limits:** the original build keeps every byte; a change goes behind
+  an option into the Developer's Cut, where code can grow and move and
+  everything that names it follows (`CODEBASE.md`, "What can change today").
 
 ## Quirks and debts
 

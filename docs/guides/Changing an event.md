@@ -38,9 +38,11 @@ interpreters run them.
 
 ## What can be done today
 
-Nothing that changes a byte: `make check` compares every function with its
-original hash, and `TEST.EVT` is disc data. To try an idea, change the
-game's memory in an emulator: `make run` launches PCSX-Redux, and `make map`
-writes the symbol maps that name `g_main_script_event_block` and the script
-variables in its debugger. While an event runs, its block is loaded there.
-Code changes wait for build 3.
+Nothing that changes a byte of the original build: `make check` compares every
+function with its original hash, and `TEST.EVT` is disc data. To try an idea,
+change the game's memory in an emulator: `make run` launches PCSX-Redux, and
+`make map` writes the symbol maps that name `g_main_script_event_block` and the
+script variables in its debugger. While an event runs, its block is loaded
+there. In the Developer's Cut, a change goes behind an option: code under
+`#ifdef` and a table's bytes in place through `target/edits.yaml` (`AGENTS.md`,
+"Changes under an option").

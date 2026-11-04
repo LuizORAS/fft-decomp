@@ -275,9 +275,9 @@ by" counts the retail abilities, weapons and items whose status set adds it
   animation functions in the flow above; the preview image
   ([[g_battle_status_display_image_ids]]).
 - The [[Changing a status]] guide walks through a change.
-- **Today's limits:** every change must keep the original bytes until build 3
-  lets code grow or move; everything that names it already follows
-  (`CODEBASE.md`, "What can change today").
+- **Today's limits:** the original build keeps every byte; a change goes behind
+  an option into the Developer's Cut, where code can grow and move and
+  everything that names it follows (`CODEBASE.md`, "What can change today").
 
 ## Quirks and debts
 

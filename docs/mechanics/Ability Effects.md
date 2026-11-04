@@ -113,7 +113,7 @@ the targets react (flinch, block, fall) on its keyframes.
 | A resident effect's look | Its particle group in `g_battle_effect_particle_groups` and its handler |
 | The landing effects | [[battle_effect_set_landing_secondary_by_surface_type]] |
 | The music during an effect | EFFECT_FLAG_QUIET_MUSIC in the file's flags section; the volumes in [[battle_effect_update_file_load]] and [[battle_effect_update_stage]] |
-| What an effect file shows | Its script, timeline and emitters are data in the file; changing their size waits for build 3, since the build reads the file's data bytes from the disc |
+| What an effect file shows | Its script, timeline and emitters are data in the file; in the Developer's Cut an edit (`target/edits.yaml`) changes their bytes in place, but their size cannot change yet, since the build reads the file's data bytes from the disc |
 
 ## Quirks and debts
 
