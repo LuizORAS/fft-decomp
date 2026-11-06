@@ -727,7 +727,7 @@ functions:
   - {addr: 0x800437d8, size: 248, name: main_sound_start_music_load_into_free_slot, hash: 0b6f75c1755d440b}
   - {addr: 0x800438d0, size: 136, name: main_sound_poll_music_load, hash: 96a506be6e381a11}
   - {addr: 0x80043958, size: 104, name: main_sound_wait_for_music_load, hash: 793faa58744c23db}
-  - {addr: 0x800439c0, size: 120, name: main_sound_unload_scenario_mus, hash: c92064cadd7628ae}
+  - {addr: 0x800439c0, size: 120, name: main_sound_unload_scenario_mus, hash: c92064cadd7628ae, change: [FIX_BUGS], dc_hash: 3470ef4c24aa3b12}
   - {addr: 0x80043a38, size: 88, name: main_sound_stop_current_music, hash: 6b4c533ed48aaf0e}
   - {addr: 0x80043a90, size: 180, name: main_sound_switch_music_track, hash: 69069da0383341dc}
   - {addr: 0x80043b44, size: 16, name: main_sound_get_current_scenario_music, hash: ed983cc491943ec8}

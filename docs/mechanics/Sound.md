@@ -149,7 +149,7 @@ OPEN's movies and the ending's XA tracks play CD audio, which
 - [[main_sound_unload_scenario_mus]] releases the playing slot's record
   without clearing the playing music, so the next stop hands the released
   record to the driver; the shop, formation and save screens unload their
-  music this way.
+  music this way. The Developer's Cut clears it at the unload.
 - [[main_sound_update_tunes]] asks whether the scenario music plays even
   when none is loaded, and reads the null record.
 - The battle map's load steps ([[battle_map_step_setup_sequence]],

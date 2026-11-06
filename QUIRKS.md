@@ -406,7 +406,8 @@ An entry an edition changes keeps describing the retail code and ends with
   without clearing `g_main_sound_music.state` when that slot is the playing
   one. The shop, formation and both save screens unload their own music this
   way, so the next `main_sound_stop_current_music` hands the released record
-  to `suzuki_smd_stop_music`.
+  to `suzuki_smd_stop_music`. Fixed under `FIX_BUGS`: the edition clears that
+  state when it unloads the playing slot.
 - `battle_map_stop_clut_cycle` clears the active byte of slot `handle`,
   but `battle_map_start_clut_cycle` returns slot + 1: it stops the slot
   after the handle's own, and handle 8 clears the byte after the eight slots,
