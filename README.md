@@ -39,6 +39,15 @@ it, the same source is meant to build:
   follows what it names, while the disc still comes out byte for byte;
   `make build SHIFT=16` and `make smoke` prove it on a disc where everything
   moves.
+- **Build 3.0** (tag `build-3.0`): a repository of its own, with the whole
+  history, the MIT license, credits to the original decompilation and a
+  protected `main` that takes changes by pull request with CI green.
+- **Build 3.1a** (tag `build-3.1a`): the Developer's Cut can be built. The
+  same source makes a second disc: a change lives behind an option, a guard
+  proves that nothing else changed, the code after a function that grows
+  moves with everything that points to it, `make scenario` shows a change on
+  both discs and `make patch` writes the release. One fix went through the
+  whole path: unloading the playing music now clears its state.
 
 ## Getting started
 
