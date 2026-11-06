@@ -125,12 +125,15 @@ func asmDiffer(dir string, expected, compiled []byte) ([]byte, error) {
 	return output, os.WriteFile(filepath.Join(dir, "diff.txt"), output, 0o644)
 }
 
-// diffCommand compiles one function as the build does and compares its .text
+// diffCommand compiles one function as the build does (as an edition with
+// --edition) and compares its .text
 // and declared .rodata with the original bytes. On a .text difference it
 // prints asm-differ's listing, the mismatch-run summary and advisory
 // diagnostics for the first differing instruction.
 func (p project) diffCommand(args []string) error {
-	name, moduleName, err := functionArguments(flag.NewFlagSet("diff", flag.ContinueOnError), args)
+	flags := flag.NewFlagSet("diff", flag.ContinueOnError)
+	edition := flags.String("edition", "", "edition of target/editions.yaml to compile (default: the original disc)")
+	name, moduleName, err := functionArguments(flags, args)
 	if err != nil {
 		return err
 	}
@@ -138,11 +141,14 @@ func (p project) diffCommand(args []string) error {
 	if err != nil {
 		return err
 	}
+	if p, err = p.withEdition(config, *edition); err != nil {
+		return err
+	}
 	m, f, expected, image, err := p.originalFunction(config, name, moduleName)
 	if err != nil {
 		return err
 	}
-	workDir := filepath.Join(p.root, "build", "diff", m.ID)
+	workDir := p.outputDir("diff", m.ID)
 	unlock, err := fileLock(filepath.Join(workDir, f.Name+".lock"))
 	if err != nil {
 		return err
@@ -261,7 +267,7 @@ func (p project) permuteCommand(args []string) error {
 			return err
 		}
 	}
-	if err := runInDir(p.root, "mipsel-linux-gnu-cpp", "-P", "-undef", "-nostdinc", "-Iinclude", source, "-o", filepath.Join(workspace, "base.c")); err != nil {
+	if err := runInDir(p.root, p.cppCommand(source, filepath.Join(workspace, "base.c"))...); err != nil {
 		return err
 	}
 	if err := runInDir(workspace, "mipsel-linux-gnu-as", "-EL", "-march=r3000", "-mtune=r3000", "-no-pad-sections", "-O1", "-G0", "-o", "target-raw.o", "target.s"); err != nil {

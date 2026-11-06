@@ -7,6 +7,7 @@ package main
 
 import (
 	"errors"
+	"flag"
 	"fmt"
 	"os"
 	"os/exec"
@@ -45,9 +46,22 @@ func declCheckSources(config *projectConfig) []declCheckSource {
 	return sources
 }
 
-func (p project) declCheckCommand() error {
+// declCheckCommand is make decl-check; with --edition every source is
+// preprocessed with that edition's options.
+func (p project) declCheckCommand(args []string) error {
+	flags := flag.NewFlagSet("decl-check", flag.ContinueOnError)
+	edition := flags.String("edition", "", "edition of target/editions.yaml to preprocess with (default: the original disc)")
+	if err := flags.Parse(args); err != nil {
+		return err
+	}
+	if flags.NArg() != 0 {
+		return errors.New("usage: tools decl-check [--edition=E]")
+	}
 	config, err := p.loadProjectConfig()
 	if err != nil {
+		return err
+	}
+	if p, err = p.withEdition(config, *edition); err != nil {
 		return err
 	}
 	// Every module's preprocessed text is the same here, and both pinned
@@ -111,8 +125,7 @@ func (p project) declCheckCommand() error {
 // functions cc1 reports as implicitly declared.
 func (p project) undeclaredCalls(task declCheckSource, profile compilerProfile, preprocessed string) ([]string, error) {
 	cppDir, cppSource := p.preprocessInput(filepath.Join(p.root, task.source))
-	if err := runInDir(cppDir, "mipsel-linux-gnu-cpp", "-P", "-undef", "-nostdinc", "-Iinclude",
-		cppSource, "-o", preprocessed); err != nil {
+	if err := runInDir(cppDir, p.cppCommand(cppSource, preprocessed)...); err != nil {
 		return nil, fmt.Errorf("%s: preprocessing: %w", task.source, err)
 	}
 	arguments := append(cc1Command(profile.compilerPath), "-quiet", "-fsyntax-only", "-Wimplicit",

@@ -291,22 +291,43 @@ module's link gives it. So when code or data moves, what names it follows:
 - `make smoke` boots that disc and the original in PCSX-Redux, from a new
   game through Orbonne and Gariland to the world map.
 
-The product is still the original disc: every function must match its hash,
-every module its original file and the disc its SHA-256 (`make patch-check`
-builds it again the old way). So today the tree supports renames, types,
-comments and documentation, and rewrites that keep the bytes.
+The build without an edition still gives the original disc: every function
+must match its hash, every module its original file and the disc its
+SHA-256 (`make patch-check` builds it again the old way). There the tree
+supports renames, types, comments and documentation, and rewrites that keep
+the bytes.
 
 A few addresses stay fixed on purpose: the RAM areas outside every module
 image, the GTE matrix stack's page, the names WORLD's never-run copies of
 BATTLE and EVENT code bind, and the MAP files, whose sectors the GNS files
 store.
 
-Gameplay changes wait for build 3, which accepts a disc that differs:
-- code that grows or moves links where the layout puts it, up to its RAM
-  window's end (`make build` prints each window's room), and
-  `make config-fmt` moves a file that outgrows its sectors to the disc's free
-  run;
-- a table that grows needs its bytes in source, since the build reads data
-  from the BIN at its original size;
-- the `QUIRKS.md` entries and the "Type debt / Port debt" comments become
-  optional fixes (the vault's Build 3 backlog page).
+A change to what the game does goes behind an option of
+[`target/editions.yaml`](target/editions.yaml) and builds into an edition:
+`make build EDITION=dc` gives the Developer's Cut in `build/dc`, and
+[`AGENTS.md`](AGENTS.md) ("Changes under an option") has the rules. There:
+- a changed function compiles with its historical compiler; when it grows,
+  every piece after it moves by the growth rounded up to 16 bytes, what
+  names it follows, and the build checks every word against the original's
+  (the same, moved with what it names, or a changed function at its
+  `dc_hash`);
+- an image grows up to its RAM window's end (`make build EDITION=dc` prints
+  each window's room against the original's), and a file that outgrows its
+  sectors moves to the disc's free run;
+- a table's bytes change in place through
+  [`target/edits.yaml`](target/edits.yaml);
+- `make smoke EDITION=dc` and `make scenario` run the edition's disc in
+  PCSX-Redux, and `make patch EDITION=dc` writes the xdelta3 patch from the
+  original disc to it.
+
+Some changes have no place yet, and the build refuses each with its reason
+(`AGENTS.md` lists every case under `editions.yaml` and `edits.yaml`): a
+table that grows, since the build reads data from the BIN at its original
+size; a new global or function; a file that would move or change its length
+while the code names its sector or length
+([`include/fft/disc.h`](include/fft/disc.h)); and a data row inside a
+changed function's code.
+
+The `QUIRKS.md` entries and the "Type debt / Port debt" comments are the
+candidates; the vault's Build 3 backlog page lists them and marks the
+entries an edition already fixes.

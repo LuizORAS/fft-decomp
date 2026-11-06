@@ -2,6 +2,8 @@
 
 Non-obvious facts about the retail code. They explain source that looks wrong
 and mark code that a cleanup must not "fix". Details live in the named file.
+An entry an edition changes keeps describing the retail code and ends with
+"Fixed under `OPTION`" and what the edition does (see AGENTS.md).
 
 ## Retail bugs the source reproduces
 
@@ -404,7 +406,8 @@ and mark code that a cleanup must not "fix". Details live in the named file.
   without clearing `g_main_sound_music.state` when that slot is the playing
   one. The shop, formation and both save screens unload their own music this
   way, so the next `main_sound_stop_current_music` hands the released record
-  to `suzuki_smd_stop_music`.
+  to `suzuki_smd_stop_music`. Fixed under `FIX_BUGS`: the edition clears that
+  state when it unloads the playing slot.
 - `battle_map_stop_clut_cycle` clears the active byte of slot `handle`,
   but `battle_map_start_clut_cycle` returns slot + 1: it stops the slot
   after the handle's own, and handle 8 clears the byte after the eight slots,
@@ -660,6 +663,7 @@ and mark code that a cleanup must not "fix". Details live in the named file.
   before the size, so no allocation includes the last page. They mark pages before
   claiming one of the 16 records and leave them marked with no owner when all 16 are
   taken. Whether a normal game exhausts the records is unknown.
+
 ## Calls that disagree with the callee
 
 Where callers pass arguments a callee never reads, the callee declares them as
@@ -828,6 +832,7 @@ written that way.
 - `battle_effect_get_world_coords_by_battle_id` (no caller) passes the unit's runtime
   id to `battle_effect_resolve_target_world_coords`, which takes an index into the
   effect's target list.
+
 ## Declaration leads
 
 - The unit status record (`battle_menu_unit_status_record_t`, `include/fft/menu.h`)
@@ -921,6 +926,7 @@ translation unit. Share their types and constants through headers.
   `g_require_editor_numeric_state`, where the BUNIT, DEBUGCHR, EQUIP and WORLD
   copies give the preview slot a second state; both overlays start the thread only
   in `THREAD_SCREEN_SLOT_NUMERIC_EDITOR`, so the shared second branch never runs.
+
 ## Other surprises
 
 - `main_boot_run_startup` installs the empty `main_file_handle_cd_ready_callback` and

@@ -3,8 +3,13 @@
 A byte-exact matching decompilation of the USA PlayStation release of *Final
 Fantasy Tactics* (`SCUS-94221`). Every game function is C that compiles to the
 original bytes, except the routines the original programmers wrote in
-assembly, which are `.s` files that assemble to them. The work now is making
-that C better (names, types, structure) without changing a single byte.
+assembly, which are `.s` files that assemble to them. The build without an
+edition is that original disc, byte for byte, and stays so. The same source
+also builds editions (`target/editions.yaml`): the Developer's Cut
+(`EDITION=dc`) changes retail behavior behind options, each change beside the
+original code it replaces. The work now is making the C better (names, types,
+structure) without changing a byte of the original, and adding changes under
+the rules of "Changes under an option".
 
 ## Linked libraries
 
@@ -20,8 +25,10 @@ heap routines included, is `src/lib/suzuki/` under `suzuki_` names, declared in
 
 Library C has the same byte-exact requirements as game C. Every completed
 function must match all original bytes; unmatched drafts stay in ignored
-`build/`. Generate hashes only from original bytes through `make checksums`.
-Never weaken checks, accept mismatches, or change a hash to bless edited code.
+`build/`. Generate hashes only from original bytes through `make checksums`
+(an edition's `dc_hash` alone comes from compiled code: see `editions.yaml`
+below). Never weaken checks, accept mismatches, or change a hash to bless
+edited code.
 Use `make library-diff ARGS="--name=NAME --source=build/.../NAME.c
 --addr=0xADDRESS --size=BYTES"` for scratch candidates before integration; it
 uses the normal historical compiler pipeline without modifying target metadata.
@@ -66,7 +73,9 @@ remain excluded. Never modify `meta/`.
 | `target/*.yaml` | Every disc module: functions with hashes, data names, libraries, regions |
 | `target/disc.yaml` | The disc's file system: every directory, file and dummy at its sector, with sizes and dates, never bytes |
 | `target/ram.yaml` | The RAM the modules load into: each window with its modules and what bounds it, and the windows resident together |
-| `tools/` | Go tooling (its own module), rebuilt from the working tree on every `make` call, and `make smoke`'s emulator script and runner (`smoke.lua`, `smoke.sh`) |
+| `target/editions.yaml` | The build options sources test with `#ifdef` and the editions that combine them; the build without an edition is the original disc |
+| `target/edits.yaml` | The bytes an option changes in place in a module's data or a disc file, each with the hash of the original bytes it replaces |
+| `tools/` | Go tooling (its own module), rebuilt from the working tree on every `make` call, and the emulator scripts of `make smoke` and `make scenario`: what their runs share (`emulator.lua`), their own (`smoke.lua`, `scenario.lua`), the scenarios (`scenarios/`) and the runner (`emulator.sh`) |
 | `QUIRKS.md` | Index of retail bugs and code that looks wrong on purpose |
 | `CODEBASE.md` | Architecture guide: disc modules, boot and game loop, engine services, how to find things |
 | `docs/` | Hand-written mechanic pages and guides; `make map` copies them into the map vault |
@@ -99,9 +108,12 @@ make bootstrap             # build the Docker image (extracts the BIN if present
 make check [MODULE=x]      # compile and compare with target/ hashes; no BIN needed
 make build [MODULE=x]      # link each module whole from its objects and the bytes between them, taking each name another module places from that module's link (a second pass); compare with the original file (function hashes without the BIN, the data bytes then zeros); fail on an image past its RAM window and print each window's room; every module with the BIN also builds the disc in build/disc and checks its sha256
 make build SHIFT=16        # a test disc in build/shift: every module's image opens 16 bytes (break instructions) at its start, MAIN pads to whole sectors and a file that outgrows its sectors moves; fail on a word that changed unexplained (needs the BIN)
+make build EDITION=dc      # an edition of target/editions.yaml (dc: the Developer's Cut): every source preprocessed with its options (-DFIX_BUGS ...), outputs and disc under build/dc; build and check run its change guard first, and build moves everything after a changed function that grows and writes the data edits of its options (see editions.yaml and edits.yaml below); check, warnings, decl-check, diff, checksums, smoke and patch take EDITION too, and the commands that check the original disc refuse it
 make patch-check [MODULE=x] # cross-check make build the way the disc was built before the link: each function compiled alone and written over a copy of its original module image, every copy identical, and every module's copy makes the disc in build/patch/disc, sha256 checked (needs the BIN)
 make extract               # extract the BIN (build/checksums/diff do it on demand)
-make checksums             # refresh hashes from the ORIGINAL bytes only
+make checksums             # refresh hashes from the ORIGINAL bytes only (functions and data edits)
+make checksums EDITION=dc  # the dc_hash of each function the Developer's Cut changes, from the code it compiles, after the change guard (no BIN)
+make patch EDITION=dc      # build the Developer's Cut, then the xdelta3 patch from scus-94221.bin to its disc in build/dc/release, with a cue sheet for the patched image and a README.txt of both images' size and sha256; the patch has no secondary compression, so every VCDIFF patcher reads it, and make patch applies it to a temporary copy and checks the sha256 (needs the BIN)
 make check-config          # validate target/, sources and declarations
 make config-fmt            # rewrite target/*.yaml in canonical form
 make decl-check            # fail on calls to undeclared functions (the build's -w hides them)
@@ -111,7 +123,8 @@ make share-audit [MODULE=x] # report shared C implementation candidates as JSON
 make twins [MODULE=x]      # group functions identical under renames across modules (needs the BIN)
 make trial TWINS=t0001     # compile each twin's source at the others' entries (or MODULE ENTRY SOURCE)
 make unit-check [MODULE=x] # compile each original translation unit whole from its members' sources
-make smoke                 # boot the original and the shifted test disc in PCSX-Redux (PCSX_REDUX=path) from tools/smoke.lua: a new game through Orbonne (ATTACK.OUT, an effect file's code) to the save screen, then Continue through Gariland to the world map's formation screen, each checkpoint checking the code in RAM; logs and screenshots in build/smoke, about 50 minutes (after make build and make build SHIFT=16)
+make smoke                 # boot the original and the shifted test disc in PCSX-Redux (PCSX_REDUX=path) from tools/smoke.lua: a new game through Orbonne (ATTACK.OUT, an effect file's code) to the save screen, then Continue through Gariland to the world map's formation screen, each checkpoint checking the code in RAM; logs and screenshots in build/smoke, about 50 minutes (after make build and make build SHIFT=16); EDITION=dc boots the Developer's Cut disc alone, in build/dc/smoke, about 25 minutes (after make build EDITION=dc)
+make scenario NAME=x       # run tools/scenarios/x.lua in PCSX-Redux on the original and the Developer's Cut disc (after make build EDITION=dc): from a memory card save in SAVES (default ~/fft-saves, never committed) to a situation, then compare the values it reads with what each disc expects; a passing run caches the situation as that disc's savestate in build/scenarios (CACHE=0 runs the setup again); PCSX-Redux 30177 (2026-11-02) loads these savestates, the build of 2026-10-03 crashes on them
 make reloc-check [MODULE=x] # fail on a data word that looks like a RAM address or a disc sector and is neither relocation, disc or ram word nor value, and on a RAM address split over two instructions outside code; link each module twice shifted to check every changed word, and list the findings in build/reloc-check (needs the BIN)
 make diff FUNC=f           # compare one function with the original bytes (needs the BIN)
 make library-diff ARGS="..." # compare a scratch library candidate without registering it
@@ -134,23 +147,28 @@ be a list, and `event` or `effect` selects every such module. `diff` and
 exactly as `check` does. Every change ends with `make check` passing. Before
 handing off, also run `make build` and `make patch-check` (disc exact both
 ways), `make build SHIFT=16` (nothing unexplained), `make reloc-check`,
-`make check-config`, `make decl-check`, `make fmt-check` and `make test`.
+`make check-config`, `make decl-check`, `make fmt-check` and `make test`. A
+change under an option also needs `make build EDITION=dc`,
+`make check EDITION=dc`, `make decl-check EDITION=dc`,
+`make warnings EDITION=dc` (no new warning), `make smoke EDITION=dc`, a
+scenario that shows it (`make scenario`) and `make patch EDITION=dc`.
 
 Every target runs in a fresh `docker run --rm` container of the pinned
 `Dockerfile` image as the host user, with the checkout mounted at `/work`;
 the image is tagged by a checksum of its inputs, built on first use (its last
 layer proves every tool runs) and rebuilt by `make bootstrap`. It holds the
 old GCC `cc1` binaries (native on x86-64, through `qemu-i386` elsewhere), maspsx, mipsel binutils and
-`cpp`, mkpsxiso, asm-differ (`make diff` listings), decomp-permuter, Go and
+`cpp`, mkpsxiso, asm-differ (`make diff` listings), decomp-permuter, xdelta3 (`make patch`), Go and
 clang-format 22.1.8. CI (`.github/workflows/check.yml`) runs `fmt-check`,
-`check-config`, `test`, `decl-check` and `map` in one job and `check` and
-`build` in four module shards, without the BIN; `check-config` fails unless
-the shards' module lists cover every module once. Optional overrides: `JOBS`,
-`CACHE=0`, `WORK_DIR`, `REPORT_ALL=1`, `DURATION` (see the Makefile).
+`check-config`, `test`, `decl-check` (also with `EDITION=dc`) and `map` in one
+job and `check`, `build` and `build EDITION=dc` in four module shards,
+without the BIN; `check-config` fails unless the shards' module lists cover
+every module once. Optional overrides: `JOBS`, `CACHE=0`, `WORK_DIR`,
+`REPORT_ALL=1`, `DURATION` (see the Makefile).
 
 ## target/*.yaml
 
-One YAML document per module, plus `disc.yaml` and `ram.yaml` (below); `event.yaml` and
+One YAML document per module, plus `disc.yaml`, `ram.yaml`, `editions.yaml` and `edits.yaml` (below); `event.yaml` and
 `effect.yaml` hold many, separated by `---`. `make config-fmt` defines the canonical form (unquoted hex
 addresses, decimal sizes, one flow mapping per line, sorted rows) and
 `make check-config` rejects anything else.
@@ -164,7 +182,10 @@ addresses, decimal sizes, one flow mapping per line, sorted rows) and
   path other than the default) or
   `source_symbol` (the neutral symbol a `src/shared/` source defines) only
   when needed. `hash` is the first 16 hex digits of the SHA-256 of the
-  original bytes; only `make checksums` writes it.
+  original bytes; only `make checksums` writes it. A function an option
+  changes lists its options in `change` and has `dc_hash`, the same digits
+  for its code and `.rodata` as the Developer's Cut compiles them at its
+  address, which only `make checksums EDITION=dc` writes.
 - `data`: named addresses with no reconstruction (globals, library entry
   points). A data row inside a function names that place in the code and
   moves with it; one named with another module's prefix is that module's
@@ -236,10 +257,53 @@ load address (`addr`) to where the next thing resident with them starts
 state lists the windows resident at one time, which never overlap; two
 modules are in RAM together when one state lists both their windows (two
 modules of one window never are). `make build` fails on an image that passes its window's end and prints the
-room each window has left. A window's size in code is
+room each window has left; an edition's build says where that room differs
+from the original's. A window's size in code is
 `RAM_WINDOW_BYTES_<WINDOW>` and its start past another's
 `RAM_WINDOW_START_<WINDOW>_FROM_<OTHER>`, which `make config-fmt` writes to
 `include/fft/ram.h` for each one the code uses.
+
+`editions.yaml` lists the build options, `{name, why}`, and the editions that
+combine them, `{name, title, options}`. A source tests an option only as
+defined or not (`#ifdef`, `#ifndef`, `defined()`), and `make check-config`
+fails on a conditional that tests a name neither the code `#define`s nor
+`editions.yaml` declares. With an edition, `make check`, `make build` and
+`make checksums` first run its change guard: a function that compiles
+differently with one of the edition's options lists exactly those options
+in its `change`, each alone, and each option it lists changes it. The guard
+compares the preprocessed text, then the relocatable objects (loaded
+sections, relocations by symbol name, global symbols); a function whose
+source and headers never name an option is not compared, and a routine in
+assembly takes no `change`. An edition's `make build` lets each module's
+layout flow: a changed function keeps its address, and when it grows every
+piece after it moves by the growth rounded up to 16 bytes; one that shrinks
+keeps its slot, the rest of a slot is `break` filler, and a new `.rodata`
+follows its function's `.text` (its `dc_hash` covers it). Each name another
+module places follows, the disc is fitted to the grown files, and every word
+of the image must equal the original's or be a relocation that names, through
+the address maps, what it named before. A data row inside a changed function
+(other than a second name for its entry), a literal a changed function
+shares, a row bound inside code that moves, an override that binds another
+module's name in place over the module's own row, a file whose sector or
+length the code names that would move, a new global or function and an image
+past its window each fail with the reason.
+
+`edits.yaml` lists the data edits, the bytes an option changes in place:
+`{module, addr, bytes, option, hash, why}` in a module's bytes between
+functions, or `{file, offset, ...}` in a disc file that is not a module.
+`bytes` are the new bytes, two hex digits each, and `hash` is the hash of the
+original bytes they replace, which only `make checksums` writes, so the
+repository holds no disc bytes. An edition's `make build` writes the edits of
+its options, a file's in a copy under `build/<edition>/files` that its disc
+takes, and its word check expects their bytes. With the BIN it fails on an
+edit whose original bytes have another hash or already hold its bytes, and on
+a word an edit makes read as an address, a disc sector or a split address
+(`make reloc-check`'s rules). `make check-config` fails on an edit in code (a
+function, its `.rodata`, a region other than `data` or `padding`, MAIN's
+header), past its file's end (a table that grows is not an edit), over a
+relocation, disc or ram word or another edit, on a module's file given by
+offset, on a `mixed` file, on a whole word that reads as a RAM address and on
+an option no edition builds.
 
 To add a function: write `src/<module>/<name>.c`, add its `functions` row and
 any new `data` rows, then `make config-fmt`, `make checksums`,
@@ -272,10 +336,13 @@ none), and prefer the profile of its neighbors.
 
 ## Code rules
 
-- Byte-exact always. Never weaken a check or edit a hash to accept a mismatch.
+- Byte-exact always: the build without an edition is the original disc.
+  Never weaken a check or edit a hash to accept a mismatch. An edition changes
+  only what its options declare.
 - Represent only what the original game did: no abstraction, helper layer or
   scaffolding the game did not have. A macro, header or helper exists only
-  when it expresses something the original contained.
+  when it expresses something the original contained. Code behind an option
+  is the one exception.
 - C, except the routines the original programmers wrote in assembly. Each is
   one `.s` file per routine and module, named after it. Its opening comment
   says which original range it reproduces and why it cannot be C (it reads or
@@ -368,6 +435,32 @@ none), and prefer the profile of its neighbors.
   entry still compiles with its own profile and bindings.
 - Run `make fmt` after editing C or headers, then `make check`: cc1 emits
   line notes, so formatting can change the bytes.
+
+## Changes under an option
+
+A change to what the original disc does lives in the same source, behind an
+option of `target/editions.yaml`, and the build without an edition still
+compiles the original:
+
+- C behind one option: `#ifdef FIX_BUGS` with the new code and `#else` with
+  the original code untouched, or no `#else` when the change only adds code.
+  One option per conditional, none nested; the original branch never changes.
+- Above the conditional, a one-line comment says what the edition does and
+  cites `QUIRKS.md` (`make map` reports a comment that cites it about a
+  function it does not name).
+- The function's row lists the option in `change` and has its `dc_hash`
+  (`make checksums EDITION=dc`). A data change is an `edits.yaml` row, never
+  a table rewritten in C.
+- The `QUIRKS.md` entry stays, still describes the retail code and ends with
+  "Fixed under `OPTION`: what the edition does." `make check-config` fails
+  when a changed function has no entry that names it in backticks (its name,
+  its source path or its file name) with that marker for each option of its
+  change, and on a marker whose option `editions.yaml` does not declare.
+- A change keeps the function's historical compiler and adds no warning in
+  any edition (`make warnings` and `make warnings EDITION=dc`). A global or a
+  function the original lacks has no place yet: the edition's link refuses
+  it. A change to the memory card format, or to a retail behavior players
+  rely on, waits for the maintainer's decision.
 
 ## Matching levers
 

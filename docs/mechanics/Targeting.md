@@ -127,9 +127,9 @@ hit (its area) and a preview, and the player confirms.
 - **Random Fire:** [[battle_target_select_random_tile_for_random_fire_abilities]].
 - **The cursor and the tile tints:** [[battle_target_move_cursor_by_input]]
   and [[battle_target_tint_marked_tiles]].
-- **Today's limits:** every change must keep the original bytes until build 3
-  lets code grow or move; everything that names it already follows
-  (`CODEBASE.md`, "What can change today").
+- **Today's limits:** the original build keeps every byte; a change goes behind
+  an option into the Developer's Cut, where code can grow and move and
+  everything that names it follows (`CODEBASE.md`, "What can change today").
 
 ## Quirks and debts
 

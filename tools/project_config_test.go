@@ -483,7 +483,7 @@ func TestSymbolResolverSearchesOwnLinksThenMain(t *testing.T) {
 
 func TestLinkerScriptPlacesSections(t *testing.T) {
 	f := &functionSpec{Addr: 0x80067010, Name: "f", Rodata: []rodataSpec{{Addr: 0x80067000, Size: 8}}}
-	script, err := linkerScript(f, map[string]uint32{"b": 0x80010000, "a": 0x80020000})
+	script, err := linkerScript(f, map[string]uint32{"b": 0x80010000, "a": 0x80020000}, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -495,7 +495,7 @@ func TestLinkerScriptPlacesSections(t *testing.T) {
 		t.Fatalf("script:\n%s", script)
 	}
 	f.Rodata = append(f.Rodata, rodataSpec{Addr: 0x80067008, Size: 4})
-	if _, err := linkerScript(f, nil); err == nil {
+	if _, err := linkerScript(f, nil, false); err == nil {
 		t.Fatal("two rodata ranges were accepted")
 	}
 }

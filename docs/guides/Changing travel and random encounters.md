@@ -49,10 +49,12 @@ All of it is WLDCORE code and WLDCORE tables; the
 
 ## What can be done today
 
-Nothing that changes a byte: `make check` compares every function with its
-original hash. To try an idea, change the game's memory in an emulator:
-`make run` launches PCSX-Redux, and `make map` writes the symbol maps that
-name these tables in its debugger. For example, the encounter table is the
+Nothing that changes a byte of the original build: `make check` compares every
+function with its original hash. To try an idea, change the game's memory in an
+emulator: `make run` launches PCSX-Redux, and `make map` writes the symbol maps
+that name these tables in its debugger. For example, the encounter table is the
 pointer at `g_wldcore_random_battle_data` while WLDCORE is loaded; the tier
-chances are the bytes at +3, +6, +9 and +12 of each 24-byte road. Code changes
-wait for build 3.
+chances are the bytes at +3, +6, +9 and +12 of each 24-byte road. In the
+Developer's Cut, a change goes behind an option: code under `#ifdef` and a
+table's bytes in place through `target/edits.yaml` (`AGENTS.md`, "Changes under
+an option").

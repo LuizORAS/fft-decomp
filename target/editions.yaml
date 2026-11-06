@@ -1,0 +1,9 @@
+# The build options a source tests with #ifdef, and the editions that combine
+# them. The build without an edition is the original disc, byte for byte.
+options:
+  - {name: FIX_BUGS, why: "fixes a retail bug QUIRKS.md records"}
+  - {name: IMPROVEMENTS, why: "an improvement or restored content; an edition keeps it always on"}
+  - {name: NON_MATCHING, why: "the same behavior written as clearer or portable code"}
+
+editions:
+  - {name: dc, title: "Developer's Cut", options: [FIX_BUGS, IMPROVEMENTS, NON_MATCHING]}

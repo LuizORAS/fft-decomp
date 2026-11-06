@@ -131,10 +131,11 @@ file and fails on an image that passes its window's end.
   the same functions under `world_thread_`.
 - **Memory:** [[main_heap_alloc]] gives 2 KB cells (128 KB in all);
   [[battle_heap_alloc_block]] serves the battle effects.
-- **Today's limits:** every change must keep the original bytes until build 3
-  lets code or data grow or move; everything that names it already follows
-  (`CODEBASE.md`, "What can change today"). The context switch and the
-  main-stack bridge are hand-written MIPS, so a port rewrites them.
+- **Today's limits:** the original build keeps every byte; a change goes behind
+  an option into the Developer's Cut, where code can grow and move, a table's
+  bytes change in place, and everything that names them follows (`CODEBASE.md`,
+  "What can change today"). The context switch and the main-stack bridge are
+  hand-written MIPS, so a port rewrites them.
 
 ## Quirks and debts
 

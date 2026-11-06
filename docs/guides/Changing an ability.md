@@ -61,10 +61,12 @@ name, and for its `ABILITY_ID_*` name, finds every test.
 
 ## What can be done today
 
-Nothing that changes a byte: `make check` compares every function with its
-original hash, and the ability tables are disc data, which the repository
-does not hold. To try an idea, change the game's memory in an emulator:
-`make run` launches PCSX-Redux, and `make map` writes the symbol maps that
-name these tables in its debugger (the ability records start at
+Nothing that changes a byte of the original build: `make check` compares every
+function with its original hash, and the ability tables are disc data, which
+the repository does not hold. To try an idea, change the game's memory in an
+emulator: `make run` launches PCSX-Redux, and `make map` writes the symbol maps
+that name these tables in its debugger (the ability records start at
 `0x8005ebf0`, 8 bytes per id; the action abilities' data at `0x8005fbf0`, 14
-bytes per id). Code changes wait for build 3.
+bytes per id). In the Developer's Cut, a change goes behind an option: code
+under `#ifdef` and a table's bytes in place through `target/edits.yaml`
+(`AGENTS.md`, "Changes under an option").

@@ -381,6 +381,12 @@ func (vault *mapVault) functionPage(f *mapFunction) string {
 	for _, debt := range f.debts {
 		debtKinds = appendUnique(debtKinds, debt.kind)
 	}
+	change := []string{}
+	for _, instance := range f.instances {
+		for _, option := range instance.change {
+			change = appendUnique(change, option)
+		}
+	}
 	_, numbered := vault.index.numberedFamily(f.name)
 	weak := f.weakNames()
 	b.WriteString(frontmatter(
@@ -401,6 +407,7 @@ func (vault *mapVault) functionPage(f *mapFunction) string {
 		mapProperty{"called_by", len(f.calledBy)},
 		mapProperty{"referenced_by", len(f.referencedBy)},
 		mapProperty{"quirks", len(f.quirks)},
+		mapProperty{"change", change},
 		mapProperty{"debt", debtKinds},
 		mapProperty{"address_name", mapAddressName(f.name)},
 		mapProperty{"numeric_suffix", numbered},

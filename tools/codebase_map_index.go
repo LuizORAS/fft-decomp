@@ -19,6 +19,7 @@ type mapInstance struct {
 	size    int
 	profile string
 	hash    string
+	change  []string // the options an edition changes it under
 }
 
 type mapFunction struct {
@@ -217,7 +218,7 @@ func (index *codebaseIndex) addConfigFunctions() {
 			}
 			index.identifiers[f.Name] = true
 			entry.instances = append(entry.instances, mapInstance{
-				module: m.ID, addr: f.Addr, size: f.Size, profile: m.profileOf(f), hash: f.Hash,
+				module: m.ID, addr: f.Addr, size: f.Size, profile: m.profileOf(f), hash: f.Hash, change: f.Change,
 			})
 		}
 	}

@@ -91,7 +91,7 @@ to a family means a fix to every copy.
 | What a family draws | Its routine in each file that carries it (see the table) and its record in `fft/effect.h` |
 | Which callback an effect uses, and when | The file's script (opcodes 06 and 07) and keyframes: data in the file |
 | The curves a renderer follows | The emitter record and the animation curves of the file: data |
-| Adding code to an effect file | Waits for build 3. The callback table and the file header offsets already follow the code, so a file can then grow up to the effect window's end (`make build` prints the room), which shrinks the battle heap that runs from its palette section to there |
+| Adding code to an effect file | A change under an option, in the Developer's Cut: the callback table and the file header offsets follow the code, so a file grows up to the effect window's end (`make build EDITION=dc` prints the room), which shrinks the battle heap that runs from its palette section to there |
 
 ## Quirks and debts
 

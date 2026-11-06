@@ -53,7 +53,7 @@ func TestSmallDataPointerStorePipeline(t *testing.T) {
 	profile, _ := compilerProfileNamed("gcc-2.6.3_O2_G8_aspsx-2.34")
 	script, err := linkerScript(&functionSpec{Name: "fixture", Addr: 0x8001423c}, map[string]uint32{
 		"fixture_small": 0x800329f8, "_gp": profile.globalPointer,
-	})
+	}, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -87,7 +87,7 @@ func TestSmallDataRelocationPipeline(t *testing.T) {
 	profile, _ := compilerProfileNamed("gcc-2.6.3_O2_G8_aspsx-2.34")
 	script, err := linkerScript(&functionSpec{Name: "fixture", Addr: 0x8001423c}, map[string]uint32{
 		"fixture_small": 0x800329f8, "_gp": profile.globalPointer,
-	})
+	}, false)
 	if err != nil {
 		t.Fatal(err)
 	}

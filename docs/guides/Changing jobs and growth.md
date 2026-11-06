@@ -52,10 +52,12 @@ retail values.
 
 ## What can be done today
 
-Nothing that changes a byte: `make check` compares every function with its
-original hash, and the job, unlock and generation tables are disc data,
-which the repository does not hold. To try an idea, change the game's memory
-in an emulator: `make run` launches PCSX-Redux, and `make map` writes the
-symbol maps that name these functions and tables in its debugger (a job's
-record is at `0x800610b8 + job id * 0x30`, its growths and multipliers at
-`+0x0d`). Code changes wait for build 3.
+Nothing that changes a byte of the original build: `make check` compares every
+function with its original hash, and the job, unlock and generation tables are
+disc data, which the repository does not hold. To try an idea, change the
+game's memory in an emulator: `make run` launches PCSX-Redux, and `make map`
+writes the symbol maps that name these functions and tables in its debugger (a
+job's record is at `0x800610b8 + job id * 0x30`, its growths and multipliers at
+`+0x0d`). In the Developer's Cut, a change goes behind an option: code under
+`#ifdef` and a table's bytes in place through `target/edits.yaml` (`AGENTS.md`,
+"Changes under an option").

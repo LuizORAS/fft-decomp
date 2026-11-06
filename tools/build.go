@@ -141,11 +141,7 @@ func (p project) compileModule(config *projectConfig, resolver symbolResolver, m
 	// thousands of small files are much faster there than on the host bind
 	// mount. They are namespaced by module because many effect overlays share
 	// a helper name and modules compile concurrently.
-	workBase := toolWorkDir()
-	if workBase == "" {
-		workBase = filepath.Join(p.root, "build", "work")
-	}
-	workDir := filepath.Join(workBase, "modules", m.ID)
+	workDir := filepath.Join(p.workDir("modules"), m.ID)
 	work := make(chan int)
 	var workers sync.WaitGroup
 	for range min(jobs, len(m.Functions)) {
@@ -188,7 +184,7 @@ func (p project) functionLinker(resolver symbolResolver, m *moduleSpec, f *funct
 	if profile, ok := compilerProfileNamed(m.profileOf(f)); ok && profile.smallDataLimit != 0 {
 		bindings["_gp"] = profile.globalPointer
 	}
-	script, err := linkerScript(f, bindings)
+	script, err := linkerScript(f, bindings, p.changes(f))
 	return source, script, err
 }
 
@@ -226,7 +222,7 @@ func (p project) compileFunction(resolver symbolResolver, m *moduleSpec, f *func
 			if profile.smallDataLimit != 0 {
 				bindings["_gp"] = profile.globalPointer
 			}
-			if expanded, scriptErr := linkerScript(f, bindings); scriptErr == nil && expanded != script {
+			if expanded, scriptErr := linkerScript(f, bindings, p.changes(f)); scriptErr == nil && expanded != script {
 				if _, writeErr := writeLinkerScript(workDir, f.Name, expanded); writeErr == nil {
 					return p.compileHistoricalSections(source, linker, filepath.Join(workDir, f.Name), profile)
 				}
@@ -375,6 +371,9 @@ func (p project) loadCheckedConfig() (*projectConfig, error) {
 	if err := validateAddressLiterals(p.root); err != nil {
 		return nil, err
 	}
+	if err := validateConditionals(p.root, config.Editions); err != nil {
+		return nil, err
+	}
 	return config, nil
 }
 
@@ -456,7 +455,8 @@ func (p project) patchCheckCommand(args []string) error {
 }
 
 // writeDisc runs mkpsxiso on the project target/disc.yaml describes, with
-// each module in built (id to rebuilt file) in place of its extracted file,
+// each module in built (id to rebuilt file) and each file an edition's data
+// edits change (p.editedFiles) in place of its extracted file,
 // writes the disc under buildDir and checks every rebuilt module at its LBA
 // and, for the identical disc (exact), the disc's SHA-256.
 func (p project) writeDisc(config *projectConfig, built map[string]string, buildDir string, exact bool) error {
@@ -471,7 +471,7 @@ func (p project) writeDisc(config *projectConfig, built map[string]string, build
 		outputs[id] = filepath.ToSlash(output)
 	}
 	buildXML := filepath.Join(buildDir, "disc.xml")
-	if err := os.WriteFile(buildXML, config.Disc.mkpsxisoProject(config, filepath.ToSlash(p.filesRoot), outputs), 0o644); err != nil {
+	if err := os.WriteFile(buildXML, config.Disc.mkpsxisoProject(config, filepath.ToSlash(p.filesRoot), outputs, p.editedFiles), 0o644); err != nil {
 		return err
 	}
 	output := filepath.Join(buildDir, targetOutput+".bin")
@@ -503,11 +503,16 @@ func (p project) writeDisc(config *projectConfig, built map[string]string, build
 		}
 		fmt.Printf("disc module exact: %s at LBA %d (%d bytes)\n", m.File, m.LBA, len(got))
 	}
+	if err := p.checkEditedFiles(config, output); err != nil {
+		return err
+	}
 	discSHA256, err := sha256File(output)
 	if err != nil {
 		return err
 	}
 	switch {
+	case !exact && p.edition != "":
+		fmt.Printf("disc image: sha256 %s (edition %s)\n", discSHA256, p.edition)
 	case !exact:
 		fmt.Printf("disc image: sha256 %s (a test disc, not the original)\n", discSHA256)
 	case discSHA256 != targetInputSHA256:
@@ -524,15 +529,18 @@ func (p project) writeDisc(config *projectConfig, built map[string]string, build
 }
 
 // checkCommand compiles functions and compares their bytes with the
-// configured hashes. It never reads the disc or the extracted files.
+// configured hashes. It never reads the disc or the extracted files. With
+// an edition it runs the change guard first, and each changed function's
+// code and .rodata match its dc_hash.
 func (p project) checkCommand(args []string) error {
 	flags := flag.NewFlagSet("check", flag.ContinueOnError)
 	moduleName := flags.String("module", "", "modules to check (ids, short names, event or effect)")
+	edition := flags.String("edition", "", "edition of target/editions.yaml to compile (default: the original disc)")
 	if err := flags.Parse(args); err != nil {
 		return err
 	}
 	if flags.NArg() != 0 {
-		return errors.New("usage: tools check [--module=MODULES]")
+		return errors.New("usage: tools check [--module=MODULES] [--edition=E]")
 	}
 	config, err := p.loadCheckedConfig()
 	if err != nil {
@@ -544,9 +552,17 @@ func (p project) checkCommand(args []string) error {
 			return err
 		}
 	}
+	if p, err = p.withEdition(config, *edition); err != nil {
+		return err
+	}
 	p, err = p.withInputMirror()
 	if err != nil {
 		return err
+	}
+	if p.edition != "" {
+		if err := p.editionGuard(modules); err != nil {
+			return err
+		}
 	}
 	p.progress = newCompileProgress("check", modules)
 	jobs, err := toolJobs()
@@ -571,7 +587,7 @@ func (p project) checkCommand(args []string) error {
 	}
 	workers.Wait()
 	var problems []string
-	functions, bytesChecked := 0, 0
+	functions, bytesChecked, changed := 0, 0, 0
 	for index, m := range modules {
 		if checks[index].err != nil {
 			return checks[index].err
@@ -585,20 +601,32 @@ func (p project) checkCommand(args []string) error {
 				continue
 			}
 			text := result.sections[".text"]
-			if len(text) != f.Size || shortHash(text) != f.Hash {
-				problems = append(problems, fmt.Sprintf("%s: .text is %d bytes with hash %s, expected %d bytes with hash %s", where, len(text), shortHash(text), f.Size, f.Hash))
-			}
-			for _, rodata := range f.Rodata {
-				compiled := result.sections[".rodata"]
-				if len(compiled) != rodata.Size || shortHash(compiled) != rodata.Hash {
-					problems = append(problems, fmt.Sprintf("%s: .rodata 0x%08x is %d bytes with hash %s, expected %d bytes with hash %s", where, rodata.Addr, len(compiled), shortHash(compiled), rodata.Size, rodata.Hash))
+			if p.changes(f) {
+				expected, err := p.editionHashOf(f)
+				if err != nil {
+					return err
+				}
+				if got := editionHash(result.sections); got != expected {
+					problems = append(problems, fmt.Sprintf("%s: code and .rodata are %d bytes with dc_hash %s, expected dc_hash %s", where, len(text)+len(result.sections[".rodata"]), got, expected))
+				}
+				changed++
+			} else {
+				if len(text) != f.Size || shortHash(text) != f.Hash {
+					problems = append(problems, fmt.Sprintf("%s: .text is %d bytes with hash %s, expected %d bytes with hash %s", where, len(text), shortHash(text), f.Size, f.Hash))
+				}
+				for _, rodata := range f.Rodata {
+					compiled := result.sections[".rodata"]
+					if len(compiled) != rodata.Size || shortHash(compiled) != rodata.Hash {
+						problems = append(problems, fmt.Sprintf("%s: .rodata 0x%08x is %d bytes with hash %s, expected %d bytes with hash %s", where, rodata.Addr, len(compiled), shortHash(compiled), rodata.Size, rodata.Hash))
+					}
 				}
 			}
-			if section := undeclaredSection(f, result.sections); section != "" {
+			// A changed function may add a .rodata, which follows its .text.
+			if section := undeclaredSection(f, result.sections); section != "" && !(p.changes(f) && section == ".rodata") {
 				problems = append(problems, fmt.Sprintf("%s: emitted undeclared allocatable section %s", where, section))
 			}
 			functions++
-			bytesChecked += f.Size
+			bytesChecked += len(text)
 		}
 	}
 	if len(problems) > 0 {
@@ -608,20 +636,36 @@ func (p project) checkCommand(args []string) error {
 		}
 		return fmt.Errorf("check: %d of %d functions differ from their configured hashes", len(problems), functions)
 	}
-	fmt.Printf("check: %d functions in %d modules match their hashes (%d bytes)\n", functions, len(modules), bytesChecked)
+	label := ""
+	if p.edition != "" {
+		label = ", edition " + p.edition
+		if changed > 0 {
+			label += fmt.Sprintf(", %d of them changed and at their dc_hash", changed)
+		}
+	}
+	fmt.Printf("check: %d functions in %d modules match their hashes (%d bytes%s)\n", functions, len(modules), bytesChecked, label)
 	return nil
 }
 
 // checksumsCommand records the hash of every function and .rodata range from
-// the original module images, never from compiled output.
+// the original module images, never from compiled output; with --edition=dc,
+// only each changed function's dc_hash (editionChecksums).
 func (p project) checksumsCommand(args []string) error {
-	if len(args) != 0 {
-		return errors.New("usage: tools checksums")
+	flags := flag.NewFlagSet("checksums", flag.ContinueOnError)
+	edition := flags.String("edition", "", "record each changed function's dc_hash from the code edition dc compiles (no BIN)")
+	if err := flags.Parse(args); err != nil {
+		return err
+	}
+	if flags.NArg() != 0 {
+		return errors.New("usage: tools checksums [--edition=dc]")
 	}
 	return p.withTargetLock(func() error {
 		config, err := p.loadProjectConfig()
 		if err != nil {
 			return err
+		}
+		if *edition != "" {
+			return p.editionChecksums(config, *edition)
 		}
 		changed, total := 0, 0
 		for _, m := range config.Modules {
@@ -658,6 +702,11 @@ func (p project) checksumsCommand(args []string) error {
 				}
 			}
 		}
+		editsChanged, editsTotal, err := p.editHashes(config)
+		if err != nil {
+			return err
+		}
+		changed, total = changed+editsChanged, total+editsTotal
 		files, err := p.writeProjectConfig(config)
 		if err != nil {
 			return err

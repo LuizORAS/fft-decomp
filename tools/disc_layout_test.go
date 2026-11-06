@@ -309,7 +309,8 @@ func TestDiscLayoutWritesTheMkpsxisoProject(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	got := string(config.Disc.mkpsxisoProject(config, "/files", map[string]string{"main": "/out/SCUS_942.21"}))
+	got := string(config.Disc.mkpsxisoProject(config, "/files", map[string]string{"main": "/out/SCUS_942.21"},
+		map[string]string{"MAP/MAP001.GNS": "/dc/files/MAP/MAP001.GNS"}))
 	want := `<iso_project image_name="mkpsxiso.bin" cue_sheet="mkpsxiso.cue">
     <track type="data" cdvd_style="false">
         <identifiers system="PLAYSTATION" application="PLAYSTATION" volume="TEST" volume_set="TEST" publisher="TEST" data_preparer="TEST" creation_date="1997101718372100+36" modification_date="1997101718372100+36"/>
@@ -321,7 +322,7 @@ func TestDiscLayoutWritesTheMkpsxisoProject(t *testing.T) {
             <file name="EMPTY.BIN" source="/files/EMPTY.BIN" type="data" date="19971017183704" offs="26"/>
             <dummy sectors="3" type="32" offs="27"/>
             <dir name="MAP" source="/files/MAP" date="19971017183721" xa_perm="1365" xa_gid="0" xa_uid="0" offs="30">
-                <file name="MAP001.GNS" source="/files/MAP/MAP001.GNS" type="data" date="19971017183721" offs="31"/>
+                <file name="MAP001.GNS" source="/dc/files/MAP/MAP001.GNS" type="data" date="19971017183721" offs="31"/>
             </dir>
             <dir name="OPEN" source="/files/OPEN" date="19971017183721" xa_perm="1365" xa_gid="0" xa_uid="0" offs="33">
                 <dummy sectors="2" type="32" offs="34"/>
