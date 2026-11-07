@@ -207,26 +207,32 @@ func editionTestConfig() (*projectConfig, *moduleSpec) {
 	return &projectConfig{Modules: []*moduleSpec{m, battle}, byID: map[string]*moduleSpec{m.ID: m, "battle": battle}}, m
 }
 
-// TestEditionOverrideLocks fails on an override that binds BATTLE's name in
-// place over the module's own row once the edition moves it, and leaves a
-// dead call to where the module keeps nothing.
-func TestEditionOverrideLocks(t *testing.T) {
+// TestOverrideFollowsTheModulesRow binds BATTLE's name in place over the
+// module's own row: the name takes the row's, so it moves with the row in an
+// edition's flowing layout, and a dead call to where the module keeps nothing
+// stays as it is.
+func TestOverrideFollowsTheModulesRow(t *testing.T) {
 	config, m := editionTestConfig()
 	resolver := newSymbolResolver(config)
 	layout, err := moduleLinkLayout(m)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := editionOverrideLocks(resolver, m, newAddressMap(m, layout), "dc"); err != nil {
-		t.Fatalf("in place: %v", err)
+	renames, absolute, err := linkObjectRenames(resolver, m, &layout)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := renames["test_second"]; len(got) != 1 || got["g_battle_pages"] != "g_test_tail" {
+		t.Fatalf("test_second renames %v", got)
+	}
+	if len(absolute) != 0 {
+		t.Fatalf("absolute %v", absolute)
 	}
 	if layout, err = flowLayout(m, layout, "dc", map[string]objectSizes{"test_first": {text: 12}}); err != nil {
 		t.Fatal(err)
 	}
-	err = editionOverrideLocks(resolver, m, newAddressMap(m, layout), "dc")
-	if err == nil || !strings.Contains(err.Error(), "test_second's override binds g_battle_pages in place at 0x80100030, where the module keeps g_test_tail, which edition dc moves by 16 bytes") ||
-		strings.Contains(err.Error(), "battle_dead_call") {
-		t.Fatalf("moved: %v", err)
+	if at := newAddressMap(m, layout).at(0x80100030); at != 0x80100040 {
+		t.Fatalf("the row moved to 0x%08x", at)
 	}
 }
 
