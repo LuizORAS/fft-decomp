@@ -263,7 +263,10 @@ func linkObjectSections(layout linkLayout) (map[string]map[string]string, error)
 // module resolves to the override's address. An override at an address no
 // name resolves to gets a D_<address> label when the address lies in the
 // module's bytes (it then moves with them); anywhere else the D_ name is an
-// absolute binding, returned with its address.
+// absolute binding, returned with its address. A name another module defines
+// at an address where m keeps a function or data row of its own takes that
+// one's name, so it moves with what m keeps; where m keeps nothing it stays, a
+// call into code m never runs with that module.
 func linkObjectRenames(resolver symbolResolver, m *moduleSpec, layout *linkLayout) (map[string]map[string]string, map[string]uint32, error) {
 	named := map[uint32][]string{}
 	addNames := func(names map[string]uint32, keep func(string, uint32) bool) {
@@ -284,6 +287,14 @@ func linkObjectRenames(resolver symbolResolver, m *moduleSpec, layout *linkLayou
 			at, ok := resolver.resolve(m, name)
 			return ok && at == addr
 		})
+	}
+	keptAt := func(addr uint32) (string, bool) {
+		for _, name := range named[addr] {
+			if resolver.placed[m.ID][name] {
+				return name, true
+			}
+		}
+		return "", false
 	}
 	generated := map[uint32]string{}
 	absolute := map[string]uint32{}
@@ -322,6 +333,11 @@ func linkObjectRenames(resolver symbolResolver, m *moduleSpec, layout *linkLayou
 			return nil, nil, fmt.Errorf("%s: override of %s names no function %s", m.ID, override.Name, override.Function)
 		}
 		if at, ok := resolver.resolve(m, override.Name); ok && at == override.Addr {
+			if _, own := resolver.own[m.ID][override.Name]; !own {
+				if kept, ok := keptAt(override.Addr); ok {
+					names[override.Name] = kept
+				}
+			}
 			continue
 		}
 		if _, defined := names[override.Name]; defined {

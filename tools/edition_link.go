@@ -198,39 +198,6 @@ func (moved addressMap) at(addr uint32) uint32 {
 	return addr + moved.deltas[index]
 }
 
-// editionOverrideLocks fails on an override that binds, in place, a name
-// another module defines at an address inside m's own image where m keeps a
-// function or data row of its own, when the edition moves that place: the
-// link leaves the name at the old address (linkObjectRenames) while m's own
-// object there moves. A name bound in place where m keeps nothing of its own
-// is a call into code m never runs with that module, and stays.
-func editionOverrideLocks(resolver symbolResolver, m *moduleSpec, moved addressMap, edition string) error {
-	kept := map[uint32]string{}
-	for _, f := range m.Functions {
-		kept[f.Addr] = f.Name
-	}
-	for _, symbol := range m.Data {
-		if _, ok := kept[symbol.Addr]; !ok {
-			kept[symbol.Addr] = symbol.Name
-		}
-	}
-	var locks []string
-	for _, override := range m.Overrides {
-		at, resolved := resolver.resolve(m, override.Name)
-		_, own := resolver.own[m.ID][override.Name]
-		name, keeps := kept[override.Addr]
-		if !resolved || own || at != override.Addr || !keeps || !m.contains(override.Addr, 1) || moved.at(override.Addr) == override.Addr {
-			continue
-		}
-		locks = append(locks, fmt.Sprintf("%s: %s's override binds %s in place at 0x%08x, where the module keeps %s, which edition %s moves by %d bytes; the name would keep the old address",
-			m.ID, override.Function, override.Name, override.Addr, name, edition, moved.at(override.Addr)-override.Addr))
-	}
-	if len(locks) > 0 {
-		return errors.New(strings.Join(locks, "\n"))
-	}
-	return nil
-}
-
 // objectSizesOf reads what a function's object holds: its .text, and its
 // .rodata (or .rdata) with the section's alignment.
 func objectSizesOf(path string) (objectSizes, error) {
@@ -308,12 +275,7 @@ func (p project) editionLayouts(config *projectConfig, resolver symbolResolver) 
 			problems = append(problems, err)
 			continue
 		}
-		moved := newAddressMap(m, layout)
-		if err := editionOverrideLocks(resolver, m, moved, p.edition); err != nil {
-			problems = append(problems, err)
-			continue
-		}
-		p.editionSizes[m.ID], p.editionMaps[m.ID] = sizes, moved
+		p.editionSizes[m.ID], p.editionMaps[m.ID] = sizes, newAddressMap(m, layout)
 		if growth[m.ID] = layout.growth + layout.padding; growth[m.ID] > 0 {
 			grew = append(grew, fmt.Sprintf("%s +%d", m.ID, growth[m.ID]))
 		}
