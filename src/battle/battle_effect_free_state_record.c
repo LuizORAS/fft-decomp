@@ -19,10 +19,19 @@ void battle_effect_free_state_record(s16 record_index) {
 
     particle = work = g_battle_effect_state_records[record_index].work_head;
     head = g_battle_effect_allocated_record_head;
+#ifdef FIX_BUGS
+    /* The edition reads each work record's next before freeing it (QUIRKS.md). */
+    while (work != 0) {
+        work = work->next;
+        battle_effect_free_work_record(record_index, particle);
+        particle = work;
+    }
+#else
     while (work != 0) {
         battle_effect_free_work_record(record_index, particle);
         particle = work = work->next;
     }
+#endif
     for (i = 0; i < EFFECT_RECORD_CALLBACK_SLOT_COUNT; i++) {
         if (g_battle_effect_state_records[record_index].work_slots[i] != 0) {
             battle_heap_free_block(g_battle_effect_state_records[record_index].work_slots[i]);

@@ -1769,7 +1769,7 @@ functions:
   - {addr: 0x801a1c40, size: 80, name: battle_effect_update_cycle, hash: b560438b479930c0}
   - {addr: 0x801a1c90, size: 152, name: battle_effect_init_state_records, hash: 49c6a44e091e28f1}
   - {addr: 0x801a1d28, size: 116, name: battle_effect_alloc_state_record, hash: c95c3403842af848}
-  - {addr: 0x801a1d9c, size: 744, name: battle_effect_free_state_record, hash: b524a4c661e30e18}
+  - {addr: 0x801a1d9c, size: 744, name: battle_effect_free_state_record, hash: b524a4c661e30e18, change: [FIX_BUGS], dc_hash: 69dbff4dbb91991c}
   - {addr: 0x801a2084, size: 48, name: battle_effect_reset_child_timeline, hash: 0ad936a96063f148}
   - {addr: 0x801a20b4, size: 52, name: battle_effect_reset_parent_timeline, hash: 03c1d9d6cad10a8b}
   - {addr: 0x801a20e8, size: 300, name: battle_effect_start_script_record, hash: 84b0afe0893a5bcb}

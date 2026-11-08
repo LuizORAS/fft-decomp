@@ -580,6 +580,7 @@ An entry an edition changes keeps describing the retail code and ends with
   empty list ends cleanly; with an empty free chain the walk stops after the first
   record and leaves the rest attached (clean only for a one-record list); otherwise
   it frees free-chain records again and then loops between two records forever.
+  Fixed under `FIX_BUGS`: it reads each work record's `next` before freeing it.
 - `battle_map_light_matrix_command`: the blend and delta steps (0x67, 0x69) start
   each translation from the start matrix's `m[i][3]` (the next row's first element,
   or the padding after `m[2][2]`) instead of `t[i]`. Nothing issues the start
