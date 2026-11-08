@@ -129,6 +129,12 @@ func TestFlowLayoutPlacesANewRodataAfterItsText(t *testing.T) {
 
 // TestFlowLayoutLocks fails on what the moved code cannot carry, saying why.
 func TestFlowLayoutLocks(t *testing.T) {
+	// test_third reads the literal test_second holds at 0x80100020.
+	shareTheLiteral := func(m *moduleSpec) {
+		m.Size = 0x48
+		m.Functions[1].Rodata[0].Hash = "1111111111111111"
+		m.Functions = append(m.Functions, functionSpec{Addr: 0x80100040, Size: 8, Name: "test_third", Rodata: []rodataSpec{{Addr: 0x80100020, Size: 4, Hash: "1111111111111111"}}})
+	}
 	for name, test := range map[string]struct {
 		edit  func(*moduleSpec)
 		sizes map[string]objectSizes
@@ -150,13 +156,20 @@ func TestFlowLayoutLocks(t *testing.T) {
 			sizes: map[string]objectSizes{"test_first": {text: 12}},
 			want:  "the data row g_battle_inside is bound at 0x80100014 inside test_second's .text",
 		},
-		"a shared literal": {
-			edit: func(m *moduleSpec) {
-				m.Size = 0x48
-				m.Functions = append(m.Functions, functionSpec{Addr: 0x80100040, Size: 8, Name: "test_third", Rodata: []rodataSpec{{Addr: 0x80100020, Size: 4}}})
-			},
-			sizes: map[string]objectSizes{"test_third": {text: 8, rodata: 4}},
-			want:  "share the literal at 0x80100020, which a change to either in edition dc cannot rewrite for both",
+		"a shared literal one side rewrites": {
+			edit:  shareTheLiteral,
+			sizes: map[string]objectSizes{"test_second": {text: 8, rodata: 4, rodataAlign: 4, rodataHash: "2222222222222222"}},
+			want:  "share the literal at 0x80100020, which test_second's object in edition dc rewrites (4 bytes with hash 2222222222222222, its row's are 4 with hash 1111111111111111); the one copy cannot hold both",
+		},
+		"a shared literal the other side rewrites": {
+			edit:  shareTheLiteral,
+			sizes: map[string]objectSizes{"test_third": {text: 8, rodata: 4, rodataAlign: 4, rodataHash: "2222222222222222"}},
+			want:  "share the literal at 0x80100020, which test_third's object in edition dc rewrites (4 bytes with hash 2222222222222222",
+		},
+		"a shared literal that grows": {
+			edit:  shareTheLiteral,
+			sizes: map[string]objectSizes{"test_third": {text: 8, rodata: 8, rodataAlign: 4, rodataHash: "1111111111111111"}},
+			want:  "which test_third's object in edition dc rewrites (8 bytes with hash 1111111111111111, its row's are 4 with hash 1111111111111111)",
 		},
 		"an image past its window": {
 			sizes: map[string]objectSizes{"test_second": {text: 0x80, rodata: 4}},
@@ -187,6 +200,32 @@ func TestFlowLayoutLocks(t *testing.T) {
 	}
 	if _, err := flowLayout(m, layout, "dc", map[string]objectSizes{"test_second": {text: 12, rodata: 4}}); err != nil {
 		t.Fatal(err)
+	}
+	// A change that keeps a shared literal's bytes passes on either side, and
+	// the copy that only keeps its address moves with the one that loads.
+	for name, test := range map[string]struct {
+		sizes map[string]objectSizes
+		delta uint32
+	}{
+		"test_second grows": {sizes: map[string]objectSizes{"test_second": {text: 12, rodata: 4, rodataAlign: 4, rodataHash: "1111111111111111"}}, delta: 16},
+		"test_third grows":  {sizes: map[string]objectSizes{"test_third": {text: 12, rodata: 4, rodataAlign: 4, rodataHash: "1111111111111111"}}},
+		"both change": {sizes: map[string]objectSizes{
+			"test_second": {text: 12, rodata: 4, rodataAlign: 4, rodataHash: "1111111111111111"},
+			"test_third":  {text: 4, rodata: 4, rodataAlign: 4, rodataHash: "1111111111111111"},
+		}, delta: 16},
+	} {
+		m := linkTestModule()
+		shareTheLiteral(m)
+		layout, err := moduleLinkLayout(m)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if layout, err = flowLayout(m, layout, "dc", test.sizes); err != nil {
+			t.Fatalf("%s: %v", name, err)
+		}
+		if len(layout.shadows) != 1 || layout.shadows[0].delta != test.delta {
+			t.Fatalf("%s: shadows %+v, want one that moves %d", name, layout.shadows, test.delta)
+		}
 	}
 }
 
@@ -336,6 +375,16 @@ func TestObjectRelocationsPairsTheHalves(t *testing.T) {
 	}
 	if sizes, err := objectSizesOf(object); err != nil || sizes.text == 0 || sizes.rodata != 0 {
 		t.Fatalf("sizes %+v %v", sizes, err)
+	}
+	// A literal: its size and the hash of its bytes, as its row holds them.
+	literal := filepath.Join(p.root, "src", "battle", "battle_literal.c")
+	writeTestFile(t, literal, []byte("const char* battle_literal(void) {\n    return \"%d\";\n}\n"))
+	object, err = p.compileHistoricalObject(literal, filepath.Join(p.root, "build", "work", "literal"), profile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if sizes, err := objectSizesOf(object); err != nil || sizes.rodata != 3 || sizes.rodataHash != shortHash([]byte("%d\x00")) {
+		t.Fatalf("literal sizes %+v %v", sizes, err)
 	}
 }
 
