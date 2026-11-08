@@ -1,8 +1,9 @@
 -- What the PCSX-Redux runs of `make smoke` and `make scenario` share: files
 -- and the log, RAM and registers, the names of the disc's link, the pad,
--- breakpoints and checkpoints, the steps a run walks, the game screens they
--- drive (the title, Continue, menus, a battle's turns and deployment, the
--- world map), the BIOS calls OpenBIOS lacks, savestates and the frame tick.
+-- breakpoints, watches and checkpoints, the steps a run walks, direct calls
+-- of the game's functions, the game screens they drive (the title, Continue,
+-- menus, a battle's turns and deployment, the world map), the BIOS calls
+-- OpenBIOS lacks, savestates and the frame tick.
 --
 -- tools/emulator.sh loads this file with -dofile, then the run's script
 -- (smoke.lua, scenario.lua), whose entry calls emulator.start(DIR, NAME,
@@ -239,14 +240,16 @@ local function guarded(what, body)
 end
 
 -- Break at an address; onHit returns false to remove the breakpoint. The
--- hook holds the breakpoint and knows when the emulator removed it.
-local function hook(address, label, onHit)
-    local hit = guarded(label, function()
+-- hook holds the breakpoint and knows when the emulator removed it. With
+-- kind 'Read' or 'Write' it breaks on the game's reads or writes of the width
+-- bytes at address instead, and onHit gets the address the game touched.
+local function hook(address, label, onHit, kind, width)
+    local hit = guarded(label, function(...)
         if run.finished then return false end
-        return onHit()
+        return onHit(...)
     end)
     local entry = {}
-    entry.breakpoint = PCSX.addBreakpoint(address, 'Exec', 4, run.name .. ': ' .. label, function(...)
+    entry.breakpoint = PCSX.addBreakpoint(address, kind or 'Exec', width or 4, run.name .. ': ' .. label, function(...)
         local keep = hit(...)
         if not keep then entry.removed = true end
         return keep
@@ -257,6 +260,18 @@ end
 -- A breakpoint of the steps, which clearBreakpoints removes.
 local function breakAt(address, label, onHit)
     local entry = hook(address, label, onHit)
+    table.insert(run.breakpoints, entry)
+    return entry
+end
+
+-- A watch of the steps: onHit(where, pc) runs at each of the game's reads or
+-- writes (kind 'Read' or 'Write') of the width bytes at address, with the
+-- address it touched and the pc of the access, and returns false to remove
+-- the watch.
+local function watch(address, kind, width, label, onHit)
+    local entry = hook(address, label, function(where)
+        return onHit(tonumber(where) or address, tonumber(PCSX.getRegisters().pc))
+    end, kind, width)
     table.insert(run.breakpoints, entry)
     return entry
 end
@@ -536,6 +551,106 @@ local function settle()
     run.walk, run.deploy, run.map = nil, nil, nil
 end
 
+-- Direct calls
+
+-- The frames a direct call may run, and the frames its anchor may take to run
+-- first.
+local CALL_FRAMES = 600
+local ANCHOR_FRAMES = 300
+
+-- A register's word for a number, negative ones included.
+local function word(value) return value % 0x100000000 end
+
+-- A step that calls a game function from the thread that runs spec.anchor: a
+-- symbol whose code is checked in RAM, at a function entry, where only the
+-- arguments, the stack and the callee-saved registers are live (BATTLE's or
+-- WORLD's thread_yield). At the anchor the registers are kept; the arguments
+-- (spec.args, a list or a function that returns one as the call begins) go
+-- to a0-a3, those past the fourth onto a stack below the anchor's; ra returns
+-- to the anchor and pc goes to spec.target. The call has returned when the
+-- anchor runs again on the stack the call began with (on another stack it is
+-- the call or another thread running the anchor, as a yield does): the
+-- registers come back and the anchor runs as before. Each of spec.guards,
+-- {address, limit, label}, counts its address's hits while the call runs;
+-- past its limit the call is abandoned the same way, and what the call wrote
+-- stays. A call still running after spec.frames frames (CALL_FRAMES) times
+-- out and the steps go on with the game inside it, so it comes last: the
+-- frame tick runs in the vertical blank's interrupt, where no call can be
+-- undone (should it return later, the registers still come back).
+-- spec.done(result) runs as the call ends, before the game moves on:
+-- result.returned and result.v0, result.guard (the guard's label) or
+-- result.timeout (its frames), and result.counts by guard label.
+local function call(spec)
+    local frames = spec.frames or CALL_FRAMES
+    local label = spec.label or 'call'
+    return { label = label, budget = frames + ANCHOR_FRAMES, start = function(passed)
+        local anchor = spec.anchor
+        local target = type(spec.target) == 'table' and spec.target.address or spec.target
+        local result = { returned = false, counts = {} }
+        local state, saved, stack, timer = 'waiting', nil, nil, nil
+        local function restore()
+            for r = 1, 31 do setGPR(r, saved[r]) end
+            PCSX.getRegisters().pc = anchor.address
+        end
+        -- The steps go on at the next frame tick, outside the breakpoint.
+        local function over(how, why)
+            state = how
+            if run.timer == timer then run.timer = nil end
+            log('%s, 0x%08x: %s', label, target, why)
+            if spec.done then spec.done(result) end
+            run.timer = { at = run.frame + 1, call = passed }
+        end
+        for _, guard in ipairs(spec.guards or {}) do
+            result.counts[guard.label] = 0
+            breakAt(guard.address, label .. ' guard ' .. guard.label, function()
+                if state ~= 'calling' then return state == 'waiting' end
+                result.counts[guard.label] = result.counts[guard.label] + 1
+                if result.counts[guard.label] <= guard.limit then return true end
+                result.guard = guard.label
+                restore()
+                over('abandoned', string.format('abandoned by its guard %s past %d hits', guard.label, guard.limit))
+                return false
+            end)
+        end
+        breakAt(anchor.address, label .. ' anchor', function()
+            if not resident(anchor) then return true end
+            local regs = PCSX.getRegisters()
+            if state == 'waiting' then
+                saved = {}
+                for r = 1, 31 do saved[r] = tonumber(regs.GPR.r[r]) end
+                local args = spec.args or {}
+                if type(args) == 'function' then args = args() end
+                stack = saved[29] - 32 - 4 * math.max(#args - 4, 0)
+                stack = stack - stack % 8
+                for i, value in ipairs(args) do
+                    if i <= 4 then setGPR(3 + i, word(value)) else write32(stack + 4 * (i - 1), word(value)) end
+                end
+                setGPR(29, stack)
+                setGPR(31, anchor.address)
+                regs.pc = target
+                state = 'calling'
+                timer = { at = run.frame + frames, call = function()
+                    if state ~= 'calling' then return end
+                    result.timeout = frames
+                    over('timed out', string.format('no return in %d frames', frames))
+                end }
+                run.timer = timer
+                return true
+            end
+            if tonumber(regs.GPR.n.sp) ~= stack then return state == 'calling' or state == 'timed out' end
+            if state == 'calling' then
+                result.returned, result.v0 = true, tonumber(regs.GPR.n.v0)
+                restore()
+                over('returned', string.format('returned 0x%08x', result.v0))
+            elseif state == 'timed out' then
+                restore()
+                log('%s, 0x%08x: returned after its time; the game resumes', label, target)
+            end
+            return false
+        end)
+    end }
+end
+
 -- Savestates
 
 -- The emulator's whole state, written raw to path.
@@ -668,6 +783,7 @@ emulator = {
     fail = fail,
     screenshot = screenshot,
     breakAt = breakAt,
+    watch = watch,
     clearBreakpoints = clearBreakpoints,
     checkpoint = checkpoint,
     expect = expect,
@@ -680,6 +796,7 @@ emulator = {
     title = title,
     continueFromTitle = continueFromTitle,
     settle = settle,
+    call = call,
     saveState = saveState,
     loadState = loadState,
     start = start,
