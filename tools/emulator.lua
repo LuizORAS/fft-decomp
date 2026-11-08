@@ -561,55 +561,86 @@ local ANCHOR_FRAMES = 300
 -- A register's word for a number, negative ones included.
 local function word(value) return value % 0x100000000 end
 
--- A step that calls a game function from the thread that runs spec.anchor: a
+-- A step that calls game functions from the thread that runs spec.anchor: a
 -- symbol whose code is checked in RAM, at a function entry, where only the
 -- arguments, the stack and the callee-saved registers are live (BATTLE's or
--- WORLD's thread_yield). At the anchor the registers are kept; the arguments
--- (spec.args, a list or a function that returns one as the call begins) go
--- to a0-a3, those past the fourth onto a stack below the anchor's; ra returns
--- to the anchor and pc goes to spec.target. The call has returned when the
--- anchor runs again on the stack the call began with (on another stack it is
--- the call or another thread running the anchor, as a yield does): the
--- registers come back and the anchor runs as before. Each of spec.guards,
--- {address, limit, label}, counts its address's hits while the call runs;
--- past its limit the call is abandoned the same way, and what the call wrote
--- stays. A call still running after spec.frames frames (CALL_FRAMES) times
--- out and the steps go on with the game inside it, so it comes last: the
--- frame tick runs in the vertical blank's interrupt, where no call can be
--- undone (should it return later, the registers still come back).
--- spec.done(result) runs as the call ends, before the game moves on:
--- result.returned and result.v0, result.guard (the guard's label) or
--- result.timeout (its frames), and result.counts by guard label.
+-- WORLD's thread_yield). spec.calls lists calls made back to back at one stop
+-- of the anchor, before the game moves on, each {target, args, label, done};
+-- a spec without calls is one call of its own target, args, label and done.
+-- At the anchor the registers are kept; for each call they come back, its
+-- arguments (args, a list or a function that returns one as the call begins,
+-- once the calls before it ended) go to a0-a3, those past the fourth onto a
+-- stack below the anchor's, ra returns to the anchor and pc goes to the
+-- target. A call has returned when the anchor runs again on the stack the
+-- call began with (on another stack it is the call or another thread running
+-- the anchor, as a yield does). Each of spec.guards, {address, limit, label},
+-- counts its address's hits while a call runs; past its limit the call is
+-- abandoned the same way, and what it wrote stays. After the last call the
+-- registers come back and the anchor runs as before. Calls still running
+-- after spec.frames frames (CALL_FRAMES) time out, the calls left are
+-- skipped and the steps go on with the game inside the call, so it comes
+-- last: the frame tick runs in the vertical blank's interrupt, where no call
+-- can be undone (should it return later, the registers still come back).
+-- A call's done(result) runs as it ends: result.returned and result.v0,
+-- result.guard (the guard's label) or result.timeout (its frames), and
+-- result.counts by guard label.
 local function call(spec)
     local frames = spec.frames or CALL_FRAMES
     local label = spec.label or 'call'
+    local calls = spec.calls or { spec }
     return { label = label, budget = frames + ANCHOR_FRAMES, start = function(passed)
         local anchor = spec.anchor
-        local target = type(spec.target) == 'table' and spec.target.address or spec.target
-        local result = { returned = false, counts = {} }
         local state, saved, stack, timer = 'waiting', nil, nil, nil
+        local index, current, target, result = 0, nil, nil, nil
         local function restore()
             for r = 1, 31 do setGPR(r, saved[r]) end
             PCSX.getRegisters().pc = anchor.address
         end
-        -- The steps go on at the next frame tick, outside the breakpoint.
-        local function over(how, why)
+        -- The next call from the registers the anchor had; false when none is
+        -- left.
+        local function begin()
+            index = index + 1
+            current = calls[index]
+            if not current then return false end
+            target = type(current.target) == 'table' and current.target.address or current.target
+            result = { returned = false, counts = {} }
+            for _, guard in ipairs(spec.guards or {}) do result.counts[guard.label] = 0 end
+            local args = current.args or {}
+            if type(args) == 'function' then args = args() end
+            restore()
+            stack = saved[29] - 32 - 4 * math.max(#args - 4, 0)
+            stack = stack - stack % 8
+            for i, value in ipairs(args) do
+                if i <= 4 then setGPR(3 + i, word(value)) else write32(stack + 4 * (i - 1), word(value)) end
+            end
+            setGPR(29, stack)
+            setGPR(31, anchor.address)
+            PCSX.getRegisters().pc = target
+            return true
+        end
+        -- A call ended: its done, then the next call (true), or the steps go
+        -- on at the next frame tick, outside the breakpoint (false).
+        local function ended(how, why)
+            log('%s, 0x%08x: %s', current.label or label, target, why)
+            if current.done then current.done(result) end
+            if how ~= 'timed out' then
+                if begin() then return true end
+            elseif index < #calls then
+                log('%s: the %d calls after it are skipped', label, #calls - index)
+            end
             state = how
             if run.timer == timer then run.timer = nil end
-            log('%s, 0x%08x: %s', label, target, why)
-            if spec.done then spec.done(result) end
             run.timer = { at = run.frame + 1, call = passed }
+            return false
         end
         for _, guard in ipairs(spec.guards or {}) do
-            result.counts[guard.label] = 0
             breakAt(guard.address, label .. ' guard ' .. guard.label, function()
                 if state ~= 'calling' then return state == 'waiting' end
                 result.counts[guard.label] = result.counts[guard.label] + 1
                 if result.counts[guard.label] <= guard.limit then return true end
                 result.guard = guard.label
                 restore()
-                over('abandoned', string.format('abandoned by its guard %s past %d hits', guard.label, guard.limit))
-                return false
+                return ended('abandoned', string.format('abandoned by its guard %s past %d hits', guard.label, guard.limit))
             end)
         end
         breakAt(anchor.address, label .. ' anchor', function()
@@ -618,21 +649,12 @@ local function call(spec)
             if state == 'waiting' then
                 saved = {}
                 for r = 1, 31 do saved[r] = tonumber(regs.GPR.r[r]) end
-                local args = spec.args or {}
-                if type(args) == 'function' then args = args() end
-                stack = saved[29] - 32 - 4 * math.max(#args - 4, 0)
-                stack = stack - stack % 8
-                for i, value in ipairs(args) do
-                    if i <= 4 then setGPR(3 + i, word(value)) else write32(stack + 4 * (i - 1), word(value)) end
-                end
-                setGPR(29, stack)
-                setGPR(31, anchor.address)
-                regs.pc = target
+                begin()
                 state = 'calling'
                 timer = { at = run.frame + frames, call = function()
                     if state ~= 'calling' then return end
                     result.timeout = frames
-                    over('timed out', string.format('no return in %d frames', frames))
+                    ended('timed out', string.format('no return in %d frames', frames))
                 end }
                 run.timer = timer
                 return true
@@ -641,10 +663,10 @@ local function call(spec)
             if state == 'calling' then
                 result.returned, result.v0 = true, tonumber(regs.GPR.n.v0)
                 restore()
-                over('returned', string.format('returned 0x%08x', result.v0))
+                return ended('returned', string.format('returned 0x%08x', result.v0))
             elseif state == 'timed out' then
                 restore()
-                log('%s, 0x%08x: returned after its time; the game resumes', label, target)
+                log('%s, 0x%08x: returned after its time; the game resumes', current.label or label, target)
             end
             return false
         end)
