@@ -127,7 +127,7 @@ the targets react (flinch, block, fall) on its keyframes.
   phase before its init ran, and the destroy path reads through a null
   work slot.
 - [[battle_effect_remove_secondary]] leaves a stale link when a record in
-  the middle of the active chain goes.
+  the middle of the active chain goes. The Developer's Cut relinks the chain.
 - [[battle_effect_set_secondary]] copies parts of its init record as the
   stack left them.
 - Five handler slots of `g_battle_effect_secondary_handlers` are empty

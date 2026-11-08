@@ -419,7 +419,8 @@ An entry an edition changes keeps describing the retail code and ends with
   active chain leaves the record before it with `next_slot_id` naming the freed
   record. When that one is removed while a newer effect is still active, it
   patches the freed record's link (by then a free-chain link) and its real
-  successor keeps naming it as the previous record.
+  successor keeps naming it as the previous record. Fixed under `FIX_BUGS`:
+  the record before it takes the record after it as its next one.
 - `main_heap_alloc` and `main_heap_alloc_smd` tag a new block one above the
   highest tag in the cells before it, so it can share a tag with the block
   right after it (allocate 62 cells, then 2; free the first; allocate 10, then

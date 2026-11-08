@@ -1933,7 +1933,7 @@ functions:
   - {addr: 0x801ad198, size: 1172, name: battle_camera_start_parent_keyframe_moves, hash: 11d5529e54fbaefe}
   - {addr: 0x801ad62c, size: 508, name: battle_effect_init_system, hash: a6c8471ee71be765}
   - {addr: 0x801ad828, size: 284, name: battle_effect_allocate_secondary_slot, hash: dad3d88dc513a4c6}
-  - {addr: 0x801ad944, size: 412, name: battle_effect_remove_secondary, hash: 99f64dbdd1fbef82}
+  - {addr: 0x801ad944, size: 412, name: battle_effect_remove_secondary, hash: 99f64dbdd1fbef82, change: [FIX_BUGS], dc_hash: a85e812827a6716d}
   - {addr: 0x801adae0, size: 44, name: battle_effect_get_secondary_phase, hash: 0e0ecf48806d849d}
   - {addr: 0x801adb0c, size: 48, name: battle_effect_finalize_secondary, hash: c2a9195e04ad360a}
   - {addr: 0x801adb3c, size: 232, name: battle_effect_alloc_slot, hash: 0f1f721979a4172f}
