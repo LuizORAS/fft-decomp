@@ -323,7 +323,7 @@ functions:
   - {addr: 0x80076fd0, size: 200, name: battle_state_handle_action_cast_state, hash: b0bb1cfe6911887e}
   - {addr: 0x80077098, size: 156, name: battle_state_handle_commence_attack_phase_state, hash: 591e498d9a92f133}
   - {addr: 0x80077134, size: 108, name: battle_state_handle_announce_ability_state, hash: ffcacfc2479c2ab1}
-  - {addr: 0x800771a0, size: 372, name: battle_state_handle_open_sp2_files_state, hash: b9f97343e0e6f004}
+  - {addr: 0x800771a0, size: 372, name: battle_state_handle_open_sp2_files_state, hash: b9f97343e0e6f004, change: [FIX_BUGS], dc_hash: 86eb9b17d54e417b}
   - {addr: 0x80077314, size: 100, name: battle_state_handle_start_effect_file_open_state, hash: a4fe687278ecc684}
   - {addr: 0x80077378, size: 60, name: battle_state_handle_start_action_execute_state, hash: 8c5640222288b940}
   - {addr: 0x800773b4, size: 68, name: battle_unit_start_post_attack_animation_display, hash: 2e1c6df99f8b345a}

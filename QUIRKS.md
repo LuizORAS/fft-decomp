@@ -467,7 +467,13 @@ An entry an edition changes keeps describing the retail code and ends with
   `battle_gfx_open_sp2_file` returns 0, which means the read has started, and
   keeps it on 1 (loader busy). The next frame allocates again and has its
   second request refused, so the file arrives in the kept block only because
-  the heap hands the freed pages back.
+  the heap hands the freed pages back. When another read holds the loader at
+  the first request, the kept buffer never receives the file, and once that
+  read ends the handler uploads its stale bytes as the unit's SP2 frames. The
+  allocation is not checked: a `main_heap_alloc` that finds no room returns 0,
+  and the read would then target address 0. Fixed under `FIX_BUGS`: it keeps
+  the buffer while the read runs and frees it only when the loader refuses the
+  request, asking again the next frame; the allocation stays unchecked.
 - `battle_effect_set_secondary` (fall dust, splash, level up, trap,
   zodiac poof, death smoke, teleport) builds its init record in a local of
   which `battle_effect_build_secondary_init` sets five fields;
