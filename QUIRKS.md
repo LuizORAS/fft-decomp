@@ -429,7 +429,13 @@ An entry an edition changes keeps describing the retail code and ends with
   52: the last two blocks are both tag 2). `main_heap_free` clears cells while
   the tag repeats, so freeing the 52-cell block frees the 2-cell one too,
   whose own free then returns 0. No retail sequence is known to do this.
-  `main_heap_reserve_at` picks an unused tag but bounds-checks only the starting address, so the requested page range can extend beyond the heap.
+  `main_heap_reserve_at` picks an unused tag but bounds-checks only the
+  starting address, so the requested page range can extend beyond the heap:
+  4 cells at cell 62 read and tag the 2 bytes after the table (the first
+  draw environment's `clip.x`), and the call succeeds.
+  Fixed under `FIX_BUGS`: both allocators give a block the next tag when the
+  cell right after it carries its tag, and `main_heap_reserve_at` refuses a
+  range that runs past the last cell.
 - `main_unit_calculate_entd_equipment`: the random body-armor roll tests
   `BATTLE_SUPPORT_SET_1_EQUIP_SHIELD` before asking for `ITEM_TYPE_ARMOR`;
   Equip Armor is tested only for the helmet.

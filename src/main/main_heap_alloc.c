@@ -34,11 +34,26 @@ void* main_heap_alloc(u32 size) {
             run = 0;
         }
     }
+#ifdef FIX_BUGS
+    /* The edition gives the block the next tag when the cell after it carries its tag (QUIRKS.md). */
+    if (run >= needed) {
+        u8* cells = &g_main_heap_game_allocator_table[start];
+
+        if (start + run < MAIN_HEAP_GAME_PAGE_COUNT && cells[run] == tag) {
+            tag++;
+        }
+        for (index = 0; index < run; index++) {
+            cells[index] = tag;
+        }
+        return (start << MAIN_HEAP_PAGE_SHIFT) + g_main_heap_high_overlay_load_address;
+    }
+#else
     if (run >= needed) {
         for (index = 0; index < run; index++) {
             g_main_heap_game_allocator_table[start + index] = tag;
         }
         return (start << MAIN_HEAP_PAGE_SHIFT) + g_main_heap_high_overlay_load_address;
     }
+#endif
     return 0;
 }

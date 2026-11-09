@@ -753,11 +753,11 @@ functions:
   - {addr: 0x800440f4, size: 52, name: main_sound_stop_sfx, hash: 21e1e455590397bf}
   - {addr: 0x80044128, size: 44, name: main_sound_stop_current_weather_sfx, hash: 47c3d337927a07ec}
   - {addr: 0x80044154, size: 360, name: main_sound_open_generic_sfx, hash: ba9b164dee501015}
-  - {addr: 0x800442bc, size: 200, name: main_heap_alloc_smd, hash: a37ef45a15eb4c27}
+  - {addr: 0x800442bc, size: 200, name: main_heap_alloc_smd, hash: a37ef45a15eb4c27, change: [FIX_BUGS], dc_hash: 6dc7ff8cd28b50c9}
   - {addr: 0x80044384, size: 108, name: main_heap_free_smd, hash: 1d3fc00bb5ccc417}
   - {addr: 0x800443f0, size: 36, name: main_heap_clear_smd_allocator_table, hash: 86fdd143dae92bbd}
-  - {addr: 0x80044414, size: 200, name: main_heap_alloc, hash: 6367212638bc921c}
-  - {addr: 0x800444dc, size: 292, name: main_heap_reserve_at, hash: bb2cd7a4ddd3dc36}
+  - {addr: 0x80044414, size: 200, name: main_heap_alloc, hash: 6367212638bc921c, change: [FIX_BUGS], dc_hash: 65584e137922ff4f}
+  - {addr: 0x800444dc, size: 292, name: main_heap_reserve_at, hash: bb2cd7a4ddd3dc36, change: [FIX_BUGS], dc_hash: 5fd260c99eaf84fd}
   - {addr: 0x80044600, size: 112, name: main_heap_free, hash: 51b9936a5ea34c17}
   - {addr: 0x80044670, size: 36, name: main_heap_clear_game_allocator_table, hash: baa90df5f4fd6324}
   - {addr: 0x80044694, size: 52, name: main_file_request_read_bytes, hash: 0a87b13dd21b6135}

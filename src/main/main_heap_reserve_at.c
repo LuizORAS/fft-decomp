@@ -24,6 +24,12 @@ u8* main_heap_reserve_at(u8* allocation, u32 size) {
     if (addr < base) {
         return 0;
     }
+#ifdef FIX_BUGS
+    /* The edition refuses a range that runs past the heap's last cell (QUIRKS.md). */
+    if (start + nblocks > MAIN_HEAP_GAME_PAGE_COUNT) {
+        return 0;
+    }
+#endif
     if (addr < base + MAIN_HEAP_GAME_PAGE_COUNT * MAIN_HEAP_PAGE_SIZE) {
         do {
             for (i = 0; i < MAIN_HEAP_GAME_PAGE_COUNT; i++) {
