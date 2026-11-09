@@ -334,11 +334,13 @@ An entry an edition changes keeps describing the retail code and ends with
   loading JOBSTTS.OUT, but BATTLE's companion overlay 7 reads 0x20000 bytes there
   (`g_battle_menu_companion_executable_sizes`), so the top two cells (0x801fe000-0x801ff000) are
   overwritten without being claimed; JOBSTTS.OUT is 0x1b85c bytes, so they receive the disc bytes past
-  its end. `battle_menu_run_jobstts_thread` reserves the full 0x20000.
+  its end. `battle_menu_run_jobstts_thread` reserves the full 0x20000. Fixed under `FIX_BUGS`: it
+  reserves the whole high window (`RAM_WINDOW_BYTES_HIGH`), as BATTLE's JOBSTTS thread does.
 - `require_overlay_run_helpmenu` reserves 0x10000 bytes (32 cells) at the game heap's base before
   loading HELPMENU.OUT, but BATTLE's companion overlay 3 reads 0x18800 bytes there (the file rounded
   up to a sector), so 17 cells (0x801ef000-0x801f7800) are overwritten without being claimed.
-  `battle_menu_run_helpmenu_thread` reserves the whole high window.
+  `battle_menu_run_helpmenu_thread` reserves the whole high window. Fixed under `FIX_BUGS`: it
+  reserves the whole high window (`RAM_WINDOW_BYTES_HIGH`), as BATTLE's help thread does.
 - `helpmenu_menu_run_battle_help` and `world_menu_run_battle_help`: the
   `UNIT_VIEW_MODE_HOVERED_UNIT` arm and its navigation table cannot be reached
   (the first arm, which closes the help, takes modes 1 and 2); request

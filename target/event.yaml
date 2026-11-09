@@ -3163,7 +3163,7 @@ functions:
   - {addr: 0x801c4ec4, size: 124, name: require_condition_show_hovered_unit_stats, hash: a81f2c639ae71f98}
   - {addr: 0x801c4f40, size: 204, name: require_menu_wait_selection_threads, hash: e2254c8a7bfec0a8}
   - {addr: 0x801c500c, size: 68, name: require_input_wait_skip, hash: 9b320be634f1ab52}
-  - {addr: 0x801c5050, size: 264, name: require_overlay_open_jobstts, hash: 73b78966be77b7de}
+  - {addr: 0x801c5050, size: 264, name: require_overlay_open_jobstts, hash: 73b78966be77b7de, change: [FIX_BUGS], dc_hash: 7fa15d3da7fbf216}
   - {addr: 0x801c5158, size: 56, name: require_overlay_open_jobstts_thread, hash: 7ecb96b7481fd20c}
   - {addr: 0x801c5190, size: 308, name: require_gfx_run_suspended_thread_transition, hash: e122a2adc24d56a1}
   - {addr: 0x801c52c4, size: 232, name: gfx_set_formation_icon_uv, hash: 353eab0a41a1e1a6, source: src/shared/gfx/gfx_set_formation_icon_uv.c}
@@ -3190,7 +3190,7 @@ functions:
   - {addr: 0x801ca644, size: 32, name: require_thread_exit_current, hash: d5e294538771c138}
   - {addr: 0x801ca664, size: 2416, name: require_bonus_run_dark_screen_burst, hash: 5a5a3d742bcaea7a, profile: gcc-2.6.3_O2_aspsx-2.34_divcheck}
   - {addr: 0x801cafd4, size: 392, name: require_condition_dispatch, hash: 5daba3919c5bcdeb}
-  - {addr: 0x801cb15c, size: 192, name: require_overlay_run_helpmenu, hash: 080209a0102a063f}
+  - {addr: 0x801cb15c, size: 192, name: require_overlay_run_helpmenu, hash: 080209a0102a063f, change: [FIX_BUGS], dc_hash: 14e8b21a4bf98b16}
   - {addr: 0x801cb21c, size: 176, name: require_text_build_battle_nicknames, hash: f01073dd1236acab}
 
 data:
