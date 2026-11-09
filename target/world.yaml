@@ -175,7 +175,7 @@ functions:
   - {addr: 0x800e2c48, size: 660, name: world_gfx_alloc_tpage7_vram, hash: 8059a333c7ee7aff, source: src/shared/gfx/gfx_alloc_tpage7_vram.c, source_symbol: gfx_alloc_tpage7_vram}
   - {addr: 0x800e2edc, size: 428, name: world_gfx_free_tpage7_vram, hash: 645df343f174f8f0, source: src/shared/gfx/gfx_free_tpage7_vram.c, source_symbol: gfx_free_tpage7_vram}
   - {addr: 0x800e3088, size: 116, name: world_menu_init_buffer_allocator, hash: 5f10e7e37ee4c4d8}
-  - {addr: 0x800e30fc, size: 380, name: world_menu_alloc_memory, hash: ab779363522e02a2}
+  - {addr: 0x800e30fc, size: 380, name: world_menu_alloc_memory, hash: ab779363522e02a2, change: [FIX_BUGS], dc_hash: 722ff1301a9e7087}
   - {addr: 0x800e3278, size: 32, name: world_menu_alloc_buffer, hash: c0b0162a45670bc4}
   - {addr: 0x800e3298, size: 192, name: world_menu_free_memory, hash: 38f2c6070f4c7dc3, source: src/shared/menu/menu_free_memory.c, source_symbol: menu_free_memory}
   - {addr: 0x800e3358, size: 596, name: world_menu_init_numeric_display_frame_primitives, hash: 6931206a75791ec9, source: src/shared/menu/menu_init_numeric_display_frame_primitives.c, source_symbol: menu_init_numeric_display_frame_primitives}

@@ -670,7 +670,11 @@ An entry an edition changes keeps describing the retail code and ends with
 - `battle_menu_alloc_memory` and `world_menu_alloc_memory` test the end of the arena
   before the size, so no allocation includes the last page. They mark pages before
   claiming one of the 16 records and leave them marked with no owner when all 16 are
-  taken. Whether a normal game exhausts the records is unknown.
+  taken; each retry while they stay taken marks another run, until the arena holds
+  only pages no one can free. Whether a normal game exhausts the records is unknown.
+  Fixed under `FIX_BUGS`: they test the size before the end of the arena and mark
+  pages only after claiming a free record, so a full set of records waits with
+  nothing marked.
 
 ## Calls that disagree with the callee
 

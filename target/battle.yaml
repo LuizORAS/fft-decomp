@@ -800,7 +800,7 @@ functions:
   - {addr: 0x8012e9fc, size: 660, name: battle_gfx_alloc_tpage7_vram, hash: 172942b718e358b1, source: src/shared/gfx/gfx_alloc_tpage7_vram.c, source_symbol: gfx_alloc_tpage7_vram}
   - {addr: 0x8012ec90, size: 428, name: battle_gfx_free_tpage7_vram, hash: 83a3ad5b7c6ecddd, source: src/shared/gfx/gfx_free_tpage7_vram.c, source_symbol: gfx_free_tpage7_vram}
   - {addr: 0x8012ee3c, size: 116, name: battle_menu_init_buffer_allocator, hash: f80a02de661184d5}
-  - {addr: 0x8012eeb0, size: 380, name: battle_menu_alloc_memory, hash: a333c97bf7b7ceb0}
+  - {addr: 0x8012eeb0, size: 380, name: battle_menu_alloc_memory, hash: a333c97bf7b7ceb0, change: [FIX_BUGS], dc_hash: 3c4a1f0fe3e44025}
   - {addr: 0x8012f02c, size: 32, name: battle_menu_alloc_buffer, hash: 8dfe96e6bed1af08}
   - {addr: 0x8012f04c, size: 192, name: battle_menu_free_memory, hash: bf843d0680a0ad61, source: src/shared/menu/menu_free_memory.c, source_symbol: menu_free_memory}
   - {addr: 0x8012f10c, size: 596, name: battle_menu_init_numeric_display_frame_primitives, hash: 793d75bdfee884f4, source: src/shared/menu/menu_init_numeric_display_frame_primitives.c, source_symbol: menu_init_numeric_display_frame_primitives}
