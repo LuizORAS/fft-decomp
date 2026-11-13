@@ -671,7 +671,7 @@ functions:
   - {addr: 0x8008e348, size: 16, name: battle_state_clear_min_vsync_interval, hash: 1a147918033f9163}
   - {addr: 0x8008e358, size: 272, name: battle_camera_set_focus_and_cursor_tile, hash: 4d4f8bdde1c680dd}
   - {addr: 0x8008e468, size: 216, name: battle_camera_init_defaults, hash: 72a72c4be2ea9b49}
-  - {addr: 0x8008e540, size: 400, name: battle_gfx_append_unit_graphics_load_descriptor, hash: 88fcbf815d20c90a}
+  - {addr: 0x8008e540, size: 400, name: battle_gfx_append_unit_graphics_load_descriptor, hash: 88fcbf815d20c90a, change: [FIX_BUGS], dc_hash: f3cba6aa5d7e1a50}
   - {addr: 0x8008e6d0, size: 8, name: battle_return_zero_8008e6d0, hash: 207819bf4ebe3078}
   - {addr: 0x8008e6d8, size: 224, name: battle_unit_select_and_open_entd, hash: 849dca5ea7e03b82}
   - {addr: 0x8008e7b8, size: 84, name: battle_unit_poll_and_load_entd_units, hash: 87bb8cbb8ed888b2}

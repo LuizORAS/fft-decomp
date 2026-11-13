@@ -418,6 +418,7 @@ An entry an edition changes keeps describing the retail code and ends with
 - `battle_gfx_append_unit_graphics_load_descriptor` writes its record before it
   tests the count, which stops at 16: a seventeenth append lands one past the
   16-entry queue, on the head of `g_main_zodiac_primitives`.
+  Fixed under `FIX_BUGS`: a full queue takes no record.
 - `battle_effect_remove_secondary`: removing a record from the middle of the
   active chain leaves the record before it with `next_slot_id` naming the freed
   record. When that one is removed while a newer effect is still active, it
