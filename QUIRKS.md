@@ -414,6 +414,7 @@ An entry an edition changes keeps describing the retail code and ends with
   but `battle_map_start_clut_cycle` returns slot + 1: it stops the slot
   after the handle's own, and handle 8 clears the byte after the eight slots,
   the first of `g_battle_gfx_cycled_deployed_palettes`.
+  Fixed under `FIX_BUGS`: it stops the handle's own slot.
 - `battle_gfx_append_unit_graphics_load_descriptor` writes its record before it
   tests the count, which stops at 16: a seventeenth append lands one past the
   16-entry queue, on the head of `g_main_zodiac_primitives`.

@@ -9,7 +9,12 @@
  * eight slots, the first of g_battle_gfx_cycled_deployed_palettes. */
 s32 battle_map_stop_clut_cycle(s32 handle) {
     if (handle >= 1 && handle <= MAP_CLUT_CYCLE_SLOT_COUNT) {
+#ifdef FIX_BUGS
+        /* The edition stops the handle's own slot (QUIRKS.md). */
+        g_battle_map_clut_cycle_states[handle - 1].active = 0;
+#else
         g_battle_map_clut_cycle_states[handle].active = 0;
+#endif
         return 1;
     }
     return 0;

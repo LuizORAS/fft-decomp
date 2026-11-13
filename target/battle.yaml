@@ -699,7 +699,7 @@ functions:
   - {addr: 0x80090da8, size: 68, name: battle_map_transition_and_store_darkness_color, hash: 271fa8f07346d0e2}
   - {addr: 0x80090dec, size: 1032, name: battle_map_blend_darkness_color, hash: e301f373ce1db338, rodata: [{addr: 0x8006838c, size: 44, hash: 5c7e927c07a24267}]}
   - {addr: 0x800911f4, size: 84, name: battle_map_start_clut_cycle, hash: b72413bd06996e17}
-  - {addr: 0x80091248, size: 56, name: battle_map_stop_clut_cycle, hash: b2b3e217319a1b40}
+  - {addr: 0x80091248, size: 56, name: battle_map_stop_clut_cycle, hash: b2b3e217319a1b40, change: [FIX_BUGS], dc_hash: 4c7bbfa2295cd816}
   - {addr: 0x80091280, size: 36, name: battle_map_reset_clut_cycles, hash: eea4788933ed120e}
   - {addr: 0x800912a4, size: 4856, name: battle_map_update_animations, hash: 79ff745ff22ea81e}
   - {addr: 0x8009259c, size: 132, name: battle_map_stop_palette_animation, hash: 9cb5794abf15d3fd}
