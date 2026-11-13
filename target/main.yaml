@@ -723,8 +723,8 @@ functions:
   - {addr: 0x800435c4, size: 156, name: main_sound_load_music_into_slot, hash: dc882519778a9dfe}
   - {addr: 0x80043660, size: 168, name: main_sound_load_music_into_free_slot, hash: 185c9e9bb1bb9c55}
   - {addr: 0x80043708, size: 8, name: main_sound_is_music_loading_stub, hash: 207819bf4ebe3078}
-  - {addr: 0x80043710, size: 200, name: main_sound_start_music_load_into_slot, hash: d068d9f896a5379b}
-  - {addr: 0x800437d8, size: 248, name: main_sound_start_music_load_into_free_slot, hash: 0b6f75c1755d440b}
+  - {addr: 0x80043710, size: 200, name: main_sound_start_music_load_into_slot, hash: d068d9f896a5379b, change: [FIX_BUGS], dc_hash: 22299e3e3751b03b}
+  - {addr: 0x800437d8, size: 248, name: main_sound_start_music_load_into_free_slot, hash: 0b6f75c1755d440b, change: [FIX_BUGS], dc_hash: 8a89d4a57516ce47}
   - {addr: 0x800438d0, size: 136, name: main_sound_poll_music_load, hash: 96a506be6e381a11}
   - {addr: 0x80043958, size: 104, name: main_sound_wait_for_music_load, hash: 793faa58744c23db}
   - {addr: 0x800439c0, size: 120, name: main_sound_unload_scenario_mus, hash: c92064cadd7628ae, change: [FIX_BUGS], dc_hash: 3470ef4c24aa3b12}

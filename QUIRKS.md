@@ -674,7 +674,9 @@ An entry an edition changes keeps describing the retail code and ends with
   requests the read; when `main_file_request_read_bytes` refuses (a read already in
   flight) it reports `MAIN_SYSTEM_ERROR_SMD_LOAD`, whose hook is empty, and returns 0
   without freeing the block. `main_sound_start_music_load_into_slot` (no caller) does
-  the same.
+  the same. The SMD table is cleared only at boot and reset, so the block stays
+  taken until then.
+  Fixed under `FIX_BUGS`: both free the block before they report the error.
 - `battle_menu_alloc_memory` and `world_menu_alloc_memory` test the end of the arena
   before the size, so no allocation includes the last page. They mark pages before
   claiming one of the 16 records and leave them marked with no owner when all 16 are

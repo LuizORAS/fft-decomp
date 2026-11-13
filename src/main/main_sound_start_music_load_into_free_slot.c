@@ -18,6 +18,10 @@ int main_sound_start_music_load_into_free_slot(int music_id) {
                     g_main_sound_music.slots.smd[i] = buffer;
                     g_main_sound_music.slots.loading_slot = i + 1;
                 } else {
+#ifdef FIX_BUGS
+                    /* The edition frees the block when the read is refused (QUIRKS.md). */
+                    main_heap_free_smd(buffer);
+#endif
                     main_system_handle_error(MAIN_SYSTEM_ERROR_SMD_LOAD);
                     return 0;
                 }

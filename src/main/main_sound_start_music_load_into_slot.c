@@ -25,6 +25,12 @@ s32 main_sound_start_music_load_into_slot(s32 music_id, s32 slot) {
             set_opened_music_slot(slot);
             return slot;
         }
+#ifdef FIX_BUGS
+        /* The edition frees the block when the read is refused (QUIRKS.md). */
+        if (data != 0) {
+            main_heap_free_smd(data);
+        }
+#endif
         main_system_handle_error(MAIN_SYSTEM_ERROR_SMD_LOAD);
         return 0;
     }
