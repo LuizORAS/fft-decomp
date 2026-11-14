@@ -635,6 +635,7 @@ An entry an edition changes keeps describing the retail code and ends with
   test, so an absent unit (2000) zeroes the 16-bit value 4000 bytes on, the `w` of
   `g_menu_window_buffers[5].sprites[3]` in BATTLE and WORLD. The interpreters' own
   WalkToAnim keeps the store inside the test.
+  Fixed under `FIX_BUGS`: both clear the latch of a present unit only.
 - `card_file_write_buffer`, `world_card_write_buffer_to_file` and
   `world_card_read_file_chunked` seek before each of their 40 attempts by the bytes
   transferred so far from the current position (`lseek` origin 1), not from the

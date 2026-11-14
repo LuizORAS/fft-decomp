@@ -977,7 +977,7 @@ functions:
   - {addr: 0x8013e81c, size: 88, name: script_load_attack_graphics_event_instruction, hash: 03c63298566511f4, source: src/shared/script/script_load_attack_graphics_event_instruction.c}
   - {addr: 0x8013e874, size: 96, name: script_play_effect_and_wait, hash: fdc04e1986faf430, source: src/shared/script/script_play_effect_and_wait.c}
   - {addr: 0x8013e8d4, size: 48, name: script_play_effect_thread, hash: 014b4d70b5118cb2, source: src/shared/script/script_play_effect_thread.c}
-  - {addr: 0x8013e904, size: 1236, name: script_block_start_thread, hash: 74b4fb7297f0daea, source: src/shared/script/script_block_start_thread.c}
+  - {addr: 0x8013e904, size: 1236, name: script_block_start_thread, hash: 74b4fb7297f0daea, change: [FIX_BUGS], dc_hash: 3c0cd433d8a7238d, source: src/shared/script/script_block_start_thread.c}
   - {addr: 0x8013edd8, size: 468, name: battle_script_add_unit_start_thread, hash: e015fe2ea756d0dd}
   - {addr: 0x8013efac, size: 72, name: battle_menu_init_subsystems, hash: 4a2f2ce670dbb523, source: src/shared/menu/menu_init_subsystems.c, source_symbol: menu_init_subsystems}
   - {addr: 0x8013eff4, size: 140, name: battle_menu_init_subsystem_pointers, hash: 7ca7d0d90e11c897, source: src/shared/menu/menu_init_subsystem_pointers.c, source_symbol: menu_init_subsystem_pointers}

@@ -354,7 +354,7 @@ functions:
   - {addr: 0x800f2134, size: 88, name: script_load_attack_graphics_event_instruction, hash: 6996873356d74343, source: src/shared/script/script_load_attack_graphics_event_instruction.c}
   - {addr: 0x800f218c, size: 96, name: script_play_effect_and_wait, hash: 071ebe20d78399d5, source: src/shared/script/script_play_effect_and_wait.c}
   - {addr: 0x800f21ec, size: 48, name: script_play_effect_thread, hash: 23d695acccad5513, source: src/shared/script/script_play_effect_thread.c}
-  - {addr: 0x800f221c, size: 1236, name: world_script_block_start_thread, hash: 5ed900a4fe6df008, source: src/shared/script/script_block_start_thread.c, source_symbol: script_block_start_thread}
+  - {addr: 0x800f221c, size: 1236, name: world_script_block_start_thread, hash: 5ed900a4fe6df008, change: [FIX_BUGS], dc_hash: 3150497443f87a43, source: src/shared/script/script_block_start_thread.c, source_symbol: script_block_start_thread}
   - {addr: 0x800f26f0, size: 468, name: world_script_add_unit_start_thread, hash: 16616b5eb112a78a}
   - {addr: 0x800f28c4, size: 72, name: world_menu_init_subsystems, hash: 5c83298d75f82198, source: src/shared/menu/menu_init_subsystems.c, source_symbol: menu_init_subsystems}
   - {addr: 0x800f290c, size: 140, name: world_menu_init_subsystem_pointers, hash: 1f417d9f35d58b41, source: src/shared/menu/menu_init_subsystem_pointers.c, source_symbol: menu_init_subsystem_pointers}
