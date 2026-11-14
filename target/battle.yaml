@@ -254,7 +254,7 @@ functions:
   - {addr: 0x80072b50, size: 160, name: battle_state_enter_targeting_message, hash: 45704c837e9b243f}
   - {addr: 0x80072bf0, size: 248, name: battle_action_play_ability_effect, hash: 71b6fd19ff0115e6}
   - {addr: 0x80072ce8, size: 164, name: battle_action_show_next_effect_message, hash: 22d79e5fe6057ffd}
-  - {addr: 0x80072d8c, size: 984, name: battle_action_queue_unit_effect_messages, hash: 8db4f8dcabcf7ccf, rodata: [{addr: 0x80067548, size: 44, hash: 1af5cb5a7e7364f8}]}
+  - {addr: 0x80072d8c, size: 984, name: battle_action_queue_unit_effect_messages, hash: 8db4f8dcabcf7ccf, change: [FIX_BUGS], dc_hash: 56827d36b20d7a4b, rodata: [{addr: 0x80067548, size: 44, hash: 1af5cb5a7e7364f8}]}
   - {addr: 0x80073164, size: 116, name: battle_action_queue_target_effect_messages, hash: 771640634472c38d}
   - {addr: 0x800731d8, size: 120, name: battle_action_start_effect_messages, hash: 0a768787da84133a}
   - {addr: 0x80073250, size: 120, name: battle_unit_update_attack_result_animation, hash: fbdeab2100f0f08c}

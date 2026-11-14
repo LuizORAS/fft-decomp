@@ -581,6 +581,7 @@ An entry an edition changes keeps describing the retail code and ends with
   `g_battle_action_post_effect_msgs` once, before it walks the unit's 11 reportable
   outcomes: with 15 records queued it can append ten more past the array, over
   `g_battle_gfx_compressed_nibble_phase` and the globals after it.
+  Fixed under `FIX_BUGS`: it stops once the queue holds 16 records.
 - `battle_ai_evaluate_self_target_origins` and
   `battle_ai_evaluate_reflected_target_origins` run
   `battle_ai_can_use_ability_at_coords` on the unit's current tile in both passes, so
