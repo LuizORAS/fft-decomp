@@ -65,6 +65,7 @@ An entry an edition changes keeps describing the retail code and ends with
 - `src/shared/menu/menu_preview_attack_caster_stats.c`: for an item the
   secondary-data pointer stays uninitialized, yet its `flags_3` is read before
   the item test.
+  Fixed under `FIX_BUGS`: both test the item id first.
 - `src/battle/battle_map_load_mesh_variant.c`: scales the mesh header's color
   palette byte offset by four, placing the palette read past most mesh files.
   Its wait step tests `main_file_is_still_loading() != 0`, the reverse of the

@@ -33,6 +33,17 @@ void menu_preview_attack_caster_stats(void) {
     if (action->ability_id < ABILITY_ID_ITEM_FIRST) {
         main_ability_calculate_pointers_and_type(action->ability_id & ABILITY_ID_MASK, &ability_data, &secondary);
     }
+#ifdef FIX_BUGS
+    /* The edition tests the item id before it reads the range flags (QUIRKS.md). */
+    if ((action->ability_id < ABILITY_ID_ITEM_FIRST && (secondary.range->flags_3 & ABILITY_SECONDARY_FLAG_3_PERSEVERE))
+        || action->skillset_id == SKILLSET_ID_EQUIP_CHANGE) {
+        g_battle_menu_preview_target_action = 0;
+    } else {
+        g_thread_call_target = (void (*)(void))battle_action_calculate_projected_effect;
+        thread_call_on_main_stack(attacker, target, action);
+        g_battle_menu_preview_target_action = &target->action;
+    }
+#else
     /* Item IDs leave secondary unset before this range-flags read. */
     if (((secondary.range->flags_3 & ABILITY_SECONDARY_FLAG_3_PERSEVERE) && action->ability_id < ABILITY_ID_ITEM_FIRST)
         || action->skillset_id == SKILLSET_ID_EQUIP_CHANGE) {
@@ -42,6 +53,7 @@ void menu_preview_attack_caster_stats(void) {
         thread_call_on_main_stack(attacker, target, action);
         g_battle_menu_preview_target_action = &target->action;
     }
+#endif
     thread_yield();
     thread_yield();
     battle_menu_load_selected_unit();

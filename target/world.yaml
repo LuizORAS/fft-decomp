@@ -240,7 +240,7 @@ functions:
   - {addr: 0x800e90f4, size: 3764, name: world_menu_display_hovered_unit_stats, hash: 23548cb242115e60, profile: gcc-2.6.3_O2_aspsx-2.34_divcheck, source: src/shared/menu/menu_display_hovered_unit_stats.c, source_symbol: menu_display_hovered_unit_stats}
   - {addr: 0x800e9fa8, size: 96, name: world_menu_refresh_hovered_unit_stats_display, hash: 17518b9c3f92beb7, source: src/shared/menu/menu_refresh_hovered_unit_stats_display.c, source_symbol: menu_refresh_hovered_unit_stats_display}
   - {addr: 0x800ea008, size: 96, name: world_menu_refresh_right_unit_stats_display, hash: ec258bdb8944e993, source: src/shared/menu/menu_refresh_right_unit_stats_display.c, source_symbol: menu_refresh_right_unit_stats_display}
-  - {addr: 0x800ea068, size: 316, name: world_menu_preview_attack_caster_stats, hash: 64cc01be28054271, source: src/shared/menu/menu_preview_attack_caster_stats.c, source_symbol: menu_preview_attack_caster_stats}
+  - {addr: 0x800ea068, size: 316, name: world_menu_preview_attack_caster_stats, hash: 64cc01be28054271, change: [FIX_BUGS], dc_hash: cfcb9b10c0f19189, source: src/shared/menu/menu_preview_attack_caster_stats.c, source_symbol: menu_preview_attack_caster_stats}
   - {addr: 0x800ea1a4, size: 184, name: world_menu_preview_attack_target_stats, hash: da40410ec79137a7, source: src/shared/menu/menu_preview_attack_target_stats.c, source_symbol: menu_preview_attack_target_stats}
   - {addr: 0x800ea25c, size: 1844, name: world_menu_run_unit_summary_panel_thread, hash: d5f5a0ffa8af680f, source: src/shared/menu/menu_run_unit_summary_panel_thread.c, source_symbol: menu_run_unit_summary_panel_thread}
   - {addr: 0x800ea990, size: 192, name: world_gfx_set_item_icon_sprite, hash: a86b16621ce2b2a6}

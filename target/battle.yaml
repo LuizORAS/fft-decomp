@@ -863,7 +863,7 @@ functions:
   - {addr: 0x801352bc, size: 3692, name: battle_menu_display_hovered_unit_stats, hash: a6325c0ce9b93247, source: src/shared/menu/menu_display_hovered_unit_stats.c, source_symbol: menu_display_hovered_unit_stats}
   - {addr: 0x80136128, size: 96, name: battle_menu_refresh_hovered_unit_stats_display, hash: 44c12a5386f8c71d, source: src/shared/menu/menu_refresh_hovered_unit_stats_display.c, source_symbol: menu_refresh_hovered_unit_stats_display}
   - {addr: 0x80136188, size: 96, name: battle_menu_refresh_right_unit_stats_display, hash: f443baa5b3aaef86, source: src/shared/menu/menu_refresh_right_unit_stats_display.c, source_symbol: menu_refresh_right_unit_stats_display}
-  - {addr: 0x801361e8, size: 316, name: battle_menu_preview_attack_caster_stats, hash: 907067bbf7af5d66, source: src/shared/menu/menu_preview_attack_caster_stats.c, source_symbol: menu_preview_attack_caster_stats}
+  - {addr: 0x801361e8, size: 316, name: battle_menu_preview_attack_caster_stats, hash: 907067bbf7af5d66, change: [FIX_BUGS], dc_hash: 908bc8c9184cfd48, source: src/shared/menu/menu_preview_attack_caster_stats.c, source_symbol: menu_preview_attack_caster_stats}
   - {addr: 0x80136324, size: 184, name: battle_menu_preview_attack_target_stats, hash: 046102c8ecda5727, source: src/shared/menu/menu_preview_attack_target_stats.c, source_symbol: menu_preview_attack_target_stats}
   - {addr: 0x801363dc, size: 1844, name: battle_menu_run_unit_summary_panel_thread, hash: f50298ccb84f275a, source: src/shared/menu/menu_run_unit_summary_panel_thread.c, source_symbol: menu_run_unit_summary_panel_thread}
   - {addr: 0x80136b10, size: 192, name: battle_gfx_set_item_icon_sprite, hash: 2b719c85439aba92}
