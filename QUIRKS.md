@@ -134,6 +134,9 @@ An entry an edition changes keeps describing the retail code and ends with
 - `src/battle/battle_unit_init.c`: tints the new unit's palette
   before it clears `mount_state`, so a runtime slot last held by a rider looks up
   a mount that is gone and reads its world coordinates through NULL (kernel RAM).
+  The same tint also reads the slot's previous `fade_out_phase`, palette-update
+  suppression bit and world coordinates, which are set only after it.
+  Fixed under `FIX_BUGS`: it clears `mount_state` before the tint.
 - `src/battle/battle_menu_display_projected_action_effect.c`: a skipped
   preview leaves `g_battle_menu_preview_target_action` null, and its
   `attack_accuracy` is read (from kernel RAM) before the null test.
