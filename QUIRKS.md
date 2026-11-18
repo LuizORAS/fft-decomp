@@ -665,6 +665,7 @@ An entry an edition changes keeps describing the retail code and ends with
   with no lower bound: a value with more digits than the field starts below -1 and
   queues a blank quad about 65,535 times. Whether any retail field is too narrow is
   unknown.
+  Fixed under `FIX_BUGS`: all three stop at 0, so a wider number draws no blank cell.
 - `world_gfx_update_fade_in_tile` does not clamp its level when the fade-in ends,
   unlike `world_gfx_update_fade_out_tile`: at a frame step of 2 the level goes from 16
   to -16, and the last subtractive tile takes the low byte, 240, darkening the screen

@@ -22,12 +22,22 @@ menu_instruction_t* bunit_menu_script_draw_plain_number(menu_instruction_t* cmd)
     blanks = cmd->number.width - count;
     count = cmd->number.width - blanks;
     g_bunit_gfx_blank_cell_rect.position.y = y + 4;
+#ifdef FIX_BUGS
+    /* The edition draws no blank cell for a number wider than its field (QUIRKS.md). */
+    for (i = blanks - 1; i >= 0; i--) {
+        g_bunit_gfx_blank_cell_rect.position.x = x;
+        menu_gfx_enqueue_oriented_textured_quad(
+            &g_bunit_gfx_blank_cell_rect, 0, TEXTURE_UV_FLIP_NONE, 0, g_menu_gfx_otag_index);
+        x += 8;
+    }
+#else
     for (i = blanks - 1; i != -1; i--) {
         g_bunit_gfx_blank_cell_rect.position.x = x;
         menu_gfx_enqueue_oriented_textured_quad(
             &g_bunit_gfx_blank_cell_rect, 0, TEXTURE_UV_FLIP_NONE, 0, g_menu_gfx_otag_index);
         x += 8;
     }
+#endif
     glyph_rect.x = x;
     glyph_rect.y = y;
     glyph_rect.w = 8;

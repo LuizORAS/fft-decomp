@@ -915,7 +915,7 @@ functions:
   - {addr: 0x80127ba4, size: 120, name: world_menu_script_set_draw_color, hash: 5ac3ffc7c67d72cf, profile: gcc-2.6.3_O1_aspsx-2.34}
   - {addr: 0x80127c1c, size: 24, name: world_menu_script_set_draw_priority, hash: b64d671740a04bdd}
   - {addr: 0x80127c34, size: 1224, name: world_menu_script_draw_formatted_number, hash: 2293165cd0dc845a, profile: gcc-2.6.3_O1_aspsx-2.34, rodata: [{addr: 0x800e0094, size: 3, hash: 0b782fc3030dbdf3}]}
-  - {addr: 0x801280fc, size: 480, name: world_menu_script_draw_plain_number, hash: df29edddcbd20dce, profile: gcc-2.6.3_O1_aspsx-2.34, rodata: [{addr: 0x800e0094, size: 3, hash: 0b782fc3030dbdf3}]}
+  - {addr: 0x801280fc, size: 480, name: world_menu_script_draw_plain_number, hash: df29edddcbd20dce, change: [FIX_BUGS], dc_hash: 2543c6176ba07d40, profile: gcc-2.6.3_O1_aspsx-2.34, rodata: [{addr: 0x800e0094, size: 3, hash: 0b782fc3030dbdf3}]}
   - {addr: 0x801282dc, size: 704, name: world_menu_draw_animated_cursor, hash: aeed72995bce48d4, profile: gcc-2.6.3_O1_aspsx-2.34}
   - {addr: 0x8012859c, size: 852, name: world_menu_draw_animated_vertical_cursor, hash: 6230546a73c5da6f, profile: gcc-2.6.3_O1_aspsx-2.34}
   - {addr: 0x801288f0, size: 108, name: world_menu_script_skip_group, hash: 08c0e2d5768b4709}

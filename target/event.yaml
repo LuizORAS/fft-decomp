@@ -532,7 +532,7 @@ functions:
   - {addr: 0x801c9698, size: 104, name: menu_script_set_draw_color, hash: f8e9ecc48cf193a2, source: src/shared/menu/menu_script_set_draw_color.c}
   - {addr: 0x801c9700, size: 24, name: bunit_menu_script_set_draw_priority, hash: e3a66bb32067285c}
   - {addr: 0x801c9718, size: 1076, name: bunit_menu_script_draw_formatted_number, hash: a52fa763ae07e832}
-  - {addr: 0x801c9b4c, size: 424, name: bunit_menu_script_draw_plain_number, hash: fbd03bb0cdf31870}
+  - {addr: 0x801c9b4c, size: 424, name: bunit_menu_script_draw_plain_number, hash: fbd03bb0cdf31870, change: [FIX_BUGS], dc_hash: 88b2258ff7eea226}
   - {addr: 0x801c9cf4, size: 652, name: bunit_menu_update_and_draw_animated_cursor, hash: 48df7a46e058abc1}
   - {addr: 0x801c9f80, size: 864, name: bunit_menu_update_and_draw_bouncing_cursor, hash: 8fec6593004c6ff0}
   - {addr: 0x801ca2e0, size: 108, name: menu_script_skip_group, hash: a7fc8159f10402de, source: src/shared/menu/menu_script_skip_group.c}
@@ -1904,7 +1904,7 @@ functions:
   - {addr: 0x801cbcc8, size: 104, name: menu_script_set_draw_color, hash: ead031d84ebc84e9, source: src/shared/menu/menu_script_set_draw_color.c}
   - {addr: 0x801cbd30, size: 24, name: equip_menu_script_set_draw_priority, hash: 0d38c979b93736fb}
   - {addr: 0x801cbd48, size: 1076, name: equip_menu_script_draw_formatted_number, hash: 66875582960ce0d8}
-  - {addr: 0x801cc17c, size: 428, name: equip_menu_script_draw_plain_number, hash: 325db0fd2794a02d}
+  - {addr: 0x801cc17c, size: 428, name: equip_menu_script_draw_plain_number, hash: 325db0fd2794a02d, change: [FIX_BUGS], dc_hash: 34a6903905d23b77}
   - {addr: 0x801cc328, size: 660, name: menu_update_and_draw_animated_cursor, hash: 3938e60d49f17206, source: src/shared/menu/menu_update_and_draw_animated_cursor.c}
   - {addr: 0x801cc5bc, size: 108, name: menu_script_skip_group, hash: e3dba406e3887731, source: src/shared/menu/menu_script_skip_group.c}
   - {addr: 0x801cc628, size: 672, name: equip_menu_draw_scrollable_list, hash: b2d0e76db3f4d7ef}

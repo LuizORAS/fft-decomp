@@ -23,12 +23,22 @@ menu_instruction_t* equip_menu_script_draw_plain_number(menu_instruction_t* comm
     y = command->number.y;
     count = command->number.width - blanks;
     g_equip_gfx_blank_cell_rect.position.y = y + 4;
+#ifdef FIX_BUGS
+    /* The edition draws no blank cell for a number wider than its field (QUIRKS.md). */
+    for (i = blanks - 1; i >= 0; i--) {
+        g_equip_gfx_blank_cell_rect.position.x = x;
+        menu_gfx_enqueue_oriented_textured_quad(
+            &g_equip_gfx_blank_cell_rect, 0, TEXTURE_UV_FLIP_NONE, 0, g_menu_gfx_otag_index);
+        x += 8;
+    }
+#else
     for (i = blanks - 1; i != -1; i--) {
         g_equip_gfx_blank_cell_rect.position.x = x;
         menu_gfx_enqueue_oriented_textured_quad(
             &g_equip_gfx_blank_cell_rect, 0, TEXTURE_UV_FLIP_NONE, 0, g_menu_gfx_otag_index);
         x += 8;
     }
+#endif
     rect.x = x;
     rect.y = y;
     rect.w = 8;
