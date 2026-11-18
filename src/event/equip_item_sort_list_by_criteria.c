@@ -62,6 +62,20 @@ void equip_item_sort_list_by_criteria(s32 mode, s16* list) {
                 } else if (criterion == ITEM_SORT_KEY_RANKING) {
                     key_a = equip_item_get_ranking_value(item_a);
                 } else if (criterion == ITEM_SORT_KEY_PHYSICAL_EVADE) {
+#ifdef FIX_BUGS
+                    /* The edition keys only shields and accessories by their tables (QUIRKS.md). */
+                    if (item_a < ITEM_ID_SHIELD_FIRST) {
+                        key_a = g_main_item_weapon_data[g_main_item_primary_data[item_a].secondary_data_id].evade;
+                    } else if (item_a < ITEM_ID_HEADGEAR_FIRST) {
+                        key_a = g_main_item_shield_data[g_main_item_primary_data[item_a].secondary_data_id]
+                                    .physical_evade;
+                    } else if (item_a >= ITEM_ID_ACCESSORY_FIRST && item_a < ITEM_ID_CONSUMABLE_FIRST) {
+                        key_a = g_main_item_accessory_data[g_main_item_primary_data[item_a].secondary_data_id]
+                                    .physical_evade;
+                    } else {
+                        key_a = 0;
+                    }
+#else
                     if (item_a < ITEM_ID_THROWABLE_FIRST) {
                         key_a = g_main_item_weapon_data[g_main_item_primary_data[item_a].secondary_data_id].evade;
                     } else if (item_a < ITEM_ID_HEADGEAR_FIRST) {
@@ -73,7 +87,21 @@ void equip_item_sort_list_by_criteria(s32 mode, s16* list) {
                     } else {
                         key_a = 0;
                     }
+#endif
                 } else if (criterion == ITEM_SORT_KEY_MAGIC_EVADE) {
+#ifdef FIX_BUGS
+                    /* The edition keys only shields and accessories by their tables (QUIRKS.md). */
+                    if (item_a < ITEM_ID_SHIELD_FIRST) {
+                        key_a = 0;
+                    } else if (item_a < ITEM_ID_HEADGEAR_FIRST) {
+                        key_a = g_main_item_shield_data[g_main_item_primary_data[item_a].secondary_data_id].magic_evade;
+                    } else if (item_a >= ITEM_ID_ACCESSORY_FIRST && item_a < ITEM_ID_CONSUMABLE_FIRST) {
+                        key_a = g_main_item_accessory_data[g_main_item_primary_data[item_a].secondary_data_id]
+                                    .magic_evade;
+                    } else {
+                        key_a = 0;
+                    }
+#else
                     if (item_a < ITEM_ID_THROWABLE_FIRST) {
                         key_a = 0;
                     } else if (item_a < ITEM_ID_HEADGEAR_FIRST) {
@@ -84,6 +112,7 @@ void equip_item_sort_list_by_criteria(s32 mode, s16* list) {
                     } else {
                         key_a = 0;
                     }
+#endif
                 } else if (criterion == ITEM_SORT_KEY_HELD_COUNT) {
                     key_a = equip_item_get_total_count(item_a);
                 }
@@ -97,6 +126,20 @@ void equip_item_sort_list_by_criteria(s32 mode, s16* list) {
                 } else if (criterion == ITEM_SORT_KEY_RANKING) {
                     key_b = equip_item_get_ranking_value(item_b);
                 } else if (criterion == ITEM_SORT_KEY_PHYSICAL_EVADE) {
+#ifdef FIX_BUGS
+                    /* The edition keys only shields and accessories by their tables (QUIRKS.md). */
+                    if (item_b < ITEM_ID_SHIELD_FIRST) {
+                        key_b = g_main_item_weapon_data[g_main_item_primary_data[item_b].secondary_data_id].evade;
+                    } else if (item_b < ITEM_ID_HEADGEAR_FIRST) {
+                        key_b = g_main_item_shield_data[g_main_item_primary_data[item_b].secondary_data_id]
+                                    .physical_evade;
+                    } else if (item_b >= ITEM_ID_ACCESSORY_FIRST && item_b < ITEM_ID_CONSUMABLE_FIRST) {
+                        key_b = g_main_item_accessory_data[g_main_item_primary_data[item_b].secondary_data_id]
+                                    .physical_evade;
+                    } else {
+                        key_b = 0;
+                    }
+#else
                     if (item_b < ITEM_ID_THROWABLE_FIRST) {
                         key_b = g_main_item_weapon_data[g_main_item_primary_data[item_b].secondary_data_id].evade;
                     } else if (item_b < ITEM_ID_HEADGEAR_FIRST) {
@@ -108,7 +151,21 @@ void equip_item_sort_list_by_criteria(s32 mode, s16* list) {
                     } else {
                         key_b = 0;
                     }
+#endif
                 } else if (criterion == ITEM_SORT_KEY_MAGIC_EVADE) {
+#ifdef FIX_BUGS
+                    /* The edition keys only shields and accessories by their tables (QUIRKS.md). */
+                    if (item_b < ITEM_ID_SHIELD_FIRST) {
+                        key_b = g_main_item_weapon_data[g_main_item_primary_data[item_b].secondary_data_id].evade;
+                    } else if (item_b < ITEM_ID_HEADGEAR_FIRST) {
+                        key_b = g_main_item_shield_data[g_main_item_primary_data[item_b].secondary_data_id].magic_evade;
+                    } else if (item_b >= ITEM_ID_ACCESSORY_FIRST && item_b < ITEM_ID_CONSUMABLE_FIRST) {
+                        key_b = g_main_item_accessory_data[g_main_item_primary_data[item_b].secondary_data_id]
+                                    .magic_evade;
+                    } else {
+                        key_b = 0;
+                    }
+#else
                     if (item_b < ITEM_ID_THROWABLE_FIRST) {
                         key_b = g_main_item_weapon_data[g_main_item_primary_data[item_b].secondary_data_id].evade;
                     } else if (item_b < ITEM_ID_HEADGEAR_FIRST) {
@@ -119,6 +176,7 @@ void equip_item_sort_list_by_criteria(s32 mode, s16* list) {
                     } else {
                         key_b = 0;
                     }
+#endif
                 } else {
                     key_b = equip_item_get_total_count(item_b);
                 }

@@ -198,7 +198,13 @@ scope:
 
 - The evade sorts of [[world_item_sort_id_list]] and
   [[equip_item_sort_list_by_criteria]] index the shield and accessory tables
-  with throwing items and armor.
+  with throwing items and armor. The evade keys only break ties of type, price
+  and ranking, and in the item data only Cachusha and Barette tie, so retail
+  puts Barette first. The Developer's Cut gives headgear and armor no evade and
+  splits weapons from shields at the first shield (`QUIRKS.md`).
+- [[world_item_sort_id_list]] counts each unit's equipment by id, and an
+  unpaid fitting-room item's flag sends its count 32 KB past the array; the
+  Developer's Cut leaves it out of the count (`QUIRKS.md`).
 - [[world_item_cash_out_excess_inventory]] never reaches Phoenix Down.
 - Fur shop quirks:
   - its "sell" list is the ordinary inventory at half price;

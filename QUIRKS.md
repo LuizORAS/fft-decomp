@@ -117,6 +117,10 @@ An entry an edition changes keeps describing the retail code and ends with
   records and headgear and body armor (0..63) read the 32 accessory records and
   on past them; those items sort by unrelated bytes. A fix splits weapons at `ITEM_ID_SHIELD_FIRST` and keys
   headgear and body armor, which carry HP/MP bonuses instead of evade, as 0.
+  Fixed under `FIX_BUGS`: both split weapons at `ITEM_ID_SHIELD_FIRST` and key headgear and body armor 0.
+- `world_item_sort_id_list`, `equip_item_sort_list_by_criteria`: the magic-evade
+  key reads 0 for the first weapon of a pair but the second weapon's evade, so two
+  weapons that tie on every earlier key compare one weapon's evade against 0.
 - `src/battle/battle_camera_step_real_coords_toward_target.c`: in the positive
   direction the Y (`vz`) step adds the vector component twice; X and Z add it
   once.
@@ -749,6 +753,7 @@ written that way.
   256-byte local array, but the ids are 16-bit values and an item tried on in the
   shop's fitting room carries flag bits above the low byte, so sorting the
   list then increments a byte far past the array.
+  Fixed under `FIX_BUGS`: it does not count an unpaid shop item.
 - `script_resolve_runtime_id`: for the active-turn selector 0x69 with no unit
   holding the turn, it falls back to ENTD units 1 and 2 but tests the finder's
   battle index, not the loop counter, against 3, so a unit found in battle slot 3
