@@ -1154,7 +1154,7 @@ functions:
   - {addr: 0x801c4c9c, size: 384, name: card_file_open_selected_with_retries, hash: 8ad8e65a7cc2f553, profile: gcc-2.6.3_O0_aspsx-2.34}
   - {addr: 0x801c4e1c, size: 208, name: card_file_close_with_retries, hash: 3d4656824a2716d1, profile: gcc-2.6.3_O0_aspsx-2.34, source: src/shared/card/card_file_close_with_retries.c}
   - {addr: 0x801c4eec, size: 204, name: card_file_seek_with_retries, hash: 5513bda3c8478b59, profile: gcc-2.6.3_O0_aspsx-2.34, source: src/shared/card/card_file_seek_with_retries.c}
-  - {addr: 0x801c4fb8, size: 684, name: card_file_write_buffer, hash: 66315f155df10733, profile: gcc-2.6.3_O0_aspsx-2.34}
+  - {addr: 0x801c4fb8, size: 684, name: card_file_write_buffer, hash: 66315f155df10733, change: [FIX_BUGS], dc_hash: f6d64f7f7cd55e63, profile: gcc-2.6.3_O0_aspsx-2.34}
   - {addr: 0x801c5264, size: 276, name: card_file_delete_selected_with_retries, hash: 98a020db69d65c10, profile: gcc-2.6.3_O0_aspsx-2.34}
   - {addr: 0x801c5378, size: 336, name: card_file_read_with_retries, hash: f5e8826fc23a26c9, profile: gcc-2.6.3_O0_aspsx-2.34, source: src/shared/card/card_file_read_with_retries.c}
   - {addr: 0x801c54c8, size: 336, name: card_file_write_with_retries, hash: 26895f5b5e42b5a9, profile: gcc-2.6.3_O0_aspsx-2.34, source: src/shared/card/card_file_write_with_retries.c}

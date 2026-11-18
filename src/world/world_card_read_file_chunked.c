@@ -23,9 +23,16 @@ s32 world_card_read_file_chunked(const char* filename, u8* destination, u32 size
     }
     total = 0;
     for (i = 0; i < 0x28; i++) {
+#ifdef FIX_BUGS
+        /* The edition seeks from the start of the file (QUIRKS.md). */
+        if (world_card_seek_file_with_retries(g_world_card_open_descriptor, total, 0) < 0) {
+            break;
+        }
+#else
         if (world_card_seek_file_with_retries(g_world_card_open_descriptor, total, 1) < 0) {
             break;
         }
+#endif
         result = read(g_world_card_open_descriptor, destination + total, size - total);
         if (result != -1) {
             total += result;

@@ -30,9 +30,16 @@ s32 world_card_write_buffer_to_file(const char* filename, const card_save_buffer
     }
     total_written = 0;
     for (retries = 0; retries < 40; retries++) {
+#ifdef FIX_BUGS
+        /* The edition seeks from the start of the file (QUIRKS.md). */
+        if (world_card_seek_file_with_retries(g_world_card_open_descriptor, total_written, 0) < 0) {
+            break;
+        }
+#else
         if (world_card_seek_file_with_retries(g_world_card_open_descriptor, total_written, 1) < 0) {
             break;
         }
+#endif
         result = write(g_world_card_open_descriptor, (const u8*)source + total_written, size - total_written);
         if (result != -1) {
             total_written += result;

@@ -645,6 +645,7 @@ An entry an edition changes keeps describing the retail code and ends with
   transferred so far from the current position (`lseek` origin 1), not from the
   start: after a short first transfer of n bytes the next attempt works at file
   offset 2n with the data from offset n.
+  Fixed under `FIX_BUGS`: the three seek from the start of the file.
 - `equip_item_get_ranking_value` and `world_item_get_ranking_value`: item 0 is a
   weapon to `equip_item_get_menu_category` and `world_item_get_menu_category`, but
   the weapon branch excludes it, so it falls into the helmet branch with index -144
