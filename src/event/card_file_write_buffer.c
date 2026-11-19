@@ -50,9 +50,16 @@ s32 card_file_write_buffer(const char* filename, const card_save_buffer_t* sourc
     total_written = 0;
     retries = 0;
     while (retries < 40) {
+#ifdef FIX_BUGS
+        /* The edition seeks from the start of the file (QUIRKS.md). */
+        if (card_file_seek_with_retries(g_card_file_open_descriptor, total_written, 0) < 0) {
+            break;
+        }
+#else
         if (card_file_seek_with_retries(g_card_file_open_descriptor, total_written, 1) < 0) {
             break;
         }
+#endif
 
         result = write(g_card_file_open_descriptor, (const u8*)source + total_written, size - total_written);
         if (result != -1) {

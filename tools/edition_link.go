@@ -27,9 +27,10 @@ import (
 )
 
 // objectSizes is what a changed function's object holds: its .text, and its
-// .rodata with that section's alignment.
+// .rodata with that section's alignment and the hash of its bytes.
 type objectSizes struct {
 	text, rodata, rodataAlign int
+	rodataHash                string
 }
 
 // pieceEdition is how an edition's flowing layout fills a piece of changed
@@ -87,9 +88,10 @@ func pieceWhat(piece linkPiece) string {
 // moves by what that piece grew, rounded up to 16 bytes; a piece that shrinks
 // keeps its slot. MAIN pads to whole sectors, as on the shifted disc. It
 // fails, naming each case, on what the moved code cannot carry: a data row
-// inside a changed function (a second name for its entry aside), a literal a
-// changed function shares with another, a row bound at its address inside
-// code that moves, and an image that passes its RAM window's end.
+// inside a changed function (a second name for its entry aside), a literal
+// two functions share that a changed one's object rewrites, a row bound at
+// its address inside code that moves, and an image that passes its RAM
+// window's end.
 func flowLayout(m *moduleSpec, layout linkLayout, edition string, sizes map[string]objectSizes) (linkLayout, error) {
 	var locks []string
 	lock := func(format string, args ...any) {
@@ -101,6 +103,17 @@ func flowLayout(m *moduleSpec, layout linkLayout, edition string, sizes map[stri
 		}
 		_, ok := sizes[f.Name]
 		return ok
+	}
+	// rewrites is whether a changed function's object holds other bytes than
+	// its literal's row, by size and hash as make check compares them. The
+	// object's bytes are unrelocated, so a literal that holds an address
+	// reads as rewritten.
+	rewrites := func(f *functionSpec) bool {
+		if !changed(f) || len(f.Rodata) == 0 {
+			return false
+		}
+		object := sizes[f.Name]
+		return object.rodata != f.Rodata[0].Size || object.rodataHash != f.Rodata[0].Hash
 	}
 	pieces := slices.Clone(layout.pieces)
 	var delta uint32
@@ -135,6 +148,9 @@ func flowLayout(m *moduleSpec, layout linkLayout, edition string, sizes map[stri
 			}
 		}
 	}
+	// A literal two functions share loads once, from the object of the piece
+	// that holds it, and moves with that piece; the other copy only keeps its
+	// address. A change to either passes while the bytes stay what both read.
 	shadows := slices.Clone(layout.shadows)
 	for index := range shadows {
 		shadow := &shadows[index]
@@ -143,9 +159,13 @@ func flowLayout(m *moduleSpec, layout linkLayout, edition string, sizes map[stri
 			continue
 		}
 		shadow.delta = pieces[holder].delta
-		if changed(shadow.function) || changed(pieces[holder].function) {
-			lock("%s and %s share the literal at 0x%08x, which a change to either in edition %s cannot rewrite for both",
-				pieces[holder].function.Name, shadow.function.Name, shadow.addr, edition)
+		holding, sharing := pieces[holder].function, shadow.function
+		for _, f := range []*functionSpec{holding, sharing} {
+			if rewrites(f) {
+				object, row := sizes[f.Name], f.Rodata[0]
+				lock("%s and %s share the literal at 0x%08x, which %s's object in edition %s rewrites (%d bytes with hash %s, its row's are %d with hash %s); the one copy cannot hold both",
+					holding.Name, sharing.Name, shadow.addr, f.Name, edition, object.rodata, object.rodataHash, row.Size, row.Hash)
+			}
 		}
 	}
 	for _, symbol := range layout.absolute {
@@ -198,41 +218,8 @@ func (moved addressMap) at(addr uint32) uint32 {
 	return addr + moved.deltas[index]
 }
 
-// editionOverrideLocks fails on an override that binds, in place, a name
-// another module defines at an address inside m's own image where m keeps a
-// function or data row of its own, when the edition moves that place: the
-// link leaves the name at the old address (linkObjectRenames) while m's own
-// object there moves. A name bound in place where m keeps nothing of its own
-// is a call into code m never runs with that module, and stays.
-func editionOverrideLocks(resolver symbolResolver, m *moduleSpec, moved addressMap, edition string) error {
-	kept := map[uint32]string{}
-	for _, f := range m.Functions {
-		kept[f.Addr] = f.Name
-	}
-	for _, symbol := range m.Data {
-		if _, ok := kept[symbol.Addr]; !ok {
-			kept[symbol.Addr] = symbol.Name
-		}
-	}
-	var locks []string
-	for _, override := range m.Overrides {
-		at, resolved := resolver.resolve(m, override.Name)
-		_, own := resolver.own[m.ID][override.Name]
-		name, keeps := kept[override.Addr]
-		if !resolved || own || at != override.Addr || !keeps || !m.contains(override.Addr, 1) || moved.at(override.Addr) == override.Addr {
-			continue
-		}
-		locks = append(locks, fmt.Sprintf("%s: %s's override binds %s in place at 0x%08x, where the module keeps %s, which edition %s moves by %d bytes; the name would keep the old address",
-			m.ID, override.Function, override.Name, override.Addr, name, edition, moved.at(override.Addr)-override.Addr))
-	}
-	if len(locks) > 0 {
-		return errors.New(strings.Join(locks, "\n"))
-	}
-	return nil
-}
-
 // objectSizesOf reads what a function's object holds: its .text, and its
-// .rodata (or .rdata) with the section's alignment.
+// .rodata (or .rdata) with the section's alignment and the hash of its bytes.
 func objectSizesOf(path string) (objectSizes, error) {
 	object, err := elf.Open(path)
 	if err != nil {
@@ -251,7 +238,11 @@ func objectSizesOf(path string) (objectSizes, error) {
 			if sizes.rodata != 0 {
 				return sizes, fmt.Errorf("%s holds both .rodata and .rdata", path)
 			}
-			sizes.rodata, sizes.rodataAlign = int(section.Size), int(section.Addralign)
+			data, err := section.Data()
+			if err != nil {
+				return sizes, fmt.Errorf("%s: %w", path, err)
+			}
+			sizes.rodata, sizes.rodataAlign, sizes.rodataHash = len(data), int(section.Addralign), shortHash(data)
 		}
 	}
 	return sizes, nil
@@ -308,12 +299,7 @@ func (p project) editionLayouts(config *projectConfig, resolver symbolResolver) 
 			problems = append(problems, err)
 			continue
 		}
-		moved := newAddressMap(m, layout)
-		if err := editionOverrideLocks(resolver, m, moved, p.edition); err != nil {
-			problems = append(problems, err)
-			continue
-		}
-		p.editionSizes[m.ID], p.editionMaps[m.ID] = sizes, moved
+		p.editionSizes[m.ID], p.editionMaps[m.ID] = sizes, newAddressMap(m, layout)
 		if growth[m.ID] = layout.growth + layout.padding; growth[m.ID] > 0 {
 			grew = append(grew, fmt.Sprintf("%s +%d", m.ID, growth[m.ID]))
 		}

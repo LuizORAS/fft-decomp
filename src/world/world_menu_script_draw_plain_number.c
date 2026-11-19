@@ -30,6 +30,16 @@ menu_instruction_t* world_menu_script_draw_plain_number(menu_instruction_t* inst
     y = instruction->number.y;
     g_world_menu_number_blank_sprite.position.y = y + 4;
     blanks -= 1;
+#ifdef FIX_BUGS
+    /* The edition draws no blank cell for a number wider than its field (QUIRKS.md). */
+    while (blanks >= 0) {
+        g_world_menu_number_blank_sprite.position.x = x;
+        world_gfx_enqueue_oriented_textured_quad(
+            &g_world_menu_number_blank_sprite, 0, TEXTURE_UV_FLIP_NONE, 0, g_world_menu_draw_priority);
+        blanks -= 1;
+        x += 8;
+    }
+#else
     while (blanks != -1) {
         g_world_menu_number_blank_sprite.position.x = x;
         world_gfx_enqueue_oriented_textured_quad(
@@ -37,6 +47,7 @@ menu_instruction_t* world_menu_script_draw_plain_number(menu_instruction_t* inst
         blanks -= 1;
         x += 8;
     }
+#endif
     rect.x = x;
     rect.y = y + 2;
     rect.w = 8;

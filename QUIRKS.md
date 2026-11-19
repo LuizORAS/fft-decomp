@@ -65,6 +65,7 @@ An entry an edition changes keeps describing the retail code and ends with
 - `src/shared/menu/menu_preview_attack_caster_stats.c`: for an item the
   secondary-data pointer stays uninitialized, yet its `flags_3` is read before
   the item test.
+  Fixed under `FIX_BUGS`: both test the item id first.
 - `src/battle/battle_map_load_mesh_variant.c`: scales the mesh header's color
   palette byte offset by four, placing the palette read past most mesh files.
   Its wait step tests `main_file_is_still_loading() != 0`, the reverse of the
@@ -116,6 +117,10 @@ An entry an edition changes keeps describing the retail code and ends with
   records and headgear and body armor (0..63) read the 32 accessory records and
   on past them; those items sort by unrelated bytes. A fix splits weapons at `ITEM_ID_SHIELD_FIRST` and keys
   headgear and body armor, which carry HP/MP bonuses instead of evade, as 0.
+  Fixed under `FIX_BUGS`: both split weapons at `ITEM_ID_SHIELD_FIRST` and key headgear and body armor 0.
+- `world_item_sort_id_list`, `equip_item_sort_list_by_criteria`: the magic-evade
+  key reads 0 for the first weapon of a pair but the second weapon's evade, so two
+  weapons that tie on every earlier key compare one weapon's evade against 0.
 - `src/battle/battle_camera_step_real_coords_toward_target.c`: in the positive
   direction the Y (`vz`) step adds the vector component twice; X and Z add it
   once.
@@ -134,6 +139,9 @@ An entry an edition changes keeps describing the retail code and ends with
 - `src/battle/battle_unit_init.c`: tints the new unit's palette
   before it clears `mount_state`, so a runtime slot last held by a rider looks up
   a mount that is gone and reads its world coordinates through NULL (kernel RAM).
+  The same tint also reads the slot's previous `fade_out_phase`, palette-update
+  suppression bit and world coordinates, which are set only after it.
+  Fixed under `FIX_BUGS`: it clears `mount_state` before the tint.
 - `src/battle/battle_menu_display_projected_action_effect.c`: a skipped
   preview leaves `g_battle_menu_preview_target_action` null, and its
   `attack_accuracy` is read (from kernel RAM) before the null test.
@@ -334,11 +342,13 @@ An entry an edition changes keeps describing the retail code and ends with
   loading JOBSTTS.OUT, but BATTLE's companion overlay 7 reads 0x20000 bytes there
   (`g_battle_menu_companion_executable_sizes`), so the top two cells (0x801fe000-0x801ff000) are
   overwritten without being claimed; JOBSTTS.OUT is 0x1b85c bytes, so they receive the disc bytes past
-  its end. `battle_menu_run_jobstts_thread` reserves the full 0x20000.
+  its end. `battle_menu_run_jobstts_thread` reserves the full 0x20000. Fixed under `FIX_BUGS`: it
+  reserves the whole high window (`RAM_WINDOW_BYTES_HIGH`), as BATTLE's JOBSTTS thread does.
 - `require_overlay_run_helpmenu` reserves 0x10000 bytes (32 cells) at the game heap's base before
   loading HELPMENU.OUT, but BATTLE's companion overlay 3 reads 0x18800 bytes there (the file rounded
   up to a sector), so 17 cells (0x801ef000-0x801f7800) are overwritten without being claimed.
-  `battle_menu_run_helpmenu_thread` reserves the whole high window.
+  `battle_menu_run_helpmenu_thread` reserves the whole high window. Fixed under `FIX_BUGS`: it
+  reserves the whole high window (`RAM_WINDOW_BYTES_HIGH`), as BATTLE's help thread does.
 - `helpmenu_menu_run_battle_help` and `world_menu_run_battle_help`: the
   `UNIT_VIEW_MODE_HOVERED_UNIT` arm and its navigation table cannot be reached
   (the first arm, which closes the help, takes modes 1 and 2); request
@@ -412,21 +422,30 @@ An entry an edition changes keeps describing the retail code and ends with
   but `battle_map_start_clut_cycle` returns slot + 1: it stops the slot
   after the handle's own, and handle 8 clears the byte after the eight slots,
   the first of `g_battle_gfx_cycled_deployed_palettes`.
+  Fixed under `FIX_BUGS`: it stops the handle's own slot.
 - `battle_gfx_append_unit_graphics_load_descriptor` writes its record before it
   tests the count, which stops at 16: a seventeenth append lands one past the
   16-entry queue, on the head of `g_main_zodiac_primitives`.
+  Fixed under `FIX_BUGS`: a full queue takes no record.
 - `battle_effect_remove_secondary`: removing a record from the middle of the
   active chain leaves the record before it with `next_slot_id` naming the freed
   record. When that one is removed while a newer effect is still active, it
   patches the freed record's link (by then a free-chain link) and its real
-  successor keeps naming it as the previous record.
+  successor keeps naming it as the previous record. Fixed under `FIX_BUGS`:
+  the record before it takes the record after it as its next one.
 - `main_heap_alloc` and `main_heap_alloc_smd` tag a new block one above the
   highest tag in the cells before it, so it can share a tag with the block
   right after it (allocate 62 cells, then 2; free the first; allocate 10, then
   52: the last two blocks are both tag 2). `main_heap_free` clears cells while
   the tag repeats, so freeing the 52-cell block frees the 2-cell one too,
   whose own free then returns 0. No retail sequence is known to do this.
-  `main_heap_reserve_at` picks an unused tag but bounds-checks only the starting address, so the requested page range can extend beyond the heap.
+  `main_heap_reserve_at` picks an unused tag but bounds-checks only the
+  starting address, so the requested page range can extend beyond the heap:
+  4 cells at cell 62 read and tag the 2 bytes after the table (the first
+  draw environment's `clip.x`), and the call succeeds.
+  Fixed under `FIX_BUGS`: both allocators give a block the next tag when the
+  cell right after it carries its tag, and `main_heap_reserve_at` refuses a
+  range that runs past the last cell.
 - `main_unit_calculate_entd_equipment`: the random body-armor roll tests
   `BATTLE_SUPPORT_SET_1_EQUIP_SHIELD` before asking for `ITEM_TYPE_ARMOR`;
   Equip Armor is tested only for the helmet.
@@ -466,7 +485,13 @@ An entry an edition changes keeps describing the retail code and ends with
   `battle_gfx_open_sp2_file` returns 0, which means the read has started, and
   keeps it on 1 (loader busy). The next frame allocates again and has its
   second request refused, so the file arrives in the kept block only because
-  the heap hands the freed pages back.
+  the heap hands the freed pages back. When another read holds the loader at
+  the first request, the kept buffer never receives the file, and once that
+  read ends the handler uploads its stale bytes as the unit's SP2 frames. The
+  allocation is not checked: a `main_heap_alloc` that finds no room returns 0,
+  and the read would then target address 0. Fixed under `FIX_BUGS`: it keeps
+  the buffer while the read runs and frees it only when the loader refuses the
+  request, asking again the next frame; the allocation stays unchecked.
 - `battle_effect_set_secondary` (fall dust, splash, level up, trap,
   zodiac poof, death smoke, teleport) builds its init record in a local of
   which `battle_effect_build_secondary_init` sets five fields;
@@ -564,6 +589,7 @@ An entry an edition changes keeps describing the retail code and ends with
   `g_battle_action_post_effect_msgs` once, before it walks the unit's 11 reportable
   outcomes: with 15 records queued it can append ten more past the array, over
   `g_battle_gfx_compressed_nibble_phase` and the globals after it.
+  Fixed under `FIX_BUGS`: it stops once the queue holds 16 records.
 - `battle_ai_evaluate_self_target_origins` and
   `battle_ai_evaluate_reflected_target_origins` run
   `battle_ai_can_use_ability_at_coords` on the unit's current tile in both passes, so
@@ -579,6 +605,7 @@ An entry an edition changes keeps describing the retail code and ends with
   empty list ends cleanly; with an empty free chain the walk stops after the first
   record and leaves the rest attached (clean only for a one-record list); otherwise
   it frees free-chain records again and then loops between two records forever.
+  Fixed under `FIX_BUGS`: it reads each work record's `next` before freeing it.
 - `battle_map_light_matrix_command`: the blend and delta steps (0x67, 0x69) start
   each translation from the start matrix's `m[i][3]` (the next row's first element,
   or the padding after `m[2][2]`) instead of `t[i]`. Nothing issues the start
@@ -616,11 +643,13 @@ An entry an edition changes keeps describing the retail code and ends with
   test, so an absent unit (2000) zeroes the 16-bit value 4000 bytes on, the `w` of
   `g_menu_window_buffers[5].sprites[3]` in BATTLE and WORLD. The interpreters' own
   WalkToAnim keeps the store inside the test.
+  Fixed under `FIX_BUGS`: both clear the latch of a present unit only.
 - `card_file_write_buffer`, `world_card_write_buffer_to_file` and
   `world_card_read_file_chunked` seek before each of their 40 attempts by the bytes
   transferred so far from the current position (`lseek` origin 1), not from the
   start: after a short first transfer of n bytes the next attempt works at file
   offset 2n with the data from offset n.
+  Fixed under `FIX_BUGS`: the three seek from the start of the file.
 - `equip_item_get_ranking_value` and `world_item_get_ranking_value`: item 0 is a
   weapon to `equip_item_get_menu_category` and `world_item_get_menu_category`, but
   the weapon branch excludes it, so it falls into the helmet branch with index -144
@@ -636,6 +665,7 @@ An entry an edition changes keeps describing the retail code and ends with
   with no lower bound: a value with more digits than the field starts below -1 and
   queues a blank quad about 65,535 times. Whether any retail field is too narrow is
   unknown.
+  Fixed under `FIX_BUGS`: all three stop at 0, so a wider number draws no blank cell.
 - `world_gfx_update_fade_in_tile` does not clamp its level when the fade-in ends,
   unlike `world_gfx_update_fade_out_tile`: at a frame step of 2 the level goes from 16
   to -16, and the last subtractive tile takes the low byte, 240, darkening the screen
@@ -658,11 +688,17 @@ An entry an edition changes keeps describing the retail code and ends with
   requests the read; when `main_file_request_read_bytes` refuses (a read already in
   flight) it reports `MAIN_SYSTEM_ERROR_SMD_LOAD`, whose hook is empty, and returns 0
   without freeing the block. `main_sound_start_music_load_into_slot` (no caller) does
-  the same.
+  the same. The SMD table is cleared only at boot and reset, so the block stays
+  taken until then.
+  Fixed under `FIX_BUGS`: both free the block before they report the error.
 - `battle_menu_alloc_memory` and `world_menu_alloc_memory` test the end of the arena
   before the size, so no allocation includes the last page. They mark pages before
   claiming one of the 16 records and leave them marked with no owner when all 16 are
-  taken. Whether a normal game exhausts the records is unknown.
+  taken; each retry while they stay taken marks another run, until the arena holds
+  only pages no one can free. Whether a normal game exhausts the records is unknown.
+  Fixed under `FIX_BUGS`: they test the size before the end of the arena and mark
+  pages only after claiming a free record, so a full set of records waits with
+  nothing marked.
 
 ## Calls that disagree with the callee
 
@@ -718,6 +754,7 @@ written that way.
   256-byte local array, but the ids are 16-bit values and an item tried on in the
   shop's fitting room carries flag bits above the low byte, so sorting the
   list then increments a byte far past the array.
+  Fixed under `FIX_BUGS`: it does not count an unpaid shop item.
 - `script_resolve_runtime_id`: for the active-turn selector 0x69 with no unit
   holding the turn, it falls back to ENTD units 1 and 2 but tests the finder's
   battle index, not the loop counter, against 3, so a unit found in battle slot 3

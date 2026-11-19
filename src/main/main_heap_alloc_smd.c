@@ -33,11 +33,26 @@ void* main_heap_alloc_smd(u32 size) {
             run = 0;
         }
     }
+#ifdef FIX_BUGS
+    /* The edition gives the block the next tag when the cell after it carries its tag (QUIRKS.md). */
+    if (run >= needed) {
+        u8* cells = &g_main_heap_smd_allocator_table[start];
+
+        if (start + run < MAIN_HEAP_SMD_PAGE_COUNT && cells[run] == tag) {
+            tag++;
+        }
+        for (index = 0; index < run; index++) {
+            cells[index] = tag;
+        }
+        return &g_main_heap_smd_base[start << MAIN_HEAP_PAGE_SHIFT];
+    }
+#else
     if (run >= needed) {
         for (index = 0; index < run; index++) {
             g_main_heap_smd_allocator_table[start + index] = tag;
         }
         return &g_main_heap_smd_base[start << MAIN_HEAP_PAGE_SHIFT];
     }
+#endif
     return 0;
 }

@@ -20,6 +20,17 @@ void battle_state_handle_open_sp2_files_state(void) {
     if (g_battle_gfx_sp2_data == 0) {
         g_battle_gfx_sp2_data = main_heap_alloc(0x8000);
         open_result = battle_gfx_open_sp2_file(unit, g_battle_gfx_sp2_data);
+#ifdef FIX_BUGS
+        /* The edition keeps the buffer while the read runs and frees it on a refusal (QUIRKS.md). */
+        if (open_result == -1) {
+            main_heap_free(g_battle_gfx_sp2_data);
+            g_battle_gfx_sp2_data = 0;
+            battle_action_start_strike();
+        } else if (open_result != 0) {
+            main_heap_free(g_battle_gfx_sp2_data);
+            g_battle_gfx_sp2_data = 0;
+        }
+#else
         if (open_result == -1) {
             main_heap_free(g_battle_gfx_sp2_data);
             g_battle_gfx_sp2_data = 0;
@@ -28,6 +39,7 @@ void battle_state_handle_open_sp2_files_state(void) {
             main_heap_free(g_battle_gfx_sp2_data);
             g_battle_gfx_sp2_data = 0;
         }
+#endif
     } else if (main_file_is_still_loading() == 0) {
         counter = 0;
         empty_slot = BATTLE_GFX_VRAM_SLOT_OWNER_NONE;

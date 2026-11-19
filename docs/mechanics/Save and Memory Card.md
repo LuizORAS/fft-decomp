@@ -138,6 +138,11 @@ the data tables.
   the top cells of the game heap.
 - [[world_card_read_file_chunked]] marks a short last read and still returns
   the total.
+- After a short transfer, [[card_file_write_buffer]],
+  [[world_card_write_buffer_to_file]] and [[world_card_read_file_chunked]] seek
+  from the current position instead of the start, so the rest of the save lands
+  at twice the offset and the slot is reported saved but no longer loads
+  (`QUIRKS.md`). The Developer's Cut seeks from the start.
 
 ## Functions in scope
 

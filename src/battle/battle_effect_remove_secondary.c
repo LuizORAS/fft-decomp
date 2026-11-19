@@ -23,11 +23,24 @@ void battle_effect_remove_secondary(u8 id) {
             main_heap_free(slot->allocation);
             slot->allocation = 0;
         }
+#ifdef FIX_BUGS
+        /* The edition also points the record before it at the record after it (QUIRKS.md). */
+        if (slot->next_slot_id != 0) {
+            s32 next = slot->next_slot_id;
+            s32 previous = slot->previous_slot_id;
+
+            g_battle_effect_secondary_data[next].previous_slot_id = previous;
+            g_battle_effect_secondary_data[previous].next_slot_id = next;
+        } else {
+            g_battle_effect_secondary_active_tail = slot->previous_slot_id;
+        }
+#else
         if (slot->next_slot_id != 0) {
             g_battle_effect_secondary_data[slot->next_slot_id].previous_slot_id = slot->previous_slot_id;
         } else {
             g_battle_effect_secondary_active_tail = slot->previous_slot_id;
         }
+#endif
         g_battle_effect_secondary_data[g_battle_effect_secondary_active_tail].next_slot_id = 0;
         tail = g_battle_effect_secondary_free_head;
         if (tail != 0) {

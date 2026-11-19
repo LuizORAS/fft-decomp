@@ -48,6 +48,13 @@ it, the same source is meant to build:
   moves with everything that points to it, `make scenario` shows a change on
   both discs and `make patch` writes the release. One fix went through the
   whole path: unloading the playing music now clears its state.
+- **Build 3.1b** (tag `build-3.1b`): the Developer's Cut fixes 18 retail
+  bugs that write memory they do not own, read through a pointer never set
+  or lose memory, among them the effect chains and records, the SP2 buffer,
+  the menu arenas and heap tags, the music, color rotation and unit graphics
+  slots, the effect message queue, memory card transfers cut short, the item
+  sorts and the number fields. `make scenario` shows each fix on both discs,
+  calling game functions directly where no retail route reaches the bug.
 
 ## Getting started
 

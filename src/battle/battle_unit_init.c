@@ -60,6 +60,10 @@ battle_unit_t* battle_unit_init(s32 map_x, s32 map_y, s32 map_level, s16 facing,
     unit->status_flags_1_4 = 0;
     battle_gfx_load_spritesheet_into_vram_slot(data, slot, runtime_id, unit, palette);
     tile = battle_map_get_tile_data_pointer(map_x, map_y, map_level);
+#ifdef FIX_BUGS
+    /* The edition clears the mount state before the tint reads it (QUIRKS.md). */
+    unit->mount_state = BATTLE_UNIT_MOUNT_STATE_NONE;
+#endif
     battle_gfx_check_tile_status_palette_mod(unit, tile->flags.shading, 1);
     battle_map_load_palette_data(&g_battle_gfx_shadow_palette, MAP_CLUT_ROW_UNIT_SHADOWS, runtime_id, 0);
     unit->clut = GetClut(runtime_id << 4, MAP_CLUT_ROWS_Y + MAP_CLUT_ROW_UNITS);
@@ -76,7 +80,11 @@ battle_unit_t* battle_unit_init(s32 map_x, s32 map_y, s32 map_level, s16 facing,
     unit->requested_animation = 0;
     unit->facing = facing * 1024;
     unit->camera_facing_sixteenth = unit->camera_facing_quadrant = unit->attack_facing = -1;
+#ifdef FIX_BUGS
+    /* The edition has cleared the mount state before the tint (QUIRKS.md). */
+#else
     unit->mount_state = BATTLE_UNIT_MOUNT_STATE_NONE;
+#endif
     unit->horizontal_flip_flag = 0;
     unit->depth_height_offset = 0;
     unit->float_bob_offset = 0;

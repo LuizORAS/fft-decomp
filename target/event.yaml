@@ -532,7 +532,7 @@ functions:
   - {addr: 0x801c9698, size: 104, name: menu_script_set_draw_color, hash: f8e9ecc48cf193a2, source: src/shared/menu/menu_script_set_draw_color.c}
   - {addr: 0x801c9700, size: 24, name: bunit_menu_script_set_draw_priority, hash: e3a66bb32067285c}
   - {addr: 0x801c9718, size: 1076, name: bunit_menu_script_draw_formatted_number, hash: a52fa763ae07e832}
-  - {addr: 0x801c9b4c, size: 424, name: bunit_menu_script_draw_plain_number, hash: fbd03bb0cdf31870}
+  - {addr: 0x801c9b4c, size: 424, name: bunit_menu_script_draw_plain_number, hash: fbd03bb0cdf31870, change: [FIX_BUGS], dc_hash: 88b2258ff7eea226}
   - {addr: 0x801c9cf4, size: 652, name: bunit_menu_update_and_draw_animated_cursor, hash: 48df7a46e058abc1}
   - {addr: 0x801c9f80, size: 864, name: bunit_menu_update_and_draw_bouncing_cursor, hash: 8fec6593004c6ff0}
   - {addr: 0x801ca2e0, size: 108, name: menu_script_skip_group, hash: a7fc8159f10402de, source: src/shared/menu/menu_script_skip_group.c}
@@ -1154,7 +1154,7 @@ functions:
   - {addr: 0x801c4c9c, size: 384, name: card_file_open_selected_with_retries, hash: 8ad8e65a7cc2f553, profile: gcc-2.6.3_O0_aspsx-2.34}
   - {addr: 0x801c4e1c, size: 208, name: card_file_close_with_retries, hash: 3d4656824a2716d1, profile: gcc-2.6.3_O0_aspsx-2.34, source: src/shared/card/card_file_close_with_retries.c}
   - {addr: 0x801c4eec, size: 204, name: card_file_seek_with_retries, hash: 5513bda3c8478b59, profile: gcc-2.6.3_O0_aspsx-2.34, source: src/shared/card/card_file_seek_with_retries.c}
-  - {addr: 0x801c4fb8, size: 684, name: card_file_write_buffer, hash: 66315f155df10733, profile: gcc-2.6.3_O0_aspsx-2.34}
+  - {addr: 0x801c4fb8, size: 684, name: card_file_write_buffer, hash: 66315f155df10733, change: [FIX_BUGS], dc_hash: f6d64f7f7cd55e63, profile: gcc-2.6.3_O0_aspsx-2.34}
   - {addr: 0x801c5264, size: 276, name: card_file_delete_selected_with_retries, hash: 98a020db69d65c10, profile: gcc-2.6.3_O0_aspsx-2.34}
   - {addr: 0x801c5378, size: 336, name: card_file_read_with_retries, hash: f5e8826fc23a26c9, profile: gcc-2.6.3_O0_aspsx-2.34, source: src/shared/card/card_file_read_with_retries.c}
   - {addr: 0x801c54c8, size: 336, name: card_file_write_with_retries, hash: 26895f5b5e42b5a9, profile: gcc-2.6.3_O0_aspsx-2.34, source: src/shared/card/card_file_write_with_retries.c}
@@ -1822,7 +1822,7 @@ functions:
   - {addr: 0x801c6ca0, size: 276, name: equip_unit_load_data_from_battle_stats, hash: e23d868f93ea3956}
   - {addr: 0x801c6db4, size: 600, name: equip_unit_commit_loadout_to_battle_stats, hash: 83c2cd7ae34a8020}
   - {addr: 0x801c700c, size: 236, name: equip_item_get_ranking_value, hash: 182f2f01a7256fdd}
-  - {addr: 0x801c70f8, size: 1492, name: equip_item_sort_list_by_criteria, hash: 34f1458a5685682d}
+  - {addr: 0x801c70f8, size: 1492, name: equip_item_sort_list_by_criteria, hash: 34f1458a5685682d, change: [FIX_BUGS], dc_hash: 031c52c60265fe44}
   - {addr: 0x801c76cc, size: 88, name: equip_menu_load_sort_key_list, hash: 680fa5ae6e9a89b3}
   - {addr: 0x801c7724, size: 96, name: equip_menu_store_sort_key_list, hash: 8b8d7d3c8a2297aa}
   - {addr: 0x801c7784, size: 88, name: equip_item_store_category_list, hash: 48c40016f726fb75}
@@ -1904,7 +1904,7 @@ functions:
   - {addr: 0x801cbcc8, size: 104, name: menu_script_set_draw_color, hash: ead031d84ebc84e9, source: src/shared/menu/menu_script_set_draw_color.c}
   - {addr: 0x801cbd30, size: 24, name: equip_menu_script_set_draw_priority, hash: 0d38c979b93736fb}
   - {addr: 0x801cbd48, size: 1076, name: equip_menu_script_draw_formatted_number, hash: 66875582960ce0d8}
-  - {addr: 0x801cc17c, size: 428, name: equip_menu_script_draw_plain_number, hash: 325db0fd2794a02d}
+  - {addr: 0x801cc17c, size: 428, name: equip_menu_script_draw_plain_number, hash: 325db0fd2794a02d, change: [FIX_BUGS], dc_hash: 34a6903905d23b77}
   - {addr: 0x801cc328, size: 660, name: menu_update_and_draw_animated_cursor, hash: 3938e60d49f17206, source: src/shared/menu/menu_update_and_draw_animated_cursor.c}
   - {addr: 0x801cc5bc, size: 108, name: menu_script_skip_group, hash: e3dba406e3887731, source: src/shared/menu/menu_script_skip_group.c}
   - {addr: 0x801cc628, size: 672, name: equip_menu_draw_scrollable_list, hash: b2d0e76db3f4d7ef}
@@ -3163,7 +3163,7 @@ functions:
   - {addr: 0x801c4ec4, size: 124, name: require_condition_show_hovered_unit_stats, hash: a81f2c639ae71f98}
   - {addr: 0x801c4f40, size: 204, name: require_menu_wait_selection_threads, hash: e2254c8a7bfec0a8}
   - {addr: 0x801c500c, size: 68, name: require_input_wait_skip, hash: 9b320be634f1ab52}
-  - {addr: 0x801c5050, size: 264, name: require_overlay_open_jobstts, hash: 73b78966be77b7de}
+  - {addr: 0x801c5050, size: 264, name: require_overlay_open_jobstts, hash: 73b78966be77b7de, change: [FIX_BUGS], dc_hash: 7fa15d3da7fbf216}
   - {addr: 0x801c5158, size: 56, name: require_overlay_open_jobstts_thread, hash: 7ecb96b7481fd20c}
   - {addr: 0x801c5190, size: 308, name: require_gfx_run_suspended_thread_transition, hash: e122a2adc24d56a1}
   - {addr: 0x801c52c4, size: 232, name: gfx_set_formation_icon_uv, hash: 353eab0a41a1e1a6, source: src/shared/gfx/gfx_set_formation_icon_uv.c}
@@ -3190,7 +3190,7 @@ functions:
   - {addr: 0x801ca644, size: 32, name: require_thread_exit_current, hash: d5e294538771c138}
   - {addr: 0x801ca664, size: 2416, name: require_bonus_run_dark_screen_burst, hash: 5a5a3d742bcaea7a, profile: gcc-2.6.3_O2_aspsx-2.34_divcheck}
   - {addr: 0x801cafd4, size: 392, name: require_condition_dispatch, hash: 5daba3919c5bcdeb}
-  - {addr: 0x801cb15c, size: 192, name: require_overlay_run_helpmenu, hash: 080209a0102a063f}
+  - {addr: 0x801cb15c, size: 192, name: require_overlay_run_helpmenu, hash: 080209a0102a063f, change: [FIX_BUGS], dc_hash: 14e8b21a4bf98b16}
   - {addr: 0x801cb21c, size: 176, name: require_text_build_battle_nicknames, hash: f01073dd1236acab}
 
 data:

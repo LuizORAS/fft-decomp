@@ -20,6 +20,32 @@ void* battle_menu_alloc_memory(s32 size) {
     for (;;) {
         for (page = 0; page < BATTLE_MENU_BUFFER_PAGE_COUNT; page++) {
             if (g_battle_menu_buffer_allocation_map[page] == 0) {
+#ifdef FIX_BUGS
+                /* The edition tests the size first and marks pages only for a claimed record (QUIRKS.md). */
+                for (n = 0; n < size; n++) {
+                    if (n + page >= BATTLE_MENU_BUFFER_PAGE_COUNT) {
+                        /* Leaves both scans for the wait-and-retry path. */
+                        goto fail;
+                    }
+                    if (g_battle_menu_buffer_allocation_map[n + page] != 0) {
+                        break;
+                    }
+                }
+                if (n >= size) {
+                    for (i = 0; i < MENU_BUFFER_ALLOCATION_COUNT; i++) {
+                        if (g_battle_menu_allocator_slot_records[i].buffer == (u8*)-1) {
+                            buffer = g_battle_menu_buffer_arena[page];
+                            g_battle_menu_allocator_slot_records[i].buffer = buffer;
+                            g_battle_menu_allocator_slot_records[i].page_count = size;
+                            for (n = 0; n < size; n++) {
+                                g_battle_menu_buffer_allocation_map[page + n] = 1;
+                            }
+                            return buffer;
+                        }
+                    }
+                    break;
+                }
+#else
                 for (n = 0;; n++) {
                     if (n + page >= BATTLE_MENU_BUFFER_PAGE_COUNT) {
                         /* Leaves both scans for the wait-and-retry path. */
@@ -43,6 +69,7 @@ void* battle_menu_alloc_memory(s32 size) {
                     }
                     break;
                 }
+#endif
             }
         }
     fail:

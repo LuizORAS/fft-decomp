@@ -140,7 +140,8 @@ file and fails on an image that passes its window's end.
 ## Quirks and debts
 
 - [[main_heap_alloc]] can give a block the tag of the block after it, and
-  freeing the first then frees both (latent).
+  freeing the first then frees both (latent). The Developer's Cut gives it
+  the next tag.
 - [[battle_heap_alloc_block]] has no out-of-memory exit.
 - [[battle_thread_resolve_id]] and its twins return a leftover `$v0` when no
   slot is free, which a main-loop caller receives.

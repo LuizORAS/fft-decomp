@@ -254,7 +254,7 @@ functions:
   - {addr: 0x80072b50, size: 160, name: battle_state_enter_targeting_message, hash: 45704c837e9b243f}
   - {addr: 0x80072bf0, size: 248, name: battle_action_play_ability_effect, hash: 71b6fd19ff0115e6}
   - {addr: 0x80072ce8, size: 164, name: battle_action_show_next_effect_message, hash: 22d79e5fe6057ffd}
-  - {addr: 0x80072d8c, size: 984, name: battle_action_queue_unit_effect_messages, hash: 8db4f8dcabcf7ccf, rodata: [{addr: 0x80067548, size: 44, hash: 1af5cb5a7e7364f8}]}
+  - {addr: 0x80072d8c, size: 984, name: battle_action_queue_unit_effect_messages, hash: 8db4f8dcabcf7ccf, change: [FIX_BUGS], dc_hash: 56827d36b20d7a4b, rodata: [{addr: 0x80067548, size: 44, hash: 1af5cb5a7e7364f8}]}
   - {addr: 0x80073164, size: 116, name: battle_action_queue_target_effect_messages, hash: 771640634472c38d}
   - {addr: 0x800731d8, size: 120, name: battle_action_start_effect_messages, hash: 0a768787da84133a}
   - {addr: 0x80073250, size: 120, name: battle_unit_update_attack_result_animation, hash: fbdeab2100f0f08c}
@@ -323,7 +323,7 @@ functions:
   - {addr: 0x80076fd0, size: 200, name: battle_state_handle_action_cast_state, hash: b0bb1cfe6911887e}
   - {addr: 0x80077098, size: 156, name: battle_state_handle_commence_attack_phase_state, hash: 591e498d9a92f133}
   - {addr: 0x80077134, size: 108, name: battle_state_handle_announce_ability_state, hash: ffcacfc2479c2ab1}
-  - {addr: 0x800771a0, size: 372, name: battle_state_handle_open_sp2_files_state, hash: b9f97343e0e6f004}
+  - {addr: 0x800771a0, size: 372, name: battle_state_handle_open_sp2_files_state, hash: b9f97343e0e6f004, change: [FIX_BUGS], dc_hash: 86eb9b17d54e417b}
   - {addr: 0x80077314, size: 100, name: battle_state_handle_start_effect_file_open_state, hash: a4fe687278ecc684}
   - {addr: 0x80077378, size: 60, name: battle_state_handle_start_action_execute_state, hash: 8c5640222288b940}
   - {addr: 0x800773b4, size: 68, name: battle_unit_start_post_attack_animation_display, hash: 2e1c6df99f8b345a}
@@ -490,7 +490,7 @@ functions:
   - {addr: 0x80087704, size: 416, name: battle_gfx_load_spritesheet_into_vram_slot, hash: 414c36a039925032}
   - {addr: 0x800878a4, size: 276, name: battle_gfx_load_wep_spr_data, hash: 8cdfc8a32968cfbc}
   - {addr: 0x800879b8, size: 112, name: battle_gfx_copy_other_spr_palette_data_to_ram, hash: dda98a311ef61217}
-  - {addr: 0x80087a28, size: 1520, name: battle_unit_init, hash: bab9472dcc8d0f32}
+  - {addr: 0x80087a28, size: 1520, name: battle_unit_init, hash: bab9472dcc8d0f32, change: [FIX_BUGS], dc_hash: 4523a726e2dae2a7}
   - {addr: 0x80088018, size: 280, name: battle_gfx_reset_unit_graphics_load_state, hash: 08f053272412b87e}
   - {addr: 0x80088130, size: 1752, name: battle_gfx_step_load_unit_shp_seq_data, hash: c911b689397fcd77, rodata: [{addr: 0x800681a8, size: 96, hash: a02cd99f70e5ffe1}]}
   - {addr: 0x80088808, size: 56, name: battle_unit_update_and_animate_units_three_times, hash: 671753be2f1d332d}
@@ -671,7 +671,7 @@ functions:
   - {addr: 0x8008e348, size: 16, name: battle_state_clear_min_vsync_interval, hash: 1a147918033f9163}
   - {addr: 0x8008e358, size: 272, name: battle_camera_set_focus_and_cursor_tile, hash: 4d4f8bdde1c680dd}
   - {addr: 0x8008e468, size: 216, name: battle_camera_init_defaults, hash: 72a72c4be2ea9b49}
-  - {addr: 0x8008e540, size: 400, name: battle_gfx_append_unit_graphics_load_descriptor, hash: 88fcbf815d20c90a}
+  - {addr: 0x8008e540, size: 400, name: battle_gfx_append_unit_graphics_load_descriptor, hash: 88fcbf815d20c90a, change: [FIX_BUGS], dc_hash: f3cba6aa5d7e1a50}
   - {addr: 0x8008e6d0, size: 8, name: battle_return_zero_8008e6d0, hash: 207819bf4ebe3078}
   - {addr: 0x8008e6d8, size: 224, name: battle_unit_select_and_open_entd, hash: 849dca5ea7e03b82}
   - {addr: 0x8008e7b8, size: 84, name: battle_unit_poll_and_load_entd_units, hash: 87bb8cbb8ed888b2}
@@ -699,7 +699,7 @@ functions:
   - {addr: 0x80090da8, size: 68, name: battle_map_transition_and_store_darkness_color, hash: 271fa8f07346d0e2}
   - {addr: 0x80090dec, size: 1032, name: battle_map_blend_darkness_color, hash: e301f373ce1db338, rodata: [{addr: 0x8006838c, size: 44, hash: 5c7e927c07a24267}]}
   - {addr: 0x800911f4, size: 84, name: battle_map_start_clut_cycle, hash: b72413bd06996e17}
-  - {addr: 0x80091248, size: 56, name: battle_map_stop_clut_cycle, hash: b2b3e217319a1b40}
+  - {addr: 0x80091248, size: 56, name: battle_map_stop_clut_cycle, hash: b2b3e217319a1b40, change: [FIX_BUGS], dc_hash: 4c7bbfa2295cd816}
   - {addr: 0x80091280, size: 36, name: battle_map_reset_clut_cycles, hash: eea4788933ed120e}
   - {addr: 0x800912a4, size: 4856, name: battle_map_update_animations, hash: 79ff745ff22ea81e}
   - {addr: 0x8009259c, size: 132, name: battle_map_stop_palette_animation, hash: 9cb5794abf15d3fd}
@@ -800,7 +800,7 @@ functions:
   - {addr: 0x8012e9fc, size: 660, name: battle_gfx_alloc_tpage7_vram, hash: 172942b718e358b1, source: src/shared/gfx/gfx_alloc_tpage7_vram.c, source_symbol: gfx_alloc_tpage7_vram}
   - {addr: 0x8012ec90, size: 428, name: battle_gfx_free_tpage7_vram, hash: 83a3ad5b7c6ecddd, source: src/shared/gfx/gfx_free_tpage7_vram.c, source_symbol: gfx_free_tpage7_vram}
   - {addr: 0x8012ee3c, size: 116, name: battle_menu_init_buffer_allocator, hash: f80a02de661184d5}
-  - {addr: 0x8012eeb0, size: 380, name: battle_menu_alloc_memory, hash: a333c97bf7b7ceb0}
+  - {addr: 0x8012eeb0, size: 380, name: battle_menu_alloc_memory, hash: a333c97bf7b7ceb0, change: [FIX_BUGS], dc_hash: 3c4a1f0fe3e44025}
   - {addr: 0x8012f02c, size: 32, name: battle_menu_alloc_buffer, hash: 8dfe96e6bed1af08}
   - {addr: 0x8012f04c, size: 192, name: battle_menu_free_memory, hash: bf843d0680a0ad61, source: src/shared/menu/menu_free_memory.c, source_symbol: menu_free_memory}
   - {addr: 0x8012f10c, size: 596, name: battle_menu_init_numeric_display_frame_primitives, hash: 793d75bdfee884f4, source: src/shared/menu/menu_init_numeric_display_frame_primitives.c, source_symbol: menu_init_numeric_display_frame_primitives}
@@ -863,7 +863,7 @@ functions:
   - {addr: 0x801352bc, size: 3692, name: battle_menu_display_hovered_unit_stats, hash: a6325c0ce9b93247, source: src/shared/menu/menu_display_hovered_unit_stats.c, source_symbol: menu_display_hovered_unit_stats}
   - {addr: 0x80136128, size: 96, name: battle_menu_refresh_hovered_unit_stats_display, hash: 44c12a5386f8c71d, source: src/shared/menu/menu_refresh_hovered_unit_stats_display.c, source_symbol: menu_refresh_hovered_unit_stats_display}
   - {addr: 0x80136188, size: 96, name: battle_menu_refresh_right_unit_stats_display, hash: f443baa5b3aaef86, source: src/shared/menu/menu_refresh_right_unit_stats_display.c, source_symbol: menu_refresh_right_unit_stats_display}
-  - {addr: 0x801361e8, size: 316, name: battle_menu_preview_attack_caster_stats, hash: 907067bbf7af5d66, source: src/shared/menu/menu_preview_attack_caster_stats.c, source_symbol: menu_preview_attack_caster_stats}
+  - {addr: 0x801361e8, size: 316, name: battle_menu_preview_attack_caster_stats, hash: 907067bbf7af5d66, change: [FIX_BUGS], dc_hash: 908bc8c9184cfd48, source: src/shared/menu/menu_preview_attack_caster_stats.c, source_symbol: menu_preview_attack_caster_stats}
   - {addr: 0x80136324, size: 184, name: battle_menu_preview_attack_target_stats, hash: 046102c8ecda5727, source: src/shared/menu/menu_preview_attack_target_stats.c, source_symbol: menu_preview_attack_target_stats}
   - {addr: 0x801363dc, size: 1844, name: battle_menu_run_unit_summary_panel_thread, hash: f50298ccb84f275a, source: src/shared/menu/menu_run_unit_summary_panel_thread.c, source_symbol: menu_run_unit_summary_panel_thread}
   - {addr: 0x80136b10, size: 192, name: battle_gfx_set_item_icon_sprite, hash: 2b719c85439aba92}
@@ -977,7 +977,7 @@ functions:
   - {addr: 0x8013e81c, size: 88, name: script_load_attack_graphics_event_instruction, hash: 03c63298566511f4, source: src/shared/script/script_load_attack_graphics_event_instruction.c}
   - {addr: 0x8013e874, size: 96, name: script_play_effect_and_wait, hash: fdc04e1986faf430, source: src/shared/script/script_play_effect_and_wait.c}
   - {addr: 0x8013e8d4, size: 48, name: script_play_effect_thread, hash: 014b4d70b5118cb2, source: src/shared/script/script_play_effect_thread.c}
-  - {addr: 0x8013e904, size: 1236, name: script_block_start_thread, hash: 74b4fb7297f0daea, source: src/shared/script/script_block_start_thread.c}
+  - {addr: 0x8013e904, size: 1236, name: script_block_start_thread, hash: 74b4fb7297f0daea, change: [FIX_BUGS], dc_hash: 3c0cd433d8a7238d, source: src/shared/script/script_block_start_thread.c}
   - {addr: 0x8013edd8, size: 468, name: battle_script_add_unit_start_thread, hash: e015fe2ea756d0dd}
   - {addr: 0x8013efac, size: 72, name: battle_menu_init_subsystems, hash: 4a2f2ce670dbb523, source: src/shared/menu/menu_init_subsystems.c, source_symbol: menu_init_subsystems}
   - {addr: 0x8013eff4, size: 140, name: battle_menu_init_subsystem_pointers, hash: 7ca7d0d90e11c897, source: src/shared/menu/menu_init_subsystem_pointers.c, source_symbol: menu_init_subsystem_pointers}
@@ -1769,7 +1769,7 @@ functions:
   - {addr: 0x801a1c40, size: 80, name: battle_effect_update_cycle, hash: b560438b479930c0}
   - {addr: 0x801a1c90, size: 152, name: battle_effect_init_state_records, hash: 49c6a44e091e28f1}
   - {addr: 0x801a1d28, size: 116, name: battle_effect_alloc_state_record, hash: c95c3403842af848}
-  - {addr: 0x801a1d9c, size: 744, name: battle_effect_free_state_record, hash: b524a4c661e30e18}
+  - {addr: 0x801a1d9c, size: 744, name: battle_effect_free_state_record, hash: b524a4c661e30e18, change: [FIX_BUGS], dc_hash: 69dbff4dbb91991c}
   - {addr: 0x801a2084, size: 48, name: battle_effect_reset_child_timeline, hash: 0ad936a96063f148}
   - {addr: 0x801a20b4, size: 52, name: battle_effect_reset_parent_timeline, hash: 03c1d9d6cad10a8b}
   - {addr: 0x801a20e8, size: 300, name: battle_effect_start_script_record, hash: 84b0afe0893a5bcb}
@@ -1933,7 +1933,7 @@ functions:
   - {addr: 0x801ad198, size: 1172, name: battle_camera_start_parent_keyframe_moves, hash: 11d5529e54fbaefe}
   - {addr: 0x801ad62c, size: 508, name: battle_effect_init_system, hash: a6c8471ee71be765}
   - {addr: 0x801ad828, size: 284, name: battle_effect_allocate_secondary_slot, hash: dad3d88dc513a4c6}
-  - {addr: 0x801ad944, size: 412, name: battle_effect_remove_secondary, hash: 99f64dbdd1fbef82}
+  - {addr: 0x801ad944, size: 412, name: battle_effect_remove_secondary, hash: 99f64dbdd1fbef82, change: [FIX_BUGS], dc_hash: a85e812827a6716d}
   - {addr: 0x801adae0, size: 44, name: battle_effect_get_secondary_phase, hash: 0e0ecf48806d849d}
   - {addr: 0x801adb0c, size: 48, name: battle_effect_finalize_secondary, hash: c2a9195e04ad360a}
   - {addr: 0x801adb3c, size: 232, name: battle_effect_alloc_slot, hash: 0f1f721979a4172f}

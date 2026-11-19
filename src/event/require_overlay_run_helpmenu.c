@@ -16,10 +16,18 @@ void require_overlay_run_helpmenu(void) {
     g_sound_pending_sfx_id = MAIN_SFX_CONFIRM;
     g_menu_panel_status_animation[0] = 1;
     g_menu_panel_status_animation[1] = 1;
+#ifdef FIX_BUGS
+    /* The edition reserves the whole high window, as the battle help does (QUIRKS.md). */
+    while (main_heap_reserve_at(g_main_heap_high_overlay_load_address, RAM_WINDOW_BYTES_HIGH)
+        != g_main_heap_high_overlay_load_address) {
+        thread_yield();
+    }
+#else
     while (
         main_heap_reserve_at(g_main_heap_high_overlay_load_address, 0x10000) != g_main_heap_high_overlay_load_address) {
         thread_yield();
     }
+#endif
     menu_request_open_companion_executable(BATTLE_COMPANION_OVERLAY_HELPMENU);
     thread_id = battle_thread_resolve_id(THREAD_SLOT_FIRST_IDLE);
     thread_start(thread_id, helpmenu_menu_run_require_help);

@@ -282,9 +282,8 @@ follows its function's `.text` (its `dc_hash` covers it). Each name another
 module places follows, the disc is fitted to the grown files, and every word
 of the image must equal the original's or be a relocation that names, through
 the address maps, what it named before. A data row inside a changed function
-(other than a second name for its entry), a literal a changed function
-shares, a row bound inside code that moves, an override that binds another
-module's name in place over the module's own row, a file whose sector or
+(other than a second name for its entry), a literal two functions share that
+a change rewrites, a row bound inside code that moves, a file whose sector or
 length the code names that would move, a new global or function and an image
 past its window each fail with the reason.
 

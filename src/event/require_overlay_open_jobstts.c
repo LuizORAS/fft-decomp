@@ -20,7 +20,12 @@ void require_overlay_open_jobstts(void) {
     battle_menu_set_active_turn_panels(
         &g_require_panel_selected_billboard, &g_require_active_unit_data, &g_require_editor_unit_fields);
     while (1) {
+#ifdef FIX_BUGS
+        /* The edition reserves the whole high window that JOBSTTS.OUT is read into (QUIRKS.md). */
+        allocation = main_heap_reserve_at(g_main_heap_high_overlay_load_address, RAM_WINDOW_BYTES_HIGH);
+#else
         allocation = main_heap_reserve_at(g_main_heap_high_overlay_load_address, 0x1f000);
+#endif
         if (allocation == g_main_heap_high_overlay_load_address) {
             break;
         }

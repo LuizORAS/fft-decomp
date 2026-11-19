@@ -122,6 +122,12 @@ void battle_action_queue_unit_effect_messages(battle_unit_t* runtime) {
         if (queued != 0) {
             g_battle_action_post_effect_msgs[g_battle_action_post_effect_msg_counter].unit = runtime->stats->battle_id;
             g_battle_action_post_effect_msg_counter += 1;
+#ifdef FIX_BUGS
+            /* The edition stops once the queue is full (QUIRKS.md). */
+            if (g_battle_action_post_effect_msg_counter >= 0x10) {
+                break;
+            }
+#endif
         }
     }
 }

@@ -8,7 +8,9 @@
 --            this form, which `tools scenario prepare` reads as text:
 --            save = { file = 'NAME.mcd', sha256 = '<64 hex digits>' },
 --   setup    the steps from the boot to the situation (emulator.steps)
---   trigger  optional steps from the situation on: where the bug happens
+--   trigger  optional steps from the situation on: where the bug happens,
+--            or the direct calls that make it (emulator.call steps, with
+--            emulator.watch for the game's reads and writes)
 --   check    a function that returns the values it reads, by name
 --   expect   the values each disc gives: { original = {...}, dc = {...} }
 --
