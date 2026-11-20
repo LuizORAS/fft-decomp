@@ -1642,7 +1642,7 @@ functions:
   - {addr: 0x80194944, size: 1300, name: battle_ai_build_reachable_tiles, hash: 87b37e2a68f06c65}
   - {addr: 0x80194e58, size: 2408, name: battle_ai_set_ability_considerations, hash: f98e0d388c80ac00}
   - {addr: 0x801957c0, size: 184, name: battle_ai_disable_ability_if_only_inflicts_status, hash: 73d947bc66e8cd42}
-  - {addr: 0x80195878, size: 1308, name: battle_ai_load_ability_entry, hash: 3d235e2da278332b, rodata: [{addr: 0x80193d48, size: 40, hash: 008e79808dddd18e}]}
+  - {addr: 0x80195878, size: 1308, name: battle_ai_load_ability_entry, hash: 3d235e2da278332b, change: [FIX_BUGS], dc_hash: 19557d6e6466d733, rodata: [{addr: 0x80193d48, size: 40, hash: 008e79808dddd18e}]}
   - {addr: 0x80195d94, size: 472, name: battle_ai_select_action, hash: 368891fb63e3f348}
   - {addr: 0x80195f6c, size: 32, name: battle_ai_reset_action_ranking_fields, hash: 074e296c669c045a}
   - {addr: 0x80195f8c, size: 528, name: battle_ai_evaluate_charged_action, hash: 3191770bb63ed22f}

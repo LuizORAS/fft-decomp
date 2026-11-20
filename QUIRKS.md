@@ -81,7 +81,10 @@ An entry an edition changes keeps describing the retail code and ends with
   target color uninitialized (no default case).
 - `src/battle/battle_ai_load_ability_entry.c`: the CT adjustments test the
   Monster Skill (`0x80`) and Defend (`0x40`) support bits; Short Charge and
-  Non-Charge were presumably intended.
+  Non-Charge were presumably intended. The halving also rounds down, where the
+  charge itself (`battle_action_prepare_attack`) rounds Short Charge up and
+  lets Non-Charge win over it.
+  Fixed under `FIX_BUGS`: the estimate tests Non-Charge, then Short Charge, rounding up as the charge does.
 - `src/battle/battle_ai_evaluate_status_cancellation.c`: the Blood Suck branch
   tests `BATTLE_AI_DECISION_JUMPING`, built from Jump (bit `0x04` of status
   byte 0; Blood Suck is bit `0x04` of byte 1), so Protect allies skips Blood
@@ -1096,6 +1099,7 @@ translation unit. Share their types and constants through headers.
 - `src/battle/battle_ai_load_ability_entry.c`: with Throw Item the AI gives an
   item a range of the unit's Move; `battle_target_set_panels_for_action` uses
   4, and gives a Mime the same.
+  Fixed under `FIX_BUGS`: Throw Item gives the item a range of 4.
 - `battle_map_run_gns_command_record`: command rows 0x85, 0x86, 0x88, 0x89, 0x8a
   and 0x8b skip the map-state comparison and are applied in file order, so the
   last of a kind wins: MAP017.GNS has one set-outdoor row followed by six

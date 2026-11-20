@@ -210,7 +210,10 @@ The other statuses weigh 0.
 - **Wrong bits:** the CT estimate tests Monster Skill and Defend where Short
   Charge and Non-Charge were presumably meant
   ([[battle_ai_load_ability_entry]]), and Protect allies tests Blood Suck
-  with the Jump bit ([[battle_ai_evaluate_status_cancellation]]).
+  with the Jump bit ([[battle_ai_evaluate_status_cancellation]]). The
+  Developer's Cut estimates the CT the charge takes.
+- **Wrong range:** with Throw Item the AI plans a thrown item at the unit's
+  Move; the targeting gives 4, which the Developer's Cut plans.
 - **Stale or lost data:** the Faith test reads the ability considered last
   ([[battle_ai_add_usable_skillset_abilities]]), a Jump skillset with no
   Level Jump loses its Jump entry, and a unit holding two weapon kinds gets
