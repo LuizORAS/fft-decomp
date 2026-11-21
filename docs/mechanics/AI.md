@@ -222,6 +222,10 @@ The other statuses weigh 0.
   and range radii 8-15 read past their templates. The Developer's Cut keeps
   the Monster Skill mask's four neighbors on both levels and computes the
   rows of every radius.
+- **Sprung traps:** the AI means to keep off each trap tile it has seen
+  sprung, but [[battle_move_start_next_post_move_event]] passes the layer as
+  the row, so it keeps off only the traps on row 0. The Developer's Cut
+  passes the tile.
 - **Unreachable or ineffective code:** Protect allies' fallback to Run like a
   rabbit never runs, and the 10-combination test of the origin search has no
   effect.

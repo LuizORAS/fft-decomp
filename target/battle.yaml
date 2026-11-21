@@ -239,7 +239,7 @@ functions:
   - {addr: 0x80071cec, size: 252, name: battle_unit_decide_facing_direction, hash: fbd9d6f280ca9cfd}
   - {addr: 0x80071de8, size: 128, name: battle_action_report_level_up, hash: da5762b51b918624}
   - {addr: 0x80071e68, size: 128, name: battle_action_report_job_level_up, hash: d3903abf0d221a3d}
-  - {addr: 0x80071ee8, size: 1260, name: battle_move_start_next_post_move_event, hash: 5f2cf83a3c788ece}
+  - {addr: 0x80071ee8, size: 1260, name: battle_move_start_next_post_move_event, hash: 5f2cf83a3c788ece, change: [FIX_BUGS], dc_hash: cb995ba56f32cbb3}
   - {addr: 0x800723d4, size: 140, name: battle_move_start_post_move_events, hash: 23218bc34771ab3f}
   - {addr: 0x80072460, size: 228, name: battle_state_enter_wait_direction, hash: 8a563df8afad15bd}
   - {addr: 0x80072544, size: 304, name: battle_state_enter_wait, hash: 74efd645b9ff9f5f}

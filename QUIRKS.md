@@ -869,7 +869,12 @@ written that way.
   previous and repeat globals reside elsewhere.
 - `battle_move_start_next_post_move_event` passes the mover's `map_x`, `map_z` (the
   layer) and `map_y` to `battle_ai_record_sprung_trap`, which stores x, y and level,
-  so the AI's sprung-trap tile holds the layer as y and the row as level.
+  so the AI's sprung-trap tile holds the layer as y and the row as level. The AI keeps
+  off the right tile only for a trap on row 0 of the lower layer; for row 1 it keeps off
+  a tile of the upper layer's row 0, and from row 2 its mask write lands in other AI
+  masks (from row 14, its stage bytes), which the retail traps (rows 0 to 13) leave to
+  be rebuilt before use.
+  Fixed under `FIX_BUGS`: the tile is passed as x, row and layer.
 - `battle_menu_collect_monster_skill_abilities` returns 0 from its early exits but
   falls off its end after building a list, and writes no terminator after it; both
   ability-list builders (`battle_menu_build_ability_list` and its WORLD copy) ignore
