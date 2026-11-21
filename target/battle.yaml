@@ -1203,7 +1203,7 @@ functions:
   - {addr: 0x8017813c, size: 2920, name: battle_move_calculate_pathing, hash: b57294c5371c8afd}
   - {addr: 0x80178ca4, size: 1376, name: battle_ai_propagate_target_movement, hash: 95b8b94f05e86f62}
   - {addr: 0x80179204, size: 88, name: battle_target_check_moldball_virus_depth, hash: d1f9e1e16e2a80fa}
-  - {addr: 0x8017925c, size: 72, name: battle_target_clear_panels_on_untargetable_tiles, hash: 8ad22dbb944b5563}
+  - {addr: 0x8017925c, size: 72, name: battle_target_clear_panels_on_untargetable_tiles, hash: 8ad22dbb944b5563, change: [FIX_BUGS], dc_hash: 49f6583c5c64e795}
   - {addr: 0x801792a4, size: 348, name: battle_target_apply_vertical_tolerance, hash: 433c416f26afb0ec}
   - {addr: 0x80179400, size: 36, name: battle_target_clear_panel_marks, hash: ba04bd61201befae}
   - {addr: 0x80179424, size: 244, name: battle_target_remove_close_range, hash: ebf92dba03f9fccb}

@@ -59,6 +59,7 @@ An entry an edition changes keeps describing the retail code and ends with
 - `src/battle/battle_target_clear_panels_on_untargetable_tiles.c`: visits only the lower layer's 256
   panels, so an untargetable upper-layer tile stays in range of a single-tile or DIRECT_TARGETING
   ability (the weapon range's `battle_target_clear_range_on_untargetable_tiles` covers both layers).
+  Fixed under `FIX_BUGS`: the loop visits both layers' 512 panels.
 - `src/battle/battle_target_mark_unit_panels_by_team.c`: its loop never advances the unit pointer,
   so it marks only the caster's tile; no retail ability sets the flags that call it
   (`ABILITY_SECONDARY_FLAG_1_ALLY_UNIT_PANELS`, `_ENEMY_UNIT_TILES`).
