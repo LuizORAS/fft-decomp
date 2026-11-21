@@ -49,7 +49,12 @@ s32 battle_target_validate_weapon_target(const action_command_t* source) {
     menu_type = g_main_action_menu_types_by_skillset[action.skillset_id];
     ability_flags = 0;
     if (menu_type == ACTION_MENU_TYPE_DEFAULT || menu_type == ACTION_MENU_TYPE_MONSTER) {
+#ifdef FIX_BUGS
+        /* The edition reads the flag with the whole ability id, as both callers do (QUIRKS.md). */
+        ability_flags = g_main_ability_range_data[action.ability_id].flags_1;
+#else
         ability_flags = g_main_ability_range_data[(u8)action.ability_id].flags_1;
+#endif
     }
     if (menu_type == ACTION_MENU_TYPE_ATTACK || menu_type == ACTION_MENU_TYPE_CHARGE
         || (ability_flags & ABILITY_SECONDARY_FLAG_1_WEAPON_RANGE)) {

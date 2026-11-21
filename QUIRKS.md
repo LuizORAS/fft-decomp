@@ -383,7 +383,9 @@ An entry an edition changes keeps describing the retail code and ends with
   abilities at once, by whatever that stale ability was.
 - `src/battle/battle_target_validate_weapon_target.c`: the weapon-range flag
   is read from `g_main_ability_range_data[(u8)ability_id]`, so abilities
-  0x100 and up use the record of their id's low byte.
+  0x100 and up use the record of their id's low byte. Unreachable in retail: both callers test the
+  full id's flags first, and Shock (0x100), the one ability whose result would differ, has neither.
+  Fixed under `FIX_BUGS`: the flag is read with the whole id.
 - `battle_unit_apply_level_up_down_ability`: a level-1 target of a level-down
   (the Degenerator trap; formula 0x59 misses at level 1) is clamped back to
   level 1 and still loses raw / (growth + 1) of every raw stat.

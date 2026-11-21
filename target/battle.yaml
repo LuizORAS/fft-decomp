@@ -1225,7 +1225,7 @@ functions:
   - {addr: 0x8017a7bc, size: 260, name: battle_target_apply_vertical_fixed, hash: 480a94345e5a3d7d}
   - {addr: 0x8017a8c0, size: 568, name: battle_target_set_panels_for_action, hash: 8c2a01a98afe26e7, rodata: [{addr: 0x80174068, size: 64, hash: 17bfbd63ef0f495b}]}
   - {addr: 0x8017aaf8, size: 408, name: battle_target_mark_action_area, hash: 49f41904a00fb2cd, rodata: [{addr: 0x801740a8, size: 64, hash: 0bcd95e581c9ccaa}]}
-  - {addr: 0x8017ac90, size: 816, name: battle_target_validate_weapon_target, hash: f96070bff016413a}
+  - {addr: 0x8017ac90, size: 816, name: battle_target_validate_weapon_target, hash: f96070bff016413a, change: [FIX_BUGS], dc_hash: e8f85fedd5d72001}
   - {addr: 0x8017afc0, size: 1076, name: battle_target_validate_lunging_target, hash: 105f59d3b7823e8e}
   - {addr: 0x8017b3f4, size: 172, name: battle_target_validate_height_overlap, hash: 0ba912083b215ea7}
   - {addr: 0x8017b4a0, size: 48, name: battle_target_clear_targeted_flags, hash: 6de873936bf604e4}
