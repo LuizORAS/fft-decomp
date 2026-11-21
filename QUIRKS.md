@@ -1258,8 +1258,12 @@ translation unit. Share their types and constants through headers.
   the bare Jump entry is written past the list's count, so the next entry (the next skillset's or Frog
   Attack) overwrites it and the unit has no Jump entry.
 - `src/battle/battle_ai_build_unit_ability_list.c`: the weapon kinds of both hands are ORed and only one
-  kind at a time is handled (none, damage, absorb, heal), so a unit holding two kinds (a Blood Sword with
-  another weapon under Two Swords) gets no target-team flag on its Attack entry.
+  kind at a time is handled (none, damage, absorb, heal), so a unit holding two kinds (a Blood Sword or
+  Healing Staff with another weapon under Two Swords) gets no target-team flag on its Attack entry. The AI
+  still attacks enemies with it, as the strike simulation scores the hits, but leaves it out of the unit's
+  reach toward an enemy and its share of harmful abilities. No ENTD unit can hold two kinds; a player's
+  unit under the AI can.
+  Fixed under `FIX_BUGS`: two kinds aim at enemies, as a damage weapon.
 - Half of MP: `battle_menu_get_unit_skillset_ability_data` lists the half rounded up and the menu grays
   an ability by it, but `battle_action_check_and_consume_mp` and the AI use the half rounded down. Seven
   abilities have odd costs (Zodiac 99; Toad 2, Gravi 2, Flare 2, Blind 2, Confuse 2 and Sleep 2 at 35),

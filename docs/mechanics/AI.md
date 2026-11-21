@@ -219,7 +219,7 @@ The other statuses weigh 0.
   ([[battle_ai_add_usable_skillset_abilities]]), a Jump skillset with no
   Level Jump loses its Jump entry, and a unit holding two weapon kinds gets
   no target team for Attack. The Developer's Cut tests the Faith of the
-  ability it adds.
+  ability it adds and aims two weapon kinds at enemies.
 - **Masks:** the Monster Skill mask loses two neighbors and the upper level,
   and range radii 8-15 read past their templates. The Developer's Cut keeps
   the Monster Skill mask's four neighbors on both levels and computes the
