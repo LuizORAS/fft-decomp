@@ -1722,7 +1722,7 @@ functions:
   - {addr: 0x8019d218, size: 124, name: battle_ai_find_unit_on_target_tile, hash: 94c60f8e4da13419}
   - {addr: 0x8019d294, size: 116, name: battle_ai_find_unit_at_coordinates, hash: d857ff9b76d7522e}
   - {addr: 0x8019d308, size: 116, name: battle_ai_score_current_action, hash: 8dfb057830540343}
-  - {addr: 0x8019d37c, size: 2052, name: battle_ai_simulate_action_and_score, hash: 122e4a684a8c8f25, rodata: [{addr: 0x80193de0, size: 112, hash: cf8dc01c4e3c88bd}]}
+  - {addr: 0x8019d37c, size: 2052, name: battle_ai_simulate_action_and_score, hash: 122e4a684a8c8f25, change: [FIX_BUGS], dc_hash: 247c25dda7814231, rodata: [{addr: 0x80193de0, size: 112, hash: cf8dc01c4e3c88bd}]}
   - {addr: 0x8019db80, size: 300, name: battle_ai_simulate_movement_and_pickup, hash: 3d411335fa859d1f}
   - {addr: 0x8019dcac, size: 16, name: battle_ai_clear_current_action_decided, hash: f3064a018b6e1d42}
   - {addr: 0x8019dcbc, size: 208, name: battle_ai_simulate_ability_use, hash: 6cd2de42d35d66e8}

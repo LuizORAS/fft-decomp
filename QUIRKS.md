@@ -86,10 +86,13 @@ An entry an edition changes keeps describing the retail code and ends with
   charge itself (`battle_action_prepare_attack`) rounds Short Charge up and
   lets Non-Charge win over it.
   Fixed under `FIX_BUGS`: the estimate tests Non-Charge, then Short Charge, rounding up as the charge does.
-- `src/battle/battle_ai_evaluate_status_cancellation.c`: the Blood Suck branch
-  tests `BATTLE_AI_DECISION_JUMPING`, built from Jump (bit `0x04` of status
-  byte 0; Blood Suck is bit `0x04` of byte 1), so Protect allies skips Blood
-  Suck on a target that is not jumping.
+- `src/battle/battle_ai_evaluate_status_cancellation.c`,
+  `src/battle/battle_ai_simulate_action_and_score.c`: the Blood Suck branch
+  tests `BATTLE_AI_DECISION_JUMPING`, which the refresh builds from Jump (bit
+  `0x04` of status byte 0; Blood Suck is bit `0x04` of byte 1). Protect allies
+  tries the branch only for a target with Blood Suck, so it never removes Blood
+  Suck unless the target is also jumping.
+  Fixed under `FIX_BUGS`: the refresh builds the bit from Blood Suck, so Protect allies looks for a cure and, with none, turns to the ally most in peril, as for Dead and Petrify.
 - `src/battle/battle_ai_build_monster_skill_tile_mask.c`: the `-1` neighbor
   offsets are loaded unsigned (+255), so only `+x`/`+y` survive, and the level
   loop runs for level 0 only.

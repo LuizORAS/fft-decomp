@@ -178,9 +178,16 @@ score_state:
             if (unit->status_sets.current[BATTLE_STATUS_BYTE_INDEX(BATTLE_STATUS_ID_PETRIFY)]
                 & BATTLE_STATUS_BYTE_MASK(BATTLE_STATUS_ID_PETRIFY))
                 decision->flags |= BATTLE_AI_DECISION_PETRIFIED;
+#ifdef FIX_BUGS
+            /* The edition builds the bit from Blood Suck, the status Protect allies reads it for (QUIRKS.md). */
+            if (unit->status_sets.current[BATTLE_STATUS_BYTE_INDEX(BATTLE_STATUS_ID_BLOOD_SUCK)]
+                & BATTLE_STATUS_BYTE_MASK(BATTLE_STATUS_ID_BLOOD_SUCK))
+                decision->flags |= BATTLE_AI_DECISION_JUMPING;
+#else
             if (unit->status_sets.current[BATTLE_STATUS_BYTE_INDEX(BATTLE_STATUS_ID_JUMP)]
                 & BATTLE_STATUS_BYTE_MASK(BATTLE_STATUS_ID_JUMP))
                 decision->flags |= BATTLE_AI_DECISION_JUMPING;
+#endif
             if (!(decision->flags & BATTLE_AI_DECISION_WORTH_TARGETING)
                 && !(unit->status_sets.current[BATTLE_STATUS_BYTE_INDEX(BATTLE_STATUS_ID_PETRIFY)]
                     & BATTLE_STATUS_BYTE_MASK(BATTLE_STATUS_ID_PETRIFY))

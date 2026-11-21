@@ -211,7 +211,8 @@ The other statuses weigh 0.
   Charge and Non-Charge were presumably meant
   ([[battle_ai_load_ability_entry]]), and Protect allies tests Blood Suck
   with the Jump bit ([[battle_ai_evaluate_status_cancellation]]). The
-  Developer's Cut estimates the CT the charge takes.
+  Developer's Cut estimates the CT the charge takes and builds the bit from
+  Blood Suck ([[battle_ai_simulate_action_and_score]]).
 - **Wrong range:** with Throw Item the AI plans a thrown item at the unit's
   Move; the targeting gives 4, which the Developer's Cut plans.
 - **Stale or lost data:** the Faith test reads the ability considered last
