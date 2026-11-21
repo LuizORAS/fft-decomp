@@ -1694,7 +1694,7 @@ functions:
   - {addr: 0x8019a2cc, size: 36, name: battle_ai_calculate_ratio_times_4, hash: d6ff000e2a481d66}
   - {addr: 0x8019a2f0, size: 572, name: battle_ai_build_unit_ability_list, hash: 54941fd300d2db4f}
   - {addr: 0x8019a52c, size: 204, name: battle_ai_store_weapon_attack_data, hash: 58abc0faa62c947c}
-  - {addr: 0x8019a5f8, size: 1112, name: battle_ai_add_usable_skillset_abilities, hash: 5c08b128fe604338}
+  - {addr: 0x8019a5f8, size: 1112, name: battle_ai_add_usable_skillset_abilities, hash: 5c08b128fe604338, change: [FIX_BUGS], dc_hash: 56b4987620b5c639}
   - {addr: 0x8019aa50, size: 184, name: battle_ai_is_ability_known, hash: 8145ae7b7ce5bc94}
   - {addr: 0x8019ab08, size: 64, name: battle_mem_copy_u16_values, hash: da28d65667a643ff, source: src/shared/memory/battle_mem_copy_u16_values.c}
   - {addr: 0x8019ab48, size: 48, name: battle_mem_copy_bytes, hash: dd334a2332330457, source: src/shared/memory/battle_mem_copy_bytes.c}

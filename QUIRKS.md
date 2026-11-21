@@ -383,7 +383,11 @@ An entry an edition changes keeps describing the retail code and ends with
 - `src/battle/battle_ai_add_usable_skillset_abilities.c`: the Faith test reads the AI flags of the
   ability considered last (`g_battle_ai_data_base.considered_ability`), not of the one being added, so
   for an innately Innocent unit (the Steel Giant job) it keeps or drops all of a skillset's default
-  abilities at once, by whatever that stale ability was.
+  abilities at once, by whatever that stale ability was. Its Work skillset has no Faith ability, so it can
+  only lose them: each event's end rebuilds the lists in slot order, and Worker 7-New, slot 0 at Nelveska
+  Temple, loses Work when the last ability the AI weighed was a Faith one (of a unit the AI runs for the
+  player).
+  Fixed under `FIX_BUGS`: the test reads the Faith flag of the ability being added.
 - `src/battle/battle_target_validate_weapon_target.c`: the weapon-range flag
   is read from `g_main_ability_range_data[(u8)ability_id]`, so abilities
   0x100 and up use the record of their id's low byte. Unreachable in retail: both callers test the
