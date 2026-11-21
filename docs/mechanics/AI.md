@@ -219,7 +219,8 @@ The other statuses weigh 0.
   Level Jump loses its Jump entry, and a unit holding two weapon kinds gets
   no target team for Attack.
 - **Masks:** the Monster Skill mask loses two neighbors and the upper level,
-  and range radii 8-15 read past their templates.
+  and range radii 8-15 read past their templates. The Developer's Cut keeps
+  the Monster Skill mask's four neighbors on both levels.
 - **Unreachable or ineffective code:** Protect allies' fallback to Run like a
   rabbit never runs, and the 10-combination test of the origin search has no
   effect.

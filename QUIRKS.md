@@ -92,6 +92,7 @@ An entry an edition changes keeps describing the retail code and ends with
 - `src/battle/battle_ai_build_monster_skill_tile_mask.c`: the `-1` neighbor
   offsets are loaded unsigned (+255), so only `+x`/`+y` survive, and the level
   loop runs for level 0 only.
+  Fixed under `FIX_BUGS`: the offsets are read signed and both levels are marked.
 - `src/battle/battle_ai_build_targetable_tile_mask.c`: radii 8–15 index past
   the 8-entry template table into the following status weights. Jump Level 8
   can reach this path with a non-arcing weapon.
