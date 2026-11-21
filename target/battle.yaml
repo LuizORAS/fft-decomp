@@ -1716,7 +1716,7 @@ functions:
   - {addr: 0x8019c20c, size: 116, name: battle_ai_finalize_action_destination, hash: 6e3db359eeeddbd7}
   - {addr: 0x8019c280, size: 340, name: battle_ai_take_best_origin, hash: 73020a4fc24dfbde}
   - {addr: 0x8019c3d4, size: 1304, name: battle_ai_build_origin_and_target_tiles, hash: fc6ef51e7636d2e8}
-  - {addr: 0x8019c8ec, size: 680, name: battle_ai_build_targetable_tile_mask, hash: 4e2a9dc6a6cee172}
+  - {addr: 0x8019c8ec, size: 680, name: battle_ai_build_targetable_tile_mask, hash: 4e2a9dc6a6cee172, change: [FIX_BUGS], dc_hash: 13704e220e9ec371}
   - {addr: 0x8019cb94, size: 520, name: battle_ai_build_monster_skill_tile_mask, hash: 3c2dbeca3eb019d1, change: [FIX_BUGS], dc_hash: 1082ef03a9e051eb}
   - {addr: 0x8019cd9c, size: 1148, name: battle_ai_evaluate_target_tiles, hash: 48dc3babee0d6a0e}
   - {addr: 0x8019d218, size: 124, name: battle_ai_find_unit_on_target_tile, hash: 94c60f8e4da13419}

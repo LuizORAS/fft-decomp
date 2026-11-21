@@ -96,6 +96,7 @@ An entry an edition changes keeps describing the retail code and ends with
 - `src/battle/battle_ai_build_targetable_tile_mask.c`: radii 8–15 index past
   the 8-entry template table into the following status weights. Jump Level 8
   can reach this path with a non-arcing weapon.
+  Fixed under `FIX_BUGS`: every row is computed from its half-width, as the eight templates give up to 7.
 - `src/battle/battle_ai_evaluate_reflected_target_origins.c`: the resume entry
   skips the reflector pointer reload and depends on the caller's `$s2`.
 - `src/battle/battle_ai_evaluate_math_targets.c`: the extra known-ability call

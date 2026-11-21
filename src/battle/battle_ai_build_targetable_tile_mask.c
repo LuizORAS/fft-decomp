@@ -38,6 +38,20 @@ void battle_ai_build_targetable_tile_mask(battle_ai_tile_mask_mode_e mode, s32 r
         ai->targetable_tiles[0][i] = 0;
     y = ai->considered_unit_coords.fields.y;
     x = ai->considered_unit_coords.fields.x;
+#ifdef FIX_BUGS
+    /* The edition computes each row from its half-width k, so radii 8-15 read no table (QUIRKS.md). */
+    /* Columns x - k .. x + k (column c is bit 15 - c): 2k + 1 bits from bit 16 - k, shifted down by x + 1. */
+    for (i = 0; i <= radius; i++) {
+        if (y - i < 0)
+            break;
+        ai->targetable_tiles[0][y - i] = (((2U << ((radius - i) * 2)) - 1) << (16 - (radius - i))) >> (x + 1);
+    }
+    for (i = 1; i <= radius; i++) {
+        if (y + i >= ai->map_max_y)
+            break;
+        ai->targetable_tiles[0][y + i] = (((2U << ((radius - i) * 2)) - 1) << (16 - (radius - i))) >> (x + 1);
+    }
+#else
     for (i = 0; i <= radius; i++) {
         if (y - i < 0)
             break;
@@ -54,6 +68,7 @@ void battle_ai_build_targetable_tile_mask(battle_ai_tile_mask_mode_e mode, s32 r
         else
             ai->targetable_tiles[0][y + i] = g_battle_ai_range_row_masks[radius - i] >> (x - 7);
     }
+#endif
     if (ai->considered_ability.ai_flags.word & BATTLE_AI_ABILITY_LINEAR_TRAJECTORY) {
         for (y = 0; y < ai->map_max_y; y++) {
             i = ai->targetable_tiles[0][y];
