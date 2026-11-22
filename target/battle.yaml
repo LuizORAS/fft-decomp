@@ -600,7 +600,7 @@ functions:
   - {addr: 0x8008c940, size: 132, name: battle_unit_add_event_offset_by_runtime_id_unused, hash: 493d784ed1d983b8, source: src/battle/battle_unit_add_event_offset_by_runtime_id.c, source_symbol: battle_unit_add_event_offset_by_runtime_id}
   - {addr: 0x8008c9c4, size: 132, name: battle_unit_add_event_offset_by_runtime_id, hash: 3e04eb8aa78e5d6a}
   - {addr: 0x8008ca48, size: 52, name: battle_unit_get_event_offset_by_runtime_id, hash: dda54d06ce7c4f0d}
-  - {addr: 0x8008ca7c, size: 312, name: battle_unit_place_in_new_location, hash: 3aa051ec1d7b87ff}
+  - {addr: 0x8008ca7c, size: 312, name: battle_unit_place_in_new_location, hash: 3aa051ec1d7b87ff, change: [FIX_BUGS], dc_hash: 410bc502edf289d7}
   - {addr: 0x8008cbb4, size: 36, name: battle_unit_has_runtime_id, hash: c4f802b7a57a883d}
   - {addr: 0x8008cbd8, size: 60, name: battle_unit_set_facing_update_suppression, hash: a39dab7321ea587c}
   - {addr: 0x8008cc14, size: 60, name: battle_unit_clear_facing_update_suppression, hash: 2b97abf02d6aa24f}

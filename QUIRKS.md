@@ -653,7 +653,12 @@ An entry an edition changes keeps describing the retail code and ends with
   `unit->facing`, the quadrant shifted left 10, as the `u8` facing of
   `battle_unit_set_tile_position`, where its other callers divide by 1024. The low
   byte is 0, so a warped unit's battle stats face south while its sprite faces as
-  asked; facing evade reads the stats.
+  asked, until the event ends and `script_execute_event` copies every sprite's
+  facing back to the stats. Within the event only the paired warp (CallFunction
+  0x0f and 0x10, which the save menu's 0x06 also reaches) and the copy of
+  CallFunction 0x11 read a stats facing; ten of the 21 events that open the save
+  menu warp a unit to another facing first.
+  Fixed under `FIX_BUGS`: the stats take the facing in quarter turns.
 - `battle_move_animate_jump_start` and `battle_move_animate_jump_rise_with_sfx` size
   the rise as 0x120 minus the ground's (negative-up) y, the altitude of a point 0x120
   above the ground, but cover it from the unit's current height: a unit on ground h
