@@ -113,6 +113,7 @@ An entry an edition changes keeps describing the retail code and ends with
   caller has already stored XA * YA as the HP damage, so Oil never raises fire damage (it is still
   marked for removal). Players know this as Oil having no effect in the PlayStation version.
   The weapon-element path (`battle_formula_apply_weapon_element`) does not test Oil at all.
+  Fixed under `FIX_BUGS`: Oil doubles the stored damage of a fire ability, as Weak does; weapons still skip it.
 - `src/battle/battle_action_init_current_ability_strike_data.c`: the range-data
   guard `ability_id >= 0 || ability_id < ABILITY_ID_ITEM_FIRST` is always true
   (`&&` was presumably meant), so item ids read past the table; only the

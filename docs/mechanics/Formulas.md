@@ -30,7 +30,8 @@ runs that id's handler once per target and strike.
   raises lightning to 5/4, a snowstorm raises ice to 5/4; then the target's
   affinities: Absorb turns the damage into healing, Null nullifies the hit,
   Half halves and Weak doubles it. Oil should double fire damage but never
-  does (`QUIRKS.md`).
+  does (`QUIRKS.md`); in the Developer's Cut it doubles a fire ability's
+  damage before the affinities.
 - **Faith.** Magic scales by target Faith * attacker Faith / 10000; the
   Faith status counts as 100 and Innocent as 0. Some formulas skip Faith,
   and the Un-Truth formula scales by (100 - Faith) instead.
@@ -258,7 +259,8 @@ retail abilities, weapons, consumables or commands that select the formula.
 ## Quirks and debts
 
 - Oil never raises fire damage: [[battle_formula_apply_ability_element]]
-  doubles XA after the damage is stored (`QUIRKS.md`).
+  doubles XA after the damage is stored (`QUIRKS.md`). The Developer's Cut
+  doubles the stored damage; weapon strikes still skip Oil.
 - The bow weather penalty reads the raw weather variable, so a snowstorm
   counts and the map's ignore-weather flag does not
   ([[battle_formula_apply_weather_effects_on_bows]], `QUIRKS.md`).

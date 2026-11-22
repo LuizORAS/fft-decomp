@@ -1417,7 +1417,7 @@ functions:
   - {addr: 0x80186ea4, size: 44, name: battle_formula_set_brave_loss_y, hash: c33db6df89772a17}
   - {addr: 0x80186ed0, size: 256, name: battle_formula_apply_weather_elemental_effects, hash: 67bc5f454dd4dcc6}
   - {addr: 0x80186fd0, size: 40, name: battle_formula_apply_weapon_element, hash: 0e63aead82382650}
-  - {addr: 0x80186ff8, size: 260, name: battle_formula_apply_ability_element, hash: bcc5c45352ec9962}
+  - {addr: 0x80186ff8, size: 260, name: battle_formula_apply_ability_element, hash: bcc5c45352ec9962, change: [FIX_BUGS], dc_hash: a3b5b4876958390c}
   - {addr: 0x801870fc, size: 84, name: battle_formula_apply_elemental_absorption, hash: a4da38a8c28fee60}
   - {addr: 0x80187150, size: 248, name: battle_formula_calculate_faith, hash: 2ee629ef8667424d}
   - {addr: 0x80187248, size: 264, name: battle_formula_apply_hp_absorption, hash: 12be881fecadca11}
