@@ -27,6 +27,12 @@ s32 battle_action_apply_tile_trap(battle_stats_t* unit) {
     case BATTLE_TRAP_ID_DEGENERATOR:
         g_battle_action_target_data->attack_type = BATTLE_ACTION_TYPE_PSEUDO_STATUS;
         g_battle_action_target_data->special_effect = BATTLE_ACTION_SPECIAL_EFFECT_LEVEL_DOWN;
+#ifdef FIX_BUGS
+        /* The edition misses a unit below level 2, as Level Blast does (QUIRKS.md). */
+        if (unit->level < 2) {
+            battle_formula_force_attack_miss();
+        }
+#endif
         break;
     case BATTLE_TRAP_ID_DEATHTRAP:
         g_battle_action_target_data->status_changes

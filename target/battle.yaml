@@ -1603,7 +1603,7 @@ functions:
   - {addr: 0x8018da04, size: 64, name: battle_action_set_target_unit, hash: bbaba1b682cb0fae}
   - {addr: 0x8018da44, size: 68, name: battle_status_check_crystal_dead_jump_petrify_treasure, hash: 7d43b4a77e93eadc}
   - {addr: 0x8018da88, size: 296, name: battle_status_prepare_terrain_poison, hash: 5c28604ac4c92a55}
-  - {addr: 0x8018dbb0, size: 404, name: battle_action_apply_tile_trap, hash: d1bbce09654aa71b}
+  - {addr: 0x8018dbb0, size: 404, name: battle_action_apply_tile_trap, hash: d1bbce09654aa71b, change: [FIX_BUGS], dc_hash: 539c30b6eea09aac}
   - {addr: 0x8018dd44, size: 456, name: battle_action_init_movement_ability_benefit, hash: 2280ba2732e517c0}
   - {addr: 0x8018df0c, size: 236, name: battle_unit_build_gained_exp_jp_level_job_level, hash: f9339289662df4d9}
   - {addr: 0x8018dff8, size: 132, name: battle_action_apply_jp_change, hash: 7e6b861377b0d37b}

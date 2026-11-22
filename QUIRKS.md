@@ -401,6 +401,7 @@ An entry an edition changes keeps describing the retail code and ends with
 - `battle_unit_apply_level_up_down_ability`: a level-1 target of a level-down
   (the Degenerator trap; formula 0x59 misses at level 1) is clamped back to
   level 1 and still loses raw / (growth + 1) of every raw stat.
+  Fixed under `FIX_BUGS`: `battle_action_apply_tile_trap` misses a unit below level 2, as Level Blast does.
 - `suzuki_sound_set_reverb_mode`: a negative mode is meant to keep the current
   mode, but the stored mode still carries the 0x100 work-area flag that LIBSPU
   strips from its own copy only. It never equals the SPU's mode, so there is

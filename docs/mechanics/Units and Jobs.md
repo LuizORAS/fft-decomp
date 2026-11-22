@@ -186,7 +186,9 @@ keeps each job's JP as a byte pair.
   level-up and a generated unit's replay divide by growth + the old level
   ([[battle_unit_apply_level_up_down_ability]]).
 - A level-1 target of a level-down is clamped back to level 1 and still loses
-  its growth.
+  its growth. Only the Degenerator trap reaches it, as Level Blast misses
+  there; in the Developer's Cut the trap misses too
+  ([[battle_action_apply_tile_trap]]).
 - [[main_unit_learn_job_abilities]] sets a bought ability's bit twice.
 - [[main_unit_calculate_random_equipment]]: throwing and bomb item types index
   past the equipment-category bytes.
