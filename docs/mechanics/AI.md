@@ -228,6 +228,14 @@ The other statuses weigh 0.
   sprung, but [[battle_move_start_next_post_move_event]] passes the layer as
   the row, so it keeps off only the traps on row 0. The Developer's Cut
   passes the tile.
+- **Origin searches:** the searches around the unit itself and through a
+  Reflect unit test the unit's own tile for the move-then-act pass too
+  ([[battle_ai_evaluate_self_target_origins]],
+  [[battle_ai_evaluate_reflected_target_origins]]). The first, suspended in
+  its first pass, skips the moved pass on resume; the second resumes without
+  its Reflect unit and mirrors through workspace bytes. The Developer's Cut
+  tests the tile each pass acts from, keeps the pass across a suspension and
+  reloads the Reflect unit.
 - **Unreachable or ineffective code:** Protect allies' fallback to Run like a
   rabbit never runs, and the 10-combination test of the origin search has no
   effect.

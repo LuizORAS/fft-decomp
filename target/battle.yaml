@@ -1705,11 +1705,11 @@ functions:
   - {addr: 0x8019ae58, size: 152, name: battle_ai_record_sprung_trap, hash: e691b9d21adf6ad3}
   - {addr: 0x8019aef0, size: 40, name: battle_ai_is_propagation_budget_spent, hash: aff84ed05931c150}
   - {addr: 0x8019af18, size: 1012, name: battle_ai_evaluate_ability_outcome, hash: 963caa337e1e1c7a, rodata: [{addr: 0x80193db0, size: 36, hash: 8a91fa7090317da7}]}
-  - {addr: 0x8019b30c, size: 488, name: battle_ai_evaluate_self_target_origins, hash: 98555857b62c3032}
+  - {addr: 0x8019b30c, size: 488, name: battle_ai_evaluate_self_target_origins, hash: 98555857b62c3032, change: [FIX_BUGS], dc_hash: e90395bff8c9fad4}
   - {addr: 0x8019b4f4, size: 444, name: battle_ai_can_use_ability_at_coords, hash: 81477fd3bef0c505}
   - {addr: 0x8019b6b0, size: 164, name: battle_ai_get_unit_height_above_coords, hash: 9bcad0cdcecc5aed}
   - {addr: 0x8019b754, size: 100, name: battle_ai_can_elemental_ability_be_used, hash: e60c20b40acae19a}
-  - {addr: 0x8019b7b8, size: 872, name: battle_ai_evaluate_reflected_target_origins, hash: fdc930fa98af6e86}
+  - {addr: 0x8019b7b8, size: 872, name: battle_ai_evaluate_reflected_target_origins, hash: fdc930fa98af6e86, change: [FIX_BUGS], dc_hash: 563569ca34ebe158}
   - {addr: 0x8019bb20, size: 156, name: battle_ai_update_tile_pickup, hash: 50d76cc59e51cd64}
   - {addr: 0x8019bbbc, size: 880, name: battle_ai_evaluate_math_targets, hash: 8689a189a4a77c50}
   - {addr: 0x8019bf2c, size: 736, name: battle_ai_evaluate_origins, hash: bcbfefa0160f251c}

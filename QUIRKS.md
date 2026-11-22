@@ -102,7 +102,11 @@ An entry an edition changes keeps describing the retail code and ends with
   can reach this path with a non-arcing weapon.
   Fixed under `FIX_BUGS`: every row is computed from its half-width, as the eight templates give up to 7.
 - `src/battle/battle_ai_evaluate_reflected_target_origins.c`: the resume entry
-  skips the reflector pointer reload and depends on the caller's `$s2`.
+  skips the reflector pointer reload and depends on the caller's `$s2`, which holds
+  `&g_battle_ai_data_base`: until the loop reaches the next reflector, the origins mirror
+  through workspace bytes 0x47 and 0x48 (`best_action.command.target_id` and the low byte
+  of its `target_position.x`) instead of the reflector's tile.
+  Fixed under `FIX_BUGS`: the resume reloads the reflector from `reflector_unit_index`.
 - `src/battle/battle_ai_evaluate_math_targets.c`: the extra known-ability call
   in the special-ID loop discards its result.
 - `src/battle/battle_formula_apply_ability_element.c`: Oil doubles XA against fire, but every
@@ -552,6 +556,7 @@ An entry an edition changes keeps describing the retail code and ends with
 - `src/battle/battle_ai_evaluate_self_target_origins.c`: suspension during the
   first origin's target search marks the second-origin stage, so resuming skips
   the moved-origin pass.
+  Fixed under `FIX_BUGS`: `act_before_move` decides the pass, so a resumed first pass still runs the moved pass.
 - `battle_util_mul_div_s64` and `world_util_mul_div_s64` (hand-written) negate a
   negative divisor with the bit flip alone and add its 1 to the dividend's low
   word, and the carry of negating a negative product goes into the remainder
@@ -610,6 +615,7 @@ An entry an edition changes keeps describing the retail code and ends with
   `battle_ai_can_use_ability_at_coords` on the unit's current tile in both passes, so
   the starting tile also decides the move-then-act pass, which casts from the
   destination; `battle_ai_evaluate_before_and_after_move` tests the destination there.
+  Fixed under `FIX_BUGS`: each pass tests the tile it acts from, the unit's and then the destination.
 - `battle_target_select_random_tile_for_random_fire_abilities` has no test for an
   empty candidate list, and `battle_target_mark_hit_tiles` calls it for any result but
   -1: with no candidate it adds 0x100 to the stale `mark` of
