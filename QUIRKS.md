@@ -472,12 +472,20 @@ An entry an edition changes keeps describing the retail code and ends with
 - `main_unit_calculate_entd_equipment`: the random body-armor roll tests
   `BATTLE_SUPPORT_SET_1_EQUIP_SHIELD` before asking for `ITEM_TYPE_ARMOR`;
   Equip Armor is tested only for the helmet.
-- `battle_unit_store_coordinate_mount_animation_data` and
-  `battle_unit_restore_facing_after_attack`: for a mounted pair the second
+- `battle_unit_store_coordinate_mount_animation_data`,
+  `battle_unit_restore_facing_after_attack` and
+  `battle_unit_face_towards_action_target`: for a mounted pair the second
   `battle_unit_set_tile_position` call names the unit's own battle record again
-  (the first function finds its "mount" by the unit's own `unit_id`), so the
-  partner's battle stats take no tile or facing here. The second function also
-  writes the partner record's facing with no null test.
+  (the first function finds its "mount" by the unit's own `runtime_id`), so the
+  partner's battle stats take no tile or facing here. No play reaches the
+  difference: a mounted pair walks as its mount, and
+  `battle_unit_set_tile_position` on the mount carries the rider; knockback
+  skips a mounted pair; a rider turned toward an attacker and back leaves the
+  mount's stored facing where it was, since the turn skips it the same way;
+  and `battle_unit_set_tile_position_with_mount_partner` sets both at Wait.
+  The last two functions also write the partner record's facing with no null
+  test, which a port must not copy. The Developer's Cut leaves the three
+  unchanged.
 - `battle_gfx_release_reserved_vram_slot` tests owner bit 0x80
   (`BATTLE_GFX_VRAM_SLOT_OWNER_ATTACK_IMAGE`), which the EVTCHR (0xfe) and free
   (0xff) markers also carry, so the event instruction releases a saved EVTCHR
