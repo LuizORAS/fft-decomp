@@ -1279,6 +1279,7 @@ translation unit. Share their types and constants through headers.
   an ability by it, but `battle_action_check_and_consume_mp` and the AI use the half rounded down. Seven
   abilities have odd costs (Zodiac 99; Toad 2, Gravi 2, Flare 2, Blind 2, Confuse 2 and Sleep 2 at 35),
   so a unit with exactly the lower half sees them grayed.
+  Fixed under `FIX_BUGS`: the list shows the half rounded down, the cost the action pays, and grays by it.
 - `src/battle/battle_ai_select_auto_battle_action.c`: Protect allies falls back to Run like a rabbit when
   `battle_ai_select_protect_allies_action` returns -2, which it never does.
 - `src/battle/battle_ai_evaluate_origins.c`: an ability without

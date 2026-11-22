@@ -162,7 +162,9 @@ innate ones of its job.
    keeps it) and how many turns come first; a Frog lists only the Frog spell,
    and an ability that needs a sword or Materia Blade drops without one.
    [[battle_menu_build_ability_list]] then grays the abilities the unit lacks
-   the MP for or cannot cast while Silenced.
+   the MP for or cannot cast while Silenced. The action pays the half rounded
+   down, so an odd cost lists one more than it costs (`QUIRKS.md`); the
+   Developer's Cut lists the half rounded down.
 3. **The command.** The chosen ability goes through the [[Action]] pipeline,
    [[Targeting]] and its formula ([[Formulas]]). Once it is confirmed, the
    unit plays the pre-attack gesture
@@ -219,7 +221,7 @@ need a Brave roll first; the [[Action]] page says when each one is checked.
 | Id | Support | What the code does | Where |
 |---|---|---|---|
 | 0x1c6-0x1cd | Equip Armor, Shield, Sword, Knife (katanas), Crossbow, Spear, Axe, Gun | Adds the equipment categories | [[main_unit_set_equippable_items]], [[main_unit_calculate_entd_equipment]] |
-| 0x1ce | Half of MP | MP cost halved: spent rounded down, listed and grayed rounded up (`QUIRKS.md`) | [[battle_action_check_and_consume_mp]], [[battle_menu_get_unit_skillset_ability_data]], the AI |
+| 0x1ce | Half of MP | MP cost halved: spent rounded down, listed and grayed rounded up (`QUIRKS.md`; rounded down in the Developer's Cut) | [[battle_action_check_and_consume_mp]], [[battle_menu_get_unit_skillset_ability_data]], the AI |
 | 0x1cf | Gained JP Up | Action JP * 3 / 2; Move-Get JP * 2 | [[battle_unit_apply_action_rewards]], [[battle_action_init_movement_ability_benefit]] |
 | 0x1d0 | Gained Exp Up | EXP * 2 (an award stays at most 99); Move-Get EXP * 2 | [[battle_unit_update_attacker_earned_experience]], the same |
 | 0x1d1 | Attack Up | Physical XA * 4 / 3 | [[battle_formula_apply_physical_attack_supports]], [[battle_formula_apply_attack_up_and_martial_arts]] |

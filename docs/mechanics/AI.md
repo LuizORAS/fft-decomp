@@ -244,7 +244,8 @@ The other statuses weigh 0.
   own tile reads past the four directions.
 - **Ports:** the reflected search's resume relies on the caller's `$s2`, the
   Jump CT estimate at battle setup reads through a NULL acting unit, and the
-  Half of MP rounding differs between the menu and the AI.
+  Half of MP rounding differs between the menu and the AI (the Developer's
+  Cut's menu rounds down too).
 
 `QUIRKS.md` has each entry with its file.
 

@@ -1308,7 +1308,7 @@ functions:
   - {addr: 0x801813c0, size: 452, name: battle_menu_build_unit_action_menus, hash: bc322084cf70da64}
   - {addr: 0x80181584, size: 412, name: battle_menu_load_skillset, hash: 9b1afa0da3dd945e, rodata: [{addr: 0x80174144, size: 44, hash: 2aa44194e1919be4}]}
   - {addr: 0x80181720, size: 160, name: battle_turn_count_entries_before_action, hash: 2a5b1849a8fd06d9}
-  - {addr: 0x801817c0, size: 944, name: battle_menu_get_unit_skillset_ability_data, hash: 7cf68b74f9456eed}
+  - {addr: 0x801817c0, size: 944, name: battle_menu_get_unit_skillset_ability_data, hash: 7cf68b74f9456eed, change: [FIX_BUGS], dc_hash: 8e73dccd40052b9a}
   - {addr: 0x80181b70, size: 36, name: battle_menu_display_item_inventory_ability, hash: 33142a722980274c}
   - {addr: 0x80181b94, size: 292, name: battle_menu_load_item_abilities, hash: b283f0d48d216a0e}
   - {addr: 0x80181cb8, size: 36, name: battle_menu_load_throw_abilities, hash: 94b3b40c88864a97}
