@@ -23,7 +23,13 @@ void battle_formula_raise_level_by_one_add_status_on_caster(void) {
         return;
     }
     action = g_battle_action_target_data;
+#ifdef FIX_BUGS
+    /* The edition keeps the HP and MP healing beside the level change, so their numbers show (QUIRKS.md). */
+    action->attack_type = (action->attack_type & (BATTLE_ACTION_TYPE_HP_HEALING | BATTLE_ACTION_TYPE_MP_HEALING))
+        | BATTLE_ACTION_TYPE_PSEUDO_STATUS;
+#else
     action->attack_type = BATTLE_ACTION_TYPE_PSEUDO_STATUS;
+#endif
     saved_unit = g_battle_action_target;
     saved_action = g_battle_action_target_data;
     attacker = g_battle_action_attacker;

@@ -1543,7 +1543,7 @@ functions:
   - {addr: 0x8018a668, size: 48, name: battle_formula_heal_mp_ma_times_y, hash: 6531167411cafa8a}
   - {addr: 0x8018a698, size: 96, name: battle_formula_lower_pa_y, hash: 4d9e9aae23bd441f}
   - {addr: 0x8018a6f8, size: 96, name: battle_formula_lower_ma_y, hash: 6e771a8462efd9d0}
-  - {addr: 0x8018a758, size: 204, name: battle_formula_raise_level_by_one_add_status_on_caster, hash: 1ba1cd9894e96008}
+  - {addr: 0x8018a758, size: 204, name: battle_formula_raise_level_by_one_add_status_on_caster, hash: 1ba1cd9894e96008, change: [FIX_BUGS], dc_hash: cae72feed527af97}
   - {addr: 0x8018a824, size: 228, name: battle_formula_set_morbol, hash: 28c109ad986f022e}
   - {addr: 0x8018a908, size: 120, name: battle_formula_lower_level_by_one, hash: 26b51718b2884a02}
   - {addr: 0x8018a980, size: 68, name: battle_formula_dragon_hit_100, hash: a579bda9f0002e5e}

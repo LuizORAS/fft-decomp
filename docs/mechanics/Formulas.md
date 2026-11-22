@@ -268,6 +268,11 @@ retail abilities, weapons, consumables or commands that select the formula.
 - [[battle_formula_apply_zodiac_compatibility]] returns for Serpentarius
   before its floor of 1, so an XA already cut to 0 stays 0 (`QUIRKS.md`).
   The Developer's Cut floors it too.
+- Please Eat ([[battle_formula_raise_level_by_one_add_status_on_caster]])
+  restores all HP and MP but keeps only the level change as its result type,
+  so no HP or MP number shows (`QUIRKS.md`). The Developer's Cut keeps the
+  healing on a living target: both numbers show, and the preview shows the HP
+  healing instead of the level.
 - The bow weather penalty reads the raw weather variable, so a snowstorm
   counts and the map's ignore-weather flag does not
   ([[battle_formula_apply_weather_effects_on_bows]], `QUIRKS.md`).

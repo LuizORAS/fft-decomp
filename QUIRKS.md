@@ -434,6 +434,7 @@ An entry an edition changes keeps describing the retail code and ends with
   target) and then overwrites `attack_type` with the level change's:
   `battle_action_apply_target_result` still applies the
   amounts, but `battle_gfx_prepare_post_action_display` shows no number.
+  Fixed under `FIX_BUGS`: a living target keeps HP and MP healing beside the level change, so both numbers show after the action and the preview (`battle_menu_display_projected_action_effect`) shows the HP healing instead of the level; an undead target stays as retail.
 - `main_sound_unload_scenario_mus` releases a slot's music record and SMD
   without clearing `g_main_sound_music.state` when that slot is the playing
   one. The shop, formation and both save screens unload their own music this
