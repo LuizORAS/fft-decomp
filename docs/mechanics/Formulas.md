@@ -261,6 +261,9 @@ retail abilities, weapons, consumables or commands that select the formula.
 - Oil never raises fire damage: [[battle_formula_apply_ability_element]]
   doubles XA after the damage is stored (`QUIRKS.md`). The Developer's Cut
   doubles the stored damage; weapon strikes still skip Oil.
+- The Healing Staff ([[battle_formula_weapon_heal]]) applies the zodiac
+  compatibility twice, and the target's Defense Up and Protect cut its
+  healing (`QUIRKS.md`). The Developer's Cut applies the compatibility once.
 - The bow weather penalty reads the raw weather variable, so a snowstorm
   counts and the map's ignore-weather flag does not
   ([[battle_formula_apply_weather_effects_on_bows]], `QUIRKS.md`).

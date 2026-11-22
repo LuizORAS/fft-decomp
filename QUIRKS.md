@@ -428,6 +428,7 @@ An entry an edition changes keeps describing the retail code and ends with
   zodiac compatibility twice, once itself and once inside
   `battle_formula_apply_physical_xa_modifiers`, whose Defense
   Up and Protect steps also cut the healing to two thirds.
+  Fixed under `FIX_BUGS`: the compatibility applies once, in the physical XA modifiers; the Defense Up and Protect cut stays.
 - `battle_formula_raise_level_by_one_add_status_on_caster` (formula 0x57,
   Please Eat) stores a full HP and MP heal (max-HP damage for an undead
   target) and then overwrites `attack_type` with the level change's:
