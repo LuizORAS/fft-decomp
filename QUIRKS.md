@@ -604,6 +604,7 @@ An entry an edition changes keeps describing the retail code and ends with
 - `battle_formula_apply_zodiac_compatibility` returns early when either unit is
   Serpentarius, before the floor of 1 that every other sign pair reaches, so an XA
   already cut to 0 stays 0 and the hit deals 0 damage.
+  Fixed under `FIX_BUGS`: Serpentarius reaches the floor too and stays neutral.
 - `open_movie_update_stream_frame` restarts a stream whose ring has fewer than 16
   free sectors through `open_movie_start_cd_stream_read`, which reads with mode
   0x1a0; the first read in `open_movie_start_stream` uses 0x1e0, so the restart drops

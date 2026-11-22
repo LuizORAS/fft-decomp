@@ -28,12 +28,22 @@ void battle_formula_apply_zodiac_compatibility(void) {
     attacker_zodiac = attacker->birthday.zodiac;
     target_zodiac = target->birthday.zodiac;
     attacker_zodiac_compare = (u8)attacker_zodiac;
+#ifdef FIX_BUGS
+    /* The edition gives Serpentarius the floor of 1 too (QUIRKS.md). */
+    if (serpentarius == attacker_zodiac_compare || target_zodiac == serpentarius) {
+        if (g_battle_action_current_ability.xa <= 0) {
+            g_battle_action_current_ability.xa = 1;
+        }
+        return;
+    }
+#else
     if (serpentarius == attacker_zodiac_compare) {
         return;
     }
     if (target_zodiac == serpentarius) {
         return;
     }
+#endif
 
     if (target_zodiac < attacker_zodiac_compare) {
         difference = attacker_zodiac - target_zodiac;

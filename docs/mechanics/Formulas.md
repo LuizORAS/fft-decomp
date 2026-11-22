@@ -24,7 +24,8 @@ runs that id's handler once per target and strike.
   Charging, Chicken and Frog. Magical: Magic Attack Up, Magic Defense Up, the
   target's Shell, Frog and Chicken. Both: Strengthen for the element (XA *
   5 / 4), the zodiac compatibility (best +50%, good +25%, bad -25%, worst
-  -50%) and Charge's power. A critical hit (4 in 100 while executing) grows
+  -50%; XA at least 1 after it, except with Serpentarius, which the
+  Developer's Cut floors too) and Charge's power. A critical hit (4 in 100 while executing) grows
   XA by up to XA - 1 and may knock the target back.
 - **Elements and weather.** After XA * YA, a storm cuts fire to 3/4 and
   raises lightning to 5/4, a snowstorm raises ice to 5/4; then the target's
@@ -264,6 +265,9 @@ retail abilities, weapons, consumables or commands that select the formula.
 - The Healing Staff ([[battle_formula_weapon_heal]]) applies the zodiac
   compatibility twice, and the target's Defense Up and Protect cut its
   healing (`QUIRKS.md`). The Developer's Cut applies the compatibility once.
+- [[battle_formula_apply_zodiac_compatibility]] returns for Serpentarius
+  before its floor of 1, so an XA already cut to 0 stays 0 (`QUIRKS.md`).
+  The Developer's Cut floors it too.
 - The bow weather penalty reads the raw weather variable, so a snowstorm
   counts and the map's ignore-weather flag does not
   ([[battle_formula_apply_weather_effects_on_bows]], `QUIRKS.md`).

@@ -1357,7 +1357,7 @@ functions:
   - {addr: 0x801843ec, size: 548, name: battle_formula_calculate_knockback, hash: 30c933b534bf5a2b}
   - {addr: 0x80184610, size: 712, name: battle_move_check_knockback_destination, hash: fb9351b2bfdb7550}
   - {addr: 0x801848d8, size: 140, name: battle_formula_calculate_attack_evaded, hash: c21cf5ca5200fff7}
-  - {addr: 0x80184964, size: 448, name: battle_formula_apply_zodiac_compatibility, hash: aa5ea5e4e7c4fa1d}
+  - {addr: 0x80184964, size: 448, name: battle_formula_apply_zodiac_compatibility, hash: aa5ea5e4e7c4fa1d, change: [FIX_BUGS], dc_hash: ed532cdfe59e2bdf}
   - {addr: 0x80184b24, size: 796, name: battle_status_modify_inflictions, hash: d22a41e561e729ae}
   - {addr: 0x80184e40, size: 88, name: battle_formula_nullify_action, hash: fe97cf5fa8c71c21}
   - {addr: 0x80184e98, size: 260, name: battle_formula_apply_element_affinities, hash: 1246bf9fcb0de648}
