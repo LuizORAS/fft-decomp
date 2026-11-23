@@ -318,8 +318,14 @@ s32 battle_gfx_build_next_action_result_display(battle_unit_t* unit) {
             display_2, 0, -21, -32, image->u, image->v, image->width, image->height, 0);
         break;
     case BATTLE_NUMERIC_DISPLAY_CT_ZERO:
+#ifdef FIX_BUGS
+        /* The edition shows CT 0 at the height of Quick and Missed (QUIRKS.md). */
+        battle_gfx_store_sprite_display_data(display_1, 0, -16, -32, 0xc2, 0xc2, 0x0e, 8, 0);
+        battle_gfx_store_sprite_display_data(display_2, 0, 0, -32, 0xa8, 0x34, 8, 8, 0);
+#else
         battle_gfx_store_sprite_display_data(display_1, 0, -16, y_shift, 0xc2, 0xc2, 0x0e, 8, 0);
         battle_gfx_store_sprite_display_data(display_2, 0, 0, y_shift, 0xa8, 0x34, 8, 8, 0);
+#endif
         break;
     }
 

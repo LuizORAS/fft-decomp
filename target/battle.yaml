@@ -417,7 +417,7 @@ functions:
   - {addr: 0x8007f400, size: 92, name: battle_gfx_shift_and_fill_position_copies, hash: 8bb1133d61cd9a55}
   - {addr: 0x8007f45c, size: 176, name: battle_gfx_store_item_display_data, hash: 5a99ee1e12aea6a6}
   - {addr: 0x8007f50c, size: 236, name: battle_gfx_init_item_get_rendering, hash: 5d4302c9c4c3284c}
-  - {addr: 0x8007f5f8, size: 3564, name: battle_gfx_build_next_action_result_display, hash: eb0e390861d3bf97, rodata: [{addr: 0x80067838, size: 884, hash: ec9dc128f5d4bf7b}]}
+  - {addr: 0x8007f5f8, size: 3564, name: battle_gfx_build_next_action_result_display, hash: eb0e390861d3bf97, change: [FIX_BUGS], dc_hash: 9cd12f6417f15d30, rodata: [{addr: 0x80067838, size: 884, hash: ec9dc128f5d4bf7b}]}
   - {addr: 0x800803e4, size: 1236, name: battle_gfx_prepare_post_action_display, hash: 71e3a74e2047ec31}
   - {addr: 0x800808b8, size: 1676, name: battle_gfx_build_next_special_action_result_display, hash: f84b03f33a1ae7db}
   - {addr: 0x80080f44, size: 168, name: battle_gfx_init_earned_exp_jp_display, hash: 2256e8aaac92d311}

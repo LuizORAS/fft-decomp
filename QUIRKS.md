@@ -143,6 +143,10 @@ An entry an edition changes keeps describing the retail code and ends with
 - `src/battle/battle_gfx_build_next_action_result_display.c`: the CT-zero
   display case reads `y_shift` without setting it; only the HP/MP and
   stat-change cases assign it, so the sprite row depends on the leftover value.
+  It lives in `s8`, which neither caller sets: measured at Gariland's result
+  displays it holds 0x801ffff8 or 1, so CT 0 (Persuade, Return 2, Last Dance)
+  stands 24 to 33 pixels below Quick and Missed, over the unit.
+  Fixed under `FIX_BUGS`: CT 0 takes -32, the height of Quick and Missed.
 - `src/main/main_unit_calculate_random_equipment.c`: throwing and bomb item
   types index past the four equipment-category bytes into the first innate
   status byte; that adjacent byte controls their eligibility.
