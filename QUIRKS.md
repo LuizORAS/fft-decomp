@@ -1431,7 +1431,10 @@ translation unit. Share their types and constants through headers.
 - `bunit_gfx_init_double_packet_buffers` and `world_gfx_init_double_packet_buffers` set
   their draw and display environments 255 pixels wide where MAIN and CARD use 256, so
   the default drawing area ends at x = 254; `PutDispEnv` still picks the 256-pixel
-  mode.
+  mode. The last column of the formation screen and of the unit list stays black,
+  though their floor and fade cover all 256. It may be on purpose: the shops' background
+  is 255 wide and `g_world_shop_edge_tile_rect` blackens that column over everything.
+  Fixed under `FIX_BUGS`: the environments are 256 wide, so the floor reaches the edge; the shops' black column stays.
 - `world_text_measure_entry_pixel_width` adds the operand of 0xE7
   (`TEXT_SET_X_POSITION`) to the width as an advance, while the renderers
   (`menu_text_render_encoded_ids_to_image`, `world_text_render_encoded_ids_to_image`,

@@ -510,7 +510,7 @@ functions:
   - {addr: 0x801c7444, size: 648, name: bunit_ability_build_list, hash: 373b01e6f8a27498}
   - {addr: 0x801c76cc, size: 444, name: bunit_gfx_submit_frame_and_swap_buffers, hash: 03562779b98bb33c}
   - {addr: 0x801c7888, size: 1560, name: bunit_gfx_init_packet_pools, hash: 534a0c774b97dee2}
-  - {addr: 0x801c7ea0, size: 1384, name: bunit_gfx_init_double_packet_buffers, hash: a4cfeb32963dd7b9}
+  - {addr: 0x801c7ea0, size: 1384, name: bunit_gfx_init_double_packet_buffers, hash: a4cfeb32963dd7b9, change: [FIX_BUGS], dc_hash: 781e47bb8a62e8fe}
   - {addr: 0x801c8408, size: 52, name: menu_set_vsync_mode_and_event_speed, hash: 33b6a2c8c1908b56, source: src/shared/menu/menu_set_vsync_mode_and_event_speed.c}
   - {addr: 0x801c843c, size: 32, name: menu_get_event_speed, hash: d1c5682dc9e305b3, source: src/shared/menu/menu_get_event_speed.c}
   - {addr: 0x801c845c, size: 212, name: bunit_menu_init_scrollable_list_core, hash: c2663ee9beede6f5}
