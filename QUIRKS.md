@@ -497,8 +497,11 @@ An entry an edition changes keeps describing the retail code and ends with
   reads, where it was, until the mount's Wait or an event's end (measured with
   direct calls, not in play).
   The last two functions also write the partner record's facing with no null
-  test, which a port must not copy. The Developer's Cut leaves the three
-  unchanged.
+  test, which a port must not copy. The Developer's Cut leaves the first
+  unchanged: the tile never differs, and naming the rider there would rebuild the
+  pair's link, which a mount with Charm, Berserk or another status that bars
+  mounting would lose.
+  Fixed under `FIX_BUGS`: the two facing functions give the mount's battle stats the facing its sprite takes, and test that the mount exists.
 - `battle_gfx_release_reserved_vram_slot` tests owner bit 0x80
   (`BATTLE_GFX_VRAM_SLOT_OWNER_ATTACK_IMAGE`), which the EVTCHR (0xfe) and free
   (0xff) markers also carry, so the event instruction releases a saved EVTCHR

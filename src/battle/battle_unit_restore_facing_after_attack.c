@@ -12,6 +12,10 @@ void battle_unit_restore_facing_after_attack(battle_unit_t* unit) {
     battle_unit_t* mount;
     s16 rot;
     s32 unused[4];
+#ifdef FIX_BUGS
+    /* The edition's facing in quarter turns, the rider's and the mount's (QUIRKS.md). */
+    s32 quarter_turns;
+#endif
 
     if (unit != 0) {
         if ((unit->status_flags_1_4 & BATTLE_UNIT_STATUS_DEAD) == 0) {
@@ -19,6 +23,21 @@ void battle_unit_restore_facing_after_attack(battle_unit_t* unit) {
             rot = unit->attack_facing;
             if (rot != -1) {
                 unit->facing = rot;
+#ifdef FIX_BUGS
+                /* The edition turns the mount's battle stats back with its sprite (QUIRKS.md). */
+                quarter_turns = rot / 1024;
+                battle_unit_set_tile_position(
+                    unit->stats->battle_id, unit->map_x, unit->map_y, unit->map_z, quarter_turns);
+                unit->attack_facing = -1;
+                if (unit->mount_state != BATTLE_UNIT_MOUNT_STATE_NONE) {
+                    mount = battle_unit_get_by_runtime_id(unit->mount_partner_runtime_id);
+                    if (mount != 0) {
+                        mount->facing = unit->facing;
+                        battle_unit_set_tile_position(
+                            mount->stats->battle_id, unit->map_x, unit->map_y, unit->map_z, quarter_turns);
+                    }
+                }
+#else
                 battle_unit_set_tile_position(
                     unit->stats->battle_id, unit->map_x, unit->map_y, unit->map_z, rot / 1024);
                 /* Stored as a signed 16-bit value (li -1, not ori 0xffff). */
@@ -29,6 +48,7 @@ void battle_unit_restore_facing_after_attack(battle_unit_t* unit) {
                     battle_unit_set_tile_position(
                         unit->stats->battle_id, unit->map_x, unit->map_y, unit->map_z, unit->facing / 1024);
                 }
+#endif
             }
         } else {
             unit->attack_facing = -1;

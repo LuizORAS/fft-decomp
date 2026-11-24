@@ -196,6 +196,11 @@ reacts.
   referenced on the disc.
 - Reaction bit `0x04` of the third byte (id 0x1bb) has a blank name and no
   code tests it ([[Abilities]]).
+- A rider that turns toward an action turns its mount's sprite but not the
+  mount's battle stats, so a mount whose rider dies in that action keeps its
+  old facing for the evasion ([[battle_unit_face_towards_action_target]],
+  [[battle_unit_restore_facing_after_attack]], `QUIRKS.md`). The Developer's
+  Cut turns both.
 
 ## Functions in scope
 

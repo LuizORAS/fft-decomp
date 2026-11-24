@@ -245,8 +245,8 @@ functions:
   - {addr: 0x80072544, size: 304, name: battle_state_enter_wait, hash: 74efd645b9ff9f5f}
   - {addr: 0x80072674, size: 152, name: battle_unit_face_toward_cursor, hash: abdecdaba9d59df0}
   - {addr: 0x8007270c, size: 48, name: battle_unit_save_facing_before_attack, hash: d59bb4a298108b8b}
-  - {addr: 0x8007273c, size: 492, name: battle_unit_face_towards_action_target, hash: 791b0ba304526942}
-  - {addr: 0x80072928, size: 232, name: battle_unit_restore_facing_after_attack, hash: f982d5fccfa0a305}
+  - {addr: 0x8007273c, size: 492, name: battle_unit_face_towards_action_target, hash: 791b0ba304526942, change: [FIX_BUGS], dc_hash: 10f42caa712990a3}
+  - {addr: 0x80072928, size: 232, name: battle_unit_restore_facing_after_attack, hash: f982d5fccfa0a305, change: [FIX_BUGS], dc_hash: 1cf675702b205b18}
   - {addr: 0x80072a10, size: 120, name: battle_unit_restore_target_facings_after_attack, hash: 67354609471f52d5}
   - {addr: 0x80072a88, size: 72, name: battle_unit_restore_all_facings_after_attack, hash: be3d20f8e3dc8465}
   - {addr: 0x80072ad0, size: 68, name: battle_state_enter_continue_turn, hash: 6914defc81960bcd}
