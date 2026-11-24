@@ -1,16 +1,15 @@
 -- Retail bug of battle_formula_apply_zodiac_compatibility (QUIRKS.md): the
 -- compatibility leaves XA at least 1 for every sign pair, neutral ones too,
 -- but returns for Serpentarius (Elidibus's sign, from job 151) before that
--- floor, so an XA already cut to 0 (Protect and Defense Up on an XA of 1 or
--- 2) stays 0 and the hit deals 0 damage. Calls make it at one stop of
--- BATTLE's thread_yield, from the AI stop of an Auto-battle turn on
--- Gariland's real route (the new-game save): unit slot 0 (sign 0) acts on
--- unit slot 1 with XA 0 against Serpentarius (sign 12), XA 0 against sign 1
--- (a neutral pair) and XA 10 against Serpentarius. The scenario reads XA after
--- each call; both units' zodiac bytes, XA and the two action pointers are put
--- back after the last call. On the original XA is 0, 1 and 10; on the
--- Developer's Cut 1, 1 and 10: Serpentarius reaches the floor and stays
--- neutral.
+-- floor, so an XA already cut to 0 (Protect or Defense Up on an XA of 1, both
+-- on 2) stays 0 and the hit deals 0 damage. Calls make it at one stop of
+-- BATTLE's thread_yield, from the AI stop of an Auto-battle turn on Gariland's
+-- real route (the new-game save): unit slot 0 (sign 0) acts on unit slot 1
+-- with XA 0 against Serpentarius (sign 12), XA 0 against sign 1 (a neutral
+-- pair) and XA 10 against Serpentarius. The scenario reads XA after each call;
+-- both units' zodiac bytes, XA and the two action pointers are put back after
+-- the last call. On the original XA is 0, 1 and 10; on the Developer's Cut 1,
+-- 1 and 10: Serpentarius reaches the floor and stays neutral.
 local bit = require('bit')
 local e = emulator
 local BUTTON = e.BUTTON

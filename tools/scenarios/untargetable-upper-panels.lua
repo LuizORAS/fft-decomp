@@ -1,7 +1,7 @@
 -- Retail bug of battle_target_clear_panels_on_untargetable_tiles (QUIRKS.md):
 -- the range of a single-tile or direct-targeting ability drops each tile the
 -- map marks untargetable, but the loop stops after the lower layer's 256
--- panels, so an untargetable upper-layer tile stays in range (15 maps have
+-- panels, so an untargetable upper-layer tile stays in range (16 maps have
 -- such tiles, and no unit can stop on one). Gariland has none, so at one stop
 -- of BATTLE's thread_yield on its deployment screen (the new-game save) three
 -- panels get range 3 and mark 1: lower tile 5 marked untargetable (the

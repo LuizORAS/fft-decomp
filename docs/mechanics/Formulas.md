@@ -261,13 +261,14 @@ retail abilities, weapons, consumables or commands that select the formula.
 
 - Oil never raises fire damage: [[battle_formula_apply_ability_element]]
   doubles XA after the damage is stored (`QUIRKS.md`). The Developer's Cut
-  doubles the stored damage; weapon strikes still skip Oil.
+  doubles the stored damage; weapon strikes still skip Oil (not the spells
+  a weapon casts).
 - The Healing Staff ([[battle_formula_weapon_heal]]) applies the zodiac
   compatibility twice, and the target's Defense Up and Protect cut its
   healing (`QUIRKS.md`). The Developer's Cut applies the compatibility once.
 - [[battle_formula_apply_zodiac_compatibility]] returns for Serpentarius
-  before its floor of 1, so an XA already cut to 0 stays 0 (`QUIRKS.md`).
-  The Developer's Cut floors it too.
+  before its floor of 1, so an XA already cut to 0 stays 0; only a fight
+  with Elidibus can meet it (`QUIRKS.md`). The Developer's Cut floors it too.
 - Please Eat ([[battle_formula_raise_level_by_one_add_status_on_caster]])
   restores all HP and MP but keeps only the level change as its result type,
   so no HP or MP number shows (`QUIRKS.md`). The Developer's Cut keeps the

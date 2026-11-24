@@ -90,9 +90,11 @@ An entry an edition changes keeps describing the retail code and ends with
   `src/battle/battle_ai_simulate_action_and_score.c`: the Blood Suck branch
   tests `BATTLE_AI_DECISION_JUMPING`, which the refresh builds from Jump (bit
   `0x04` of status byte 0; Blood Suck is bit `0x04` of byte 1). Protect allies
-  tries the branch only for a target with Blood Suck, so it never removes Blood
-  Suck unless the target is also jumping.
-  Fixed under `FIX_BUGS`: the refresh builds the bit from Blood Suck, so Protect allies looks for a cure and, with none, turns to the ally most in peril, as for Dead and Petrify.
+  tries the branch only for a target with Blood Suck, so its search for a cure
+  never runs unless the target is also jumping. The AI still cures Blood Suck
+  through its general pass over the same target's abilities, only without the
+  priority the search gives.
+  Fixed under `FIX_BUGS`: the refresh builds the bit from Blood Suck, so Protect allies looks for a cure first and, with none, turns to the ally most in peril, as for Dead and Petrify.
 - `src/battle/battle_ai_build_monster_skill_tile_mask.c`: the `-1` neighbor
   offsets are loaded unsigned (+255), so only `+x`/`+y` survive, and the level
   loop runs for level 0 only.
@@ -113,7 +115,7 @@ An entry an edition changes keeps describing the retail code and ends with
   caller has already stored XA * YA as the HP damage, so Oil never raises fire damage (it is still
   marked for removal). Players know this as Oil having no effect in the PlayStation version.
   The weapon-element path (`battle_formula_apply_weapon_element`) does not test Oil at all.
-  Fixed under `FIX_BUGS`: Oil doubles the stored damage of a fire ability, as Weak does; weapons still skip it.
+  Fixed under `FIX_BUGS`: Oil doubles the stored damage of a fire ability, as Weak does (a target that absorbs fire heals twice as much); the Glacier Gun's fire spells and the spells Flame Rod and Flame Whip cast are abilities, and a weapon's strike still skips Oil.
 - `src/battle/battle_action_init_current_ability_strike_data.c`: the range-data
   guard `ability_id >= 0 || ability_id < ABILITY_ID_ITEM_FIRST` is always true
   (`&&` was presumably meant), so item ids read past the table; only the
@@ -143,9 +145,10 @@ An entry an edition changes keeps describing the retail code and ends with
 - `src/battle/battle_gfx_build_next_action_result_display.c`: the CT-zero
   display case reads `y_shift` without setting it; only the HP/MP and
   stat-change cases assign it, so the sprite row depends on the leftover value.
-  It lives in `s8`, which neither caller sets: measured at Gariland's result
-  displays it holds 0x801ffff8 or 1, so CT 0 (Persuade, Return 2, Last Dance)
-  stands 24 to 33 pixels below Quick and Missed, over the unit.
+  It lives in `s8`, which neither caller sets and which holds the startup's
+  0x801ffff8 at every display but a weapon strike's (measured at Gariland's),
+  and no weapon strike queues CT 0. So CT 0 (Persuade, Return 2, Last Dance)
+  stands 24 pixels below Quick and Missed.
   Fixed under `FIX_BUGS`: CT 0 takes -32, the height of Quick and Missed.
 - `src/main/main_unit_calculate_random_equipment.c`: throwing and bomb item
   types index past the four equipment-category bytes into the first innate
@@ -393,9 +396,10 @@ An entry an edition changes keeps describing the retail code and ends with
   ability considered last (`g_battle_ai_data_base.considered_ability`), not of the one being added, so
   for an innately Innocent unit (the Steel Giant job) it keeps or drops all of a skillset's default
   abilities at once, by whatever that stale ability was. Its Work skillset has no Faith ability, so it can
-  only lose them: each event's end rebuilds the lists in slot order, and Worker 7-New, slot 0 at Nelveska
-  Temple, loses Work when the last ability the AI weighed was a Faith one (of a unit the AI runs for the
-  player).
+  only lose them, when the lists rebuild (at each event's end) after a Faith ability: one the AI weighed, or
+  one a battle menu's ability list left in the same memory. The one loadable battle that fields the job is
+  Nelveska Temple (Worker 7-New, slot 0), whose later events run only once Worker 7 is dead, so nothing
+  visible follows.
   Fixed under `FIX_BUGS`: the test reads the Faith flag of the ability being added.
 - `src/battle/battle_target_validate_weapon_target.c`: the weapon-range flag
   is read from `g_main_ability_range_data[(u8)ability_id]`, so abilities
@@ -403,8 +407,9 @@ An entry an edition changes keeps describing the retail code and ends with
   full id's flags first, and Shock (0x100), the one ability whose result would differ, has neither.
   Fixed under `FIX_BUGS`: the flag is read with the whole id.
 - `battle_unit_apply_level_up_down_ability`: a level-1 target of a level-down
-  (the Degenerator trap; formula 0x59 misses at level 1) is clamped back to
-  level 1 and still loses raw / (growth + 1) of every raw stat.
+  (the Degenerator trap, on Dolbodar Swamp, Fovoham Plains, Bervenia Volcano,
+  Zeklaus Desert and the Deep Dungeon's TERMINATE; formula 0x59 misses at level 1)
+  is clamped back to level 1 and still loses raw / (growth + 1) of every raw stat.
   Fixed under `FIX_BUGS`: `battle_action_apply_tile_trap` misses a unit below level 2, as Level Blast does.
 - `suzuki_sound_set_reverb_mode`: a negative mode is meant to keep the current
   mode, but the stored mode still carries the 0x100 work-area flag that LIBSPU
@@ -481,13 +486,16 @@ An entry an edition changes keeps describing the retail code and ends with
   `battle_unit_face_towards_action_target`: for a mounted pair the second
   `battle_unit_set_tile_position` call names the unit's own battle record again
   (the first function finds its "mount" by the unit's own `runtime_id`), so the
-  partner's battle stats take no tile or facing here. No play reaches the
-  difference: a mounted pair walks as its mount, and
-  `battle_unit_set_tile_position` on the mount carries the rider; a rider that
-  moves alone dismounts on its first step; knockback skips a mounted pair; a
-  rider turned toward an attacker and back leaves the mount's stored facing
-  where it was, since the turn skips it the same way; and
-  `battle_unit_set_tile_position_with_mount_partner` sets both at Wait.
+  partner's battle stats take no tile or facing here. The tile never differs: a
+  mounted pair walks as its mount, and `battle_unit_set_tile_position` on the
+  mount carries the rider; a rider that moves alone dismounts on its first step;
+  and knockback skips a mounted pair. The facing does: a rider turned toward an
+  action turns the mount's sprite but not its stored facing. Turning back evens
+  them out, but `battle_unit_restore_facing_after_attack` skips a dead unit, so
+  a rider killed in the action it turned in (by a counter, for example) leaves
+  its mount's sprite facing the action and its stored facing, which the evasion
+  reads, where it was, until the mount's Wait or an event's end (measured with
+  direct calls, not in play).
   The last two functions also write the partner record's facing with no null
   test, which a port must not copy. The Developer's Cut leaves the three
   unchanged.
@@ -621,7 +629,8 @@ An entry an edition changes keeps describing the retail code and ends with
   Crystal bit set.
 - `battle_formula_apply_zodiac_compatibility` returns early when either unit is
   Serpentarius, before the floor of 1 that every other sign pair reaches, so an XA
-  already cut to 0 stays 0 and the hit deals 0 damage.
+  already cut to 0 stays 0 and the hit deals 0 damage. Only Elidibus (job 151) has
+  the sign, and XA 0 takes deliberate play, such as Protect cast on it and a hit of XA 1.
   Fixed under `FIX_BUGS`: Serpentarius reaches the floor too and stays neutral.
 - `open_movie_update_stream_frame` restarts a stream whose ring has fewer than 16
   free sectors through `open_movie_start_cd_stream_read`, which reads with mode
@@ -659,21 +668,22 @@ An entry an edition changes keeps describing the retail code and ends with
   divide by zero. The average is stored only with an offset, which all four
   callers pass. No play reaches either: an effect's targets are all units, one
   tile or none. Five effects use the source, all in the child camera table (E033
-  Haste 2, E035 Slow 2, E160 Ultima, E384 Ulmaguest and E408 Nanoflare); their
-  scripts end at once without a target, and the one tile needs an ability that
-  animates on a miss or that Reflect bounced, which none of the five is. The
-  Developer's Cut leaves it unchanged.
+  Haste 2, E035 Slow 2, E160 Ultima, E384 Ulmaguest and E408 Nanoflare), whose
+  keyframes `battle_camera_find_active_keyframe` reads only with a target, and
+  the one tile needs an ability that animates on a miss or that Reflect bounced,
+  which none of the five is. The Developer's Cut leaves it unchanged.
 - `battle_unit_place_in_new_location` (WarpUnit, and
   `battle_script_warp_unit_display_to_paired_unit` with its WORLD twin) passes
   `unit->facing`, the quadrant shifted left 10, as the `u8` facing of
   `battle_unit_set_tile_position`, where its other callers divide by 1024. The low
   byte is 0, so a warped unit's battle stats face south while its sprite faces as
   asked, until the event ends and `script_execute_event` copies every sprite's
-  facing back to the stats. Within the event the script code that reads a stats
+  facing back to the stats (an event that chains to another skips that copy). A
+  tile that takes no unit keeps the facing asked. Within the event the script code that reads a stats
   facing is the paired warp (CallFunction 0x0f and 0x10, which the save menu's
   0x06 also reaches), the copy of CallFunction 0x11 and the graphics load of a
   unit (`battle_gfx_load_unit_graphics_by_battle_id`, from AddUnit and
-  CallFunction 0x0d and 0x11); ten of the 21 events that open the save menu warp
+  CallFunction 0x0d and 0x11); ten of the 24 events that open the save menu warp
   a unit to another facing first.
   Fixed under `FIX_BUGS`: the stats take the facing in quarter turns.
 - `battle_move_animate_jump_start` and `battle_move_animate_jump_rise_with_sfx` size
@@ -919,9 +929,11 @@ written that way.
   layer) and `map_y` to `battle_ai_record_sprung_trap`, which stores x, y and level,
   so the AI's sprung-trap tile holds the layer as y and the row as level. The AI keeps
   off the right tile only for a trap on row 0 of the lower layer; for row 1 it keeps off
-  a tile of the upper layer's row 0, and from row 2 its mask write lands in other AI
-  masks (from row 14, its stage bytes), which the retail traps (rows 0 to 13) leave to
-  be rebuilt before use.
+  a tile of the upper layer's row 0 (blocked on the three maps with such a trap), and from
+  row 2 its mask write lands in other AI masks (from row 14, its stage bytes), which the
+  retail traps (rows 0 to 13) leave to be rebuilt before use, but for row 13 (map 72), whose
+  write in the walkable tiles lands on a blocked tile. The list lasts until the AI workspace
+  resets, at the battle's start or a mid-battle event's end.
   Fixed under `FIX_BUGS`: the tile is passed as x, row and layer.
 - `battle_menu_collect_monster_skill_abilities` returns 0 from its early exits but
   falls off its end after building a list, and writes no terminator after it; both
@@ -1302,14 +1314,16 @@ translation unit. Share their types and constants through headers.
   kind at a time is handled (none, damage, absorb, heal), so a unit holding two kinds (a Blood Sword or
   Healing Staff with another weapon under Two Swords) gets no target-team flag on its Attack entry. The AI
   still attacks enemies with it, as the strike simulation scores the hits, but leaves it out of the unit's
-  reach toward an enemy and its share of harmful abilities. No ENTD unit can hold two kinds; a player's
-  unit under the AI can.
+  reach toward an enemy and its share of harmful abilities. No ENTD unit with the ENTD's own equipment can
+  hold two kinds; a player's unit can, and the enemies' AI reads its list too, even played by hand. Guests
+  that take the roster's equipment are not ruled out.
   Fixed under `FIX_BUGS`: two kinds aim at enemies, as a damage weapon.
 - Half of MP: `battle_menu_get_unit_skillset_ability_data` lists the half rounded up and the menu grays
-  an ability by it, but `battle_action_check_and_consume_mp` and the AI use the half rounded down. Seven
+  and questions an ability by it, but `battle_action_check_and_consume_mp` and the AI use the half rounded down. Seven
   abilities have odd costs (Zodiac 99; Toad 2, Gravi 2, Flare 2, Blind 2, Confuse 2 and Sleep 2 at 35),
-  so a unit with exactly the lower half sees them grayed.
-  Fixed under `FIX_BUGS`: the list shows the half rounded down, the cost the action pays, and grays by it.
+  so a unit with exactly the lower half sees them grayed with the not-enough-MP warning. The player can
+  accept the warning and the action runs; only an ability of CT 0 is refused.
+  Fixed under `FIX_BUGS`: the list shows the half rounded down, the cost the action pays, and grays and warns by it.
 - `src/battle/battle_ai_select_auto_battle_action.c`: Protect allies falls back to Run like a rabbit when
   `battle_ai_select_protect_allies_action` returns -2, which it never does.
 - `src/battle/battle_ai_evaluate_origins.c`: an ability without

@@ -161,8 +161,9 @@ innate ones of its job.
    Charge halves it, rounding up; Non-Charge makes it 0; a performed ability
    keeps it) and how many turns come first; a Frog lists only the Frog spell,
    and an ability that needs a sword or Materia Blade drops without one.
-   [[battle_menu_build_ability_list]] then grays the abilities the unit lacks
-   the MP for or cannot cast while Silenced. The action pays the half rounded
+   [[battle_menu_build_ability_list]] then grays the abilities with a CT that the
+   unit lacks the MP for or cannot cast while Silenced (the player may accept
+   the warning; one of CT 0 is refused). The action pays the half rounded
    down, so an odd cost lists one more than it costs (`QUIRKS.md`); the
    Developer's Cut lists the half rounded down.
 3. **The command.** The chosen ability goes through the [[Action]] pipeline,

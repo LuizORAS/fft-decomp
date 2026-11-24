@@ -1,16 +1,16 @@
 -- Retail bug of battle_gfx_build_next_action_result_display (QUIRKS.md): the
 -- CT 0 display (Persuade, Return 2, Last Dance) reads y_shift without setting
 -- it. The value lives in s8, which neither caller sets, so CT 0 stands at the
--- height the caller's s8 gives (0x801ffff8 or 1 at Gariland's result
--- displays) instead of the -32 of Quick and Missed. Gariland has no CT 0
--- ability, so a call makes it at one stop of BATTLE's thread_yield, from the
--- AI stop of an Auto-battle turn on Gariland's real route (the new-game
--- save): the runtime unit of unit slot 0 builds its next result with only the
--- CT 0 flag queued. The scenario reads the height of the two images (CT and
--- 0) and compares it with the low byte of the s8 the anchor holds; the
--- runtime unit and its three display records are put back after the call. On
--- the original both images take the caller's s8; on the Developer's Cut both
--- stand at -32.
+-- height the caller's s8 gives (0x801ffff8, so -8, except at a weapon strike,
+-- which never queues CT 0) instead of the -32 of Quick and Missed. Gariland
+-- has no CT 0 ability, so a call makes it at one stop of BATTLE's
+-- thread_yield, from the AI stop of an Auto-battle turn on Gariland's real
+-- route (the new-game save): the runtime unit of unit slot 0 builds its next
+-- result with only the CT 0 flag queued. The scenario reads the height of the
+-- two images (CT and 0) and compares it with the low byte of the s8 the anchor
+-- holds; the runtime unit and its three display records are put back after the
+-- call. On the original both images take the caller's s8; on the Developer's
+-- Cut both stand at -32.
 local e = emulator
 local BUTTON = e.BUTTON
 

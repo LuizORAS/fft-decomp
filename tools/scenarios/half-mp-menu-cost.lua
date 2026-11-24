@@ -1,18 +1,19 @@
 -- Retail bug of battle_menu_get_unit_skillset_ability_data (QUIRKS.md): with
 -- Half of MP the ability menu lists the half rounded up, and
 -- battle_menu_build_ability_list grays an ability when the unit's MP minus
--- that listed cost is below 0, but battle_action_check_and_consume_mp and the
--- AI charge the half rounded down: Zodiac lists 50 and costs 49, so a unit
--- with 49 MP sees it grayed. Gariland has no Summoner with Half of MP, so
--- calls make it at one stop of BATTLE's thread_yield, from the AI stop of an
--- Auto-battle turn on Gariland's real route (the new-game save): unit slot 0,
--- marked a monster for the call so every Summon Magic ability counts as
--- learned, lists Summon Magic into the menu's own buffers in the AI's work
--- block, once with Half of MP and once without. The scenario reads the
--- listed MP of Zodiac (99, the odd cost) and Moogle (8, an even one); the
--- unit and the list's part of the work block are put back after the last
--- call. On the original Half of MP lists 50 and 4; on the Developer's Cut 49
--- and 4. Without it both list 99.
+-- that listed cost is below 0 and its CT is not 0, but
+-- battle_action_check_and_consume_mp and the AI charge the half rounded down:
+-- Zodiac lists 50 and costs 49, so a unit with 49 MP sees it grayed and is
+-- warned of too little MP, though it can accept and cast it. Gariland has no
+-- Summoner with Half of MP, so calls make it at one stop of BATTLE's
+-- thread_yield, from the AI stop of an Auto-battle turn on Gariland's real
+-- route (the new-game save): unit slot 0, marked a monster for the call so
+-- every Summon Magic ability counts as learned, lists Summon Magic into the
+-- menu's own buffers in the AI's work block, once with Half of MP and once
+-- without. The scenario reads the listed MP of Zodiac (99, the odd cost) and
+-- Moogle (8, an even one); the unit and the list's part of the work block are
+-- put back after the last call. On the original Half of MP lists 50 and 4; on
+-- the Developer's Cut 49 and 4. Without it both list 99.
 local bit = require('bit')
 local e = emulator
 local BUTTON = e.BUTTON

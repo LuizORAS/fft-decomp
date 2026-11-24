@@ -210,7 +210,8 @@ The other statuses weigh 0.
 - **Wrong bits:** the CT estimate tests Monster Skill and Defend where Short
   Charge and Non-Charge were presumably meant
   ([[battle_ai_load_ability_entry]]), and Protect allies tests Blood Suck
-  with the Jump bit ([[battle_ai_evaluate_status_cancellation]]). The
+  with the Jump bit ([[battle_ai_evaluate_status_cancellation]]), so it gives
+  that cure no priority (the general pass still weighs it). The
   Developer's Cut estimates the CT the charge takes and builds the bit from
   Blood Suck ([[battle_ai_simulate_action_and_score]]).
 - **Wrong range:** with Throw Item the AI plans a thrown item at the unit's

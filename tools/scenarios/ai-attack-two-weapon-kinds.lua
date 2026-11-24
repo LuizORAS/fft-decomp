@@ -1,17 +1,17 @@
 -- Retail bug of battle_ai_build_unit_ability_list (QUIRKS.md): the kinds of
--- both hands' weapons are ORed and only one kind at a time gets a target
--- team, so a unit holding two kinds under Two Swords (a Blood Sword, which
--- absorbs, or a Healing Staff, which heals, with a weapon of another kind)
--- gets an Attack entry with no target team. The AI still attacks enemies
--- with it, but leaves it out of the unit's reach toward an enemy and of its
--- share of harmful abilities. No ENTD unit can hold two kinds, so calls make
--- it at one stop of BATTLE's thread_yield, from the AI stop of an Auto-battle
--- turn on Gariland's real route (the new-game save): unit slot 0 gets a Long
--- Sword, a Blood Sword, both, and a Healing Staff with a Long Sword, and the
--- AI builds its list each time; the scenario reads the Attack summary's
--- flag bytes 1 and 2 (target team 0x02 enemies, 0x01 allies; 0x80 affects
--- HP; 0x20 undead reversal, 0x02 evadable). The unit's hands and the AI
--- workspace are put back after the last call. On the original two kinds
+-- both hands' weapons are ORed and only one kind at a time gets a target team,
+-- so a unit holding two kinds under Two Swords (a Blood Sword, which absorbs,
+-- or a Healing Staff, which heals, with a weapon of another kind) gets an
+-- Attack entry with no target team. The AI still attacks enemies with it, but
+-- leaves it out of the unit's reach toward an enemy and of its share of
+-- harmful abilities. No ENTD unit with the ENTD's equipment can hold two
+-- kinds, so calls make it at one stop of BATTLE's thread_yield, from the AI
+-- stop of an Auto-battle turn on Gariland's real route (the new-game save):
+-- unit slot 0 gets a Long Sword, a Blood Sword, both, and a Healing Staff with
+-- a Long Sword, and the AI builds its list each time; the scenario reads the
+-- Attack summary's flag bytes 1 and 2 (target team 0x02 enemies, 0x01 allies;
+-- 0x80 affects HP; 0x20 undead reversal, 0x02 evadable). The unit's hands and
+-- the AI workspace are put back after the last call. On the original two kinds
 -- give 80 (no team); on the Developer's Cut they give 82, as a damage weapon.
 local e = emulator
 local BUTTON = e.BUTTON
@@ -72,7 +72,7 @@ for index, case in ipairs(cases) do
 end
 
 return {
-    why = 'two weapon kinds leave the AI\'s Attack with no target team (direct calls: no ENTD unit holds two kinds)',
+    why = 'two weapon kinds leave the AI\'s Attack with no target team (direct calls: no ENTD unit brings two kinds)',
     save = { file = 'smoke-new-game.mcd', sha256 = '02203c586fc996bd3c3dfa1fb07bb6e0025cb590b69b59dae955fc3b098c47e3' },
     setup = e.join(e.continueFromTitle(), {
         { module = 'event-attack', name = 'attack_deploy_run_screen', label = 'overlay menu ATTACK.OUT deployment',

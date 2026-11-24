@@ -1,19 +1,19 @@
 -- Retail bug of battle_ai_build_targetable_tile_mask (QUIRKS.md): the AI's
--- range diamond, the tiles within a radius of a target from which the AI
--- plans to act, builds each row from eight templates of half-width 0 to 7, so
--- radii 8 to 15 read past them into g_battle_ai_status_priority_weights: a
--- half-width of 8 gives an empty row and 9 to 15 give stray bits. Guns,
--- Shock, Dispose, Earth Slash, Kikuichimoji and Level Jump 8 (radius 8), Holy
+-- range diamond, the tiles within a radius of a target from which the AI plans
+-- to act, builds each row from eight templates of half-width 0 to 7, so radii
+-- 8 to 15 read past them into g_battle_ai_status_priority_weights: a
+-- half-width of 8 gives an empty row and 9 to 15 give stray bits. Guns, Shock,
+-- Dispose, Earth Slash, Kikuichimoji and Level Jump 8 (radius 8), Holy
 -- Explosion and All-Ultima aimed at tiles (range plus area 10 and 8) and a
--- Throw with Move 8 or more reach it. No early battle has such a unit, so
--- calls make the diamond at the AI stop of a Gariland Auto-battle turn (the
--- next BATTLE thread_yield after the AI first considers an ability, map 15
--- rows): radius 7 around 2,7 (the control, the same on both discs), radius 8
--- around 2,7, 9,7 and 2,0, radius 10 and 15 around 5,7. Each call reads the
--- map's rows of the lower level. The workspace is put back after the last
--- call. On the original the target's row at radius 8 is empty and radii 10
--- and 15 leave holes and stray bits; on the Developer's Cut every row spans
--- the half-width it should.
+-- Throw (or, on the original, an item under Throw Item) with Move 8 or more
+-- reach it. No early battle has such a unit, so calls make the diamond at the
+-- AI stop of a Gariland Auto-battle turn (the next BATTLE thread_yield after
+-- the AI first considers an ability, map 15 rows): radius 7 around 2,7 (the
+-- control, the same on both discs), radius 8 around 2,7, 9,7 and 2,0, radius
+-- 10 and 15 around 5,7. Each call reads the map's rows of the lower level. The
+-- workspace is put back after the last call. On the original the target's row
+-- at radius 8 is empty and radii 10 and 15 leave holes and stray bits; on the
+-- Developer's Cut every row spans the half-width it should.
 local e = emulator
 local BUTTON = e.BUTTON
 
