@@ -193,7 +193,7 @@ keeps each job's JP as a byte pair.
 - [[main_unit_calculate_random_equipment]]: throwing and bomb item types index
   past the equipment-category bytes.
 - [[main_unit_calculate_entd_equipment]] tests Equip Shield where Equip Armor
-  was meant, for the random body armor.
+  was meant, for the random body armor. The Developer's Cut tests Equip Armor.
 - [[main_unit_copy_job_data]] gives the immortal and formation immunity sets
   only to units that are both.
 - The ENTD 7-byte AI copy reads three bytes past `ai_target_xy`.

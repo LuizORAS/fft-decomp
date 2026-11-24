@@ -480,7 +480,9 @@ An entry an edition changes keeps describing the retail code and ends with
   range that runs past the last cell.
 - `main_unit_calculate_entd_equipment`: the random body-armor roll tests
   `BATTLE_SUPPORT_SET_1_EQUIP_SHIELD` before asking for `ITEM_TYPE_ARMOR`;
-  Equip Armor is tested only for the helmet.
+  Equip Armor is tested only for the helmet. No ENTD record or job fixes either
+  support; a Knight may draw one, the other jobs almost never.
+  Fixed under `FIX_BUGS`: the body roll tests Equip Armor too.
 - `battle_unit_store_coordinate_mount_animation_data`,
   `battle_unit_restore_facing_after_attack` and
   `battle_unit_face_towards_action_target`: for a mounted pair the second

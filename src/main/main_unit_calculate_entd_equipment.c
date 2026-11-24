@@ -135,11 +135,18 @@ void main_unit_calculate_entd_equipment(battle_stats_t* unit, entd_unit_t* entd)
     /* Body */
     item = entd->equipment[ENTD_EQUIPMENT_SLOT_BODY];
     if (item == ENTD_VALUE_RANDOM) {
+#ifdef FIX_BUGS
+        /* The edition tests Equip Armor, as the helmet does (QUIRKS.md). */
+        if (flags & BATTLE_SUPPORT_SET_1_EQUIP_ARMOR) {
+            item = main_unit_calculate_random_equipment(unit, ITEM_TYPE_FLAG_BODY_ARMOR, 0, ITEM_TYPE_ARMOR);
+        }
+#else
         /* The target reuses Equip Shield here while requesting random Armor;
          * preserve this native equipment-generation quirk. */
         if (flags & BATTLE_SUPPORT_SET_1_EQUIP_SHIELD) {
             item = main_unit_calculate_random_equipment(unit, ITEM_TYPE_FLAG_BODY_ARMOR, 0, ITEM_TYPE_ARMOR);
         }
+#endif
         if (item == ENTD_VALUE_RANDOM) {
             item = main_unit_calculate_random_equipment(unit, ITEM_TYPE_FLAG_BODY_ARMOR, 0, ITEM_TYPE_FILTER_ANY);
             if (item == ENTD_VALUE_RANDOM) {
