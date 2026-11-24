@@ -27,7 +27,10 @@ An entry an edition changes keeps describing the retail code and ends with
   never count toward it (the daily advance counts each one). It also misses a
   birthday that falls after December 31 inside the advance, and counts the year at
   December 31 where the daily advance counts it on March 21, with no cap at 99
-  where the daily advance stops.
+  where the daily advance stops. Only three events advance the date, one by 90 days,
+  when every proposition's days (16 at most) are over, and two by a year, whose
+  remainder of 0 days changes no proposition, so the Developer's Cut leaves it, as War
+  of the Lions (PSP) does.
 - `src/wldcore/wldcore_proposition_determine_success.c`: the preferred-job
   check resolves the party unit once, before its loop, from the scoring loop's
   leftover (past-the-end) index, so it tests that one unit every pass. War of the
