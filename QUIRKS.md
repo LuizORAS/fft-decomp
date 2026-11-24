@@ -654,8 +654,14 @@ An entry an edition changes keeps describing the retail code and ends with
   commands 0x66 and 0x68 that queue them, so they never run.
 - `battle_camera_execute_position_command`, target-average source: it sums the world
   coordinates of the unit targets only but divides by the whole target count, so
-  tile targets pull the average toward the map origin. The average is stored only
-  with an offset, which all four callers pass.
+  a tile target would pull the average toward the map origin and no target would
+  divide by zero. The average is stored only with an offset, which all four
+  callers pass. No play reaches either: an effect's targets are all units, one
+  tile or none. Five effects use the source, all in the child camera table (E033
+  Haste 2, E035 Slow 2, E160 Ultima, E384 Ulmaguest and E408 Nanoflare); their
+  scripts end at once without a target, and the one tile needs an ability that
+  animates on a miss or that Reflect bounced, which none of the five is. The
+  Developer's Cut leaves it unchanged.
 - `battle_unit_place_in_new_location` (WarpUnit, and
   `battle_script_warp_unit_display_to_paired_unit` with its WORLD twin) passes
   `unit->facing`, the quadrant shifted left 10, as the `u8` facing of
