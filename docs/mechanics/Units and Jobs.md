@@ -190,6 +190,8 @@ keeps each job's JP as a byte pair.
   there; in the Developer's Cut the trap misses too
   ([[battle_action_apply_tile_trap]]).
 - [[main_unit_learn_job_abilities]] sets a bought ability's bit twice.
+- [[main_unit_calculate_random_equipment]] restarts its list at each item of a
+  higher level but still takes the weaker items after it (`QUIRKS.md`).
 - [[main_unit_calculate_random_equipment]]: throwing and bomb item types index
   past the equipment-category bytes.
 - [[main_unit_calculate_entd_equipment]] tests Equip Shield where Equip Armor

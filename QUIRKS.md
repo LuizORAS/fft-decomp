@@ -481,7 +481,8 @@ An entry an edition changes keeps describing the retail code and ends with
 - `main_unit_calculate_entd_equipment`: the random body-armor roll tests
   `BATTLE_SUPPORT_SET_1_EQUIP_SHIELD` before asking for `ITEM_TYPE_ARMOR`;
   Equip Armor is tested only for the helmet. No ENTD record or job fixes either
-  support; a Knight may draw one, the other jobs almost never.
+  support; a Knight may draw one, the other jobs almost never. War of the Lions
+  (PSP) keeps the retail test.
   Fixed under `FIX_BUGS`: the body roll tests Equip Armor too.
 - `battle_unit_store_coordinate_mount_animation_data`,
   `battle_unit_restore_facing_after_attack` and
@@ -628,7 +629,11 @@ An entry an edition changes keeps describing the retail code and ends with
   that large.
 - `main_unit_calculate_random_equipment`: an item with a higher required level than
   any before it restarts the candidate list, but items scanned after it with a lower
-  level still join, so the pick is not limited to the highest level reached.
+  level still join, so the pick is not limited to the highest level reached: a level 20
+  Knight's body is the Gold Armor or one of three weaker robes. War of the Lions (PSP)
+  keeps the same rule. The Developer's Cut leaves it: the highest level alone would
+  take the variety the rule leaves by accident (an accessory from level 60 up would
+  always be the Bracer, a Ninja's weapon from level 40 up the Air Knife).
 - `battle_status_queue_runtime_graphics_flag_change`: removing Crystal falls into the
   Chicken case, so it queues the Chicken display bit for removal and leaves the
   Crystal bit set.
