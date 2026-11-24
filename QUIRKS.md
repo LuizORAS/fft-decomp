@@ -30,7 +30,9 @@ An entry an edition changes keeps describing the retail code and ends with
   where the daily advance stops.
 - `src/wldcore/wldcore_proposition_determine_success.c`: the preferred-job
   check resolves the party unit once, before its loop, from the scoring loop's
-  leftover (past-the-end) index, so it tests that one unit every pass.
+  leftover (past-the-end) index, so it tests that one unit every pass. War of the
+  Lions (PSP) does the same.
+  Fixed under `FIX_BUGS`: the check tests each unit sent.
 - `src/wldcore/wldcore_sound_novel_calculate_completion_percent.c` (no caller): counts 0x1000 bits
   from `g_main_sound_novel_section_bits`, which holds 1280 (40 words), so it also counts the
   Move-Find item flags and most of the poached item quantities stored after it.
@@ -391,7 +393,9 @@ An entry an edition changes keeps describing the retail code and ends with
   read from the bravery scores (proposition data record 5, three rows of
   five) with a ten-entry stride, so it runs on into the faith scores (record
   6). Record 7, three rows of ten level scores, is fetched by nothing: with
-  job list 1 a level 91-99 unit scores 5 where record 7 holds 50.
+  job list 1 a level 91-99 unit scores 5 where record 7 holds 50. War of the
+  Lions (PSP) does the same.
+  Fixed under `FIX_BUGS`: the level score is read from record 7.
 - `src/battle/battle_ai_add_usable_skillset_abilities.c`: the Faith test reads the AI flags of the
   ability considered last (`g_battle_ai_data_base.considered_ability`), not of the one being added, so
   for an innately Innocent unit (the Steel Giant job) it keeps or drops all of a skillset's default

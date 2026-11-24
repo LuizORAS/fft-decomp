@@ -196,7 +196,7 @@ functions:
   - {addr: 0x800794d0, size: 244, name: wldcore_proposition_step_message, hash: 4b01d85a59ee4969}
   - {addr: 0x800795c4, size: 604, name: wldcore_proposition_step_participant_message, hash: ab80ad9223197797, rodata: [{addr: 0x800671dc, size: 24, hash: f9c589d3d0cc9d4b}]}
   - {addr: 0x80079820, size: 36, name: wldcore_proposition_get_job_category, hash: 2ff3de5323a524e3}
-  - {addr: 0x80079844, size: 1064, name: wldcore_proposition_determine_success, hash: cf4e732c8358bf29}
+  - {addr: 0x80079844, size: 1064, name: wldcore_proposition_determine_success, hash: cf4e732c8358bf29, change: [FIX_BUGS], dc_hash: d66c0ee0cab864fe}
   - {addr: 0x80079c6c, size: 424, name: wldcore_proposition_calculate_base_jp_and_gil, hash: b052592ae6d24bc4}
   - {addr: 0x80079e14, size: 820, name: wldcore_proposition_roll_bonus_reward, hash: 70675445a9d2b128}
   - {addr: 0x8007a148, size: 352, name: wldcore_proposition_apply_extra_days_multiplier, hash: a82e6cd89335801f}
