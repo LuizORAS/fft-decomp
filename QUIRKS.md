@@ -505,9 +505,13 @@ An entry an edition changes keeps describing the retail code and ends with
   `g_battle_map_pending_gns_records`: it reads
   `g_battle_map_saved_light_matrix` and can overwrite the first 20 bytes of
   `g_battle_map_local_light_matrix`.
-- `main_gfx_build_zodiac_primitives` and `menu_build_zodiac_primitives`:
-  the round-to-nearest step of the sprite scale adds 1, not `ONE`, to the 4.12
-  product before dividing, so it only rounds up a remainder of `ONE` - 1.
+- `main_gfx_build_zodiac_primitives`, `world_gfx_build_zodiac_primitives`,
+  `attack_gfx_build_zodiac_primitives` and `menu_build_zodiac_primitives` (CARD,
+  DEBUGCHR and REQUIRE): the round-to-nearest step of the sprite scale adds 1,
+  not `ONE`, to the 4.12 product before dividing, so it only rounds up a
+  remainder of `ONE` - 1. Every scale in the six tables is `ONE` or -`ONE` and
+  nothing writes them, so the remainder is always 0 and the step never runs.
+  The Developer's Cut leaves it unchanged.
 - Every copy of the ZODIAC backdrop builder (`main_gfx_build_zodiac_primitives`,
   `world_gfx_build_zodiac_primitives`, `attack_gfx_build_zodiac_primitives` and
   `menu_build_zodiac_primitives` in CARD, DEBUGCHR and REQUIRE) tags the dark quad
