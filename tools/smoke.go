@@ -56,9 +56,9 @@ var smokeSessions = []string{"new-game", "world-map"}
 // smokeSettings is the emulator's portable configuration for a run: the
 // interpreter and the debugger for breakpoints, the BIOS fallback (OpenBIOS
 // when none is set), the software renderer (it needs no OpenGL 3 driver), no
-// network servers, unthrottled and muted, and a pause on a break instruction
-// besides the debugger's default first-chance exceptions (address and bus
-// errors, reserved instructions, coprocessor and overflow).
+// network servers, unthrottled and muted, a small window, and a pause on a
+// break instruction besides the debugger's default first-chance exceptions
+// (address and bus errors, reserved instructions, coprocessor and overflow).
 const smokeSettings = `{
   "emulator": {
     "AutoUpdate": false,
@@ -78,6 +78,14 @@ const smokeSettings = `{
   "SPU": {
     "Mute": true,
     "Speed": 0
+  },
+  "gui": {
+    "Fullscreen": false,
+    "WindowMaximized": false,
+    "WindowPosX": 40,
+    "WindowPosY": 40,
+    "WindowSizeX": 400,
+    "WindowSizeY": 320
   }
 }
 `
