@@ -483,10 +483,11 @@ An entry an edition changes keeps describing the retail code and ends with
   (the first function finds its "mount" by the unit's own `runtime_id`), so the
   partner's battle stats take no tile or facing here. No play reaches the
   difference: a mounted pair walks as its mount, and
-  `battle_unit_set_tile_position` on the mount carries the rider; knockback
-  skips a mounted pair; a rider turned toward an attacker and back leaves the
-  mount's stored facing where it was, since the turn skips it the same way;
-  and `battle_unit_set_tile_position_with_mount_partner` sets both at Wait.
+  `battle_unit_set_tile_position` on the mount carries the rider; a rider that
+  moves alone dismounts on its first step; knockback skips a mounted pair; a
+  rider turned toward an attacker and back leaves the mount's stored facing
+  where it was, since the turn skips it the same way; and
+  `battle_unit_set_tile_position_with_mount_partner` sets both at Wait.
   The last two functions also write the partner record's facing with no null
   test, which a port must not copy. The Developer's Cut leaves the three
   unchanged.
@@ -668,10 +669,12 @@ An entry an edition changes keeps describing the retail code and ends with
   `battle_unit_set_tile_position`, where its other callers divide by 1024. The low
   byte is 0, so a warped unit's battle stats face south while its sprite faces as
   asked, until the event ends and `script_execute_event` copies every sprite's
-  facing back to the stats. Within the event only the paired warp (CallFunction
-  0x0f and 0x10, which the save menu's 0x06 also reaches) and the copy of
-  CallFunction 0x11 read a stats facing; ten of the 21 events that open the save
-  menu warp a unit to another facing first.
+  facing back to the stats. Within the event the script code that reads a stats
+  facing is the paired warp (CallFunction 0x0f and 0x10, which the save menu's
+  0x06 also reaches), the copy of CallFunction 0x11 and the graphics load of a
+  unit (`battle_gfx_load_unit_graphics_by_battle_id`, from AddUnit and
+  CallFunction 0x0d and 0x11); ten of the 21 events that open the save menu warp
+  a unit to another facing first.
   Fixed under `FIX_BUGS`: the stats take the facing in quarter turns.
 - `battle_move_animate_jump_start` and `battle_move_animate_jump_rise_with_sfx` size
   the rise as 0x120 minus the ground's (negative-up) y, the altitude of a point 0x120
