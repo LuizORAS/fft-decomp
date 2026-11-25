@@ -742,7 +742,8 @@ An entry an edition changes keeps describing the retail code and ends with
   (`bunit_unit_find_index_by_battle_id`), not the rider's grid cell, and the readers
   copy the entry straight into `g_bunit_unit_grid_selected_cell`, so browsing onto
   such a mount with L1/R1 puts the grid cursor on a later unit's cell (or past the
-  last).
+  last). War of the Lions (PSP) does the same.
+  Fixed under `FIX_BUGS`: a mount's entry is its rider's cell.
 - `bunit_menu_script_draw_plain_number`, `equip_menu_script_draw_plain_number` and
   `world_menu_script_draw_plain_number` count their blank cells down to -1 in an `s16`
   with no lower bound: a value with more digits than the field starts below -1 and

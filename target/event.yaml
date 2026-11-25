@@ -485,7 +485,7 @@ functions:
   - {addr: 0x801c5a78, size: 108, name: bunit_gfx_init_rhombus_cursor_tpages, hash: e7aff691018bf714}
   - {addr: 0x801c5ae4, size: 916, name: bunit_gfx_update_rhombus_cursor_trail, hash: 83f9c117179ef1a2}
   - {addr: 0x801c5e78, size: 1020, name: bunit_gfx_draw_unit_sprite_and_name_plate, hash: 5270d99f55cecd6f}
-  - {addr: 0x801c6274, size: 188, name: bunit_unit_build_list_index_map, hash: 85b3813e1ad5d145}
+  - {addr: 0x801c6274, size: 188, name: bunit_unit_build_list_index_map, hash: 85b3813e1ad5d145, change: [FIX_BUGS], dc_hash: c8f50e4d4f355cfd}
   - {addr: 0x801c6330, size: 120, name: bunit_unit_build_reorderable_index_list, hash: f973b7be9f6b3a2c}
   - {addr: 0x801c63a8, size: 468, name: bunit_menu_run_reorder_list, hash: 814b235b2017a455}
   - {addr: 0x801c657c, size: 44, name: bunit_menu_clear_selection_records, hash: 98148178dd779b39}
