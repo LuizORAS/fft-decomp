@@ -165,7 +165,8 @@ Every town has a Bar ([[wldcore_bar_push_menu_level]]). Its menu
     index) every pass; the Developer's Cut tests each unit sent;
   - the level score is read from the Brave scores and runs into the Faith
     scores, while record 7, the real level scores, is never read; the
-    Developer's Cut reads it.
+    Developer's Cut reads it, which changes the JP and gil too, as the score
+    adds to both.
 - [[wldcore_proposition_select_report_speaker]] leaves its result unset for
   a speaker mode outside 1-4 (no retail row has one).
 - An event's date advance does not count toward the jobs out
