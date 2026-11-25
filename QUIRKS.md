@@ -156,8 +156,14 @@ An entry an edition changes keeps describing the retail code and ends with
   Fixed under `FIX_BUGS`: the key is 0 for both weapons.
 - `equip_item_sort_list_by_criteria` keeps the difference of two keys in an `s16`, where
   `world_item_sort_id_list` uses 32 bits, so two items whose prices are more than 32,767
-  apart sort by price in reverse (18 items cost more than that, up to 60,000). Read in
-  the code, not seen in play.
+  apart compare by price in reverse (18 items cost more than that, up to 60,000; 42 pairs
+  of one type are that far apart). Only the Order menu of Equip Change's item list runs
+  the sort: with Type or Price picked, Thief Hat (35,000) ends after Flash, Triangle and
+  Leather Hats and Ribbon (60,000) after Cachusha and Barette (seen in play, with the
+  items put in RAM). The order goes to the page orders in MAIN, which WORLD's item, equip
+  and sell lists follow and the save holds. War of the Lions (PSP) keeps 16 bits in this
+  sort and 32 in WORLD's.
+  Fixed under `FIX_BUGS`: the difference keeps 32 bits; an order already stored is not repaired.
 - `src/battle/battle_camera_step_real_coords_toward_target.c`: in the positive
   direction the Y (`vz`) step adds the vector component twice; X and Z add it
   once.
