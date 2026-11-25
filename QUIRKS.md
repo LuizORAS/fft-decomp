@@ -653,6 +653,7 @@ An entry an edition changes keeps describing the retail code and ends with
   free sectors through `open_movie_start_cd_stream_read`, which reads with mode
   0x1a0; the first read in `open_movie_start_stream` uses 0x1e0, so the restart drops
   `CdlModeRT` (0x40, XA-ADPCM playback).
+  Fixed under `FIX_BUGS`: the restart reads with mode 0x1e0 too.
 - `battle_action_queue_unit_effect_messages` tests the 16-record capacity of
   `g_battle_action_post_effect_msgs` once, before it walks the unit's 11 reportable
   outcomes: with 15 records queued it can append ten more past the array, over
