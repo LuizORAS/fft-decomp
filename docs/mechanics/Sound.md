@@ -158,6 +158,9 @@ OPEN's movies and the ending's XA tracks play CD audio, which
 - SYSTEM.SED's sound 0 has no streams, so playing it stops channels 6-7;
   the world map does that when a path animation ends.
 - [[battle_sound_stop_weather_sfx]] returns a result it never sets.
+- [[wldcore_sound_novel_stop_music]] clears the track entry above its slot's,
+  so the slot's own keeps the unloaded id; no novel the player can open runs
+  it. The Developer's Cut clears the slot's own.
 - WORLD's music requests and background sound threads belong to its copy of
   the event interpreter, which never runs.
 - The driver's own quirks (unused opcodes, the waveset read past its copy)

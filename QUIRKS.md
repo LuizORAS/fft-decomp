@@ -757,7 +757,9 @@ An entry an edition changes keeps describing the retail code and ends with
   `wldcore_sound_change_scenario_music` and the audio queue keep slot n's track in
   `tracks[n - 1]`. The novel always uses slot 2, so the store hits `current_slot`
   (zeroed next) and `tracks[1]` keeps the unloaded id: a later queued play of that
-  track switches to the empty slot without loading it.
+  track switches to the empty slot without loading it. The one novel a treasure
+  opens, the Germonik Scriptures, has no such instruction.
+  Fixed under `FIX_BUGS`: the slot's own entry is cleared.
 - `wldcore_gfx_draw_animated_display_object`: a part with its own palette gets CLUT x
   `(clut_x + (word & 0xff0000)) >> 12`, shifting the cel's CLUT x origin out with the
   palette field; OPEN's `open_gfx_draw_animated_render_record` adds the origin after
