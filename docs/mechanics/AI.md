@@ -210,13 +210,33 @@ The other statuses weigh 0.
 - **Wrong bits:** the CT estimate tests Monster Skill and Defend where Short
   Charge and Non-Charge were presumably meant
   ([[battle_ai_load_ability_entry]]), and Protect allies tests Blood Suck
-  with the Jump bit ([[battle_ai_evaluate_status_cancellation]]).
+  with the Jump bit ([[battle_ai_evaluate_status_cancellation]]), so it gives
+  that cure no priority (the general pass still weighs it). The
+  Developer's Cut estimates the CT the charge takes and builds the bit from
+  Blood Suck ([[battle_ai_simulate_action_and_score]]).
+- **Wrong range:** with Throw Item the AI plans a thrown item at the unit's
+  Move; the targeting gives 4, which the Developer's Cut plans.
 - **Stale or lost data:** the Faith test reads the ability considered last
   ([[battle_ai_add_usable_skillset_abilities]]), a Jump skillset with no
   Level Jump loses its Jump entry, and a unit holding two weapon kinds gets
-  no target team for Attack.
+  no target team for Attack. The Developer's Cut tests the Faith of the
+  ability it adds and aims two weapon kinds at enemies.
 - **Masks:** the Monster Skill mask loses two neighbors and the upper level,
-  and range radii 8-15 read past their templates.
+  and range radii 8-15 read past their templates. The Developer's Cut keeps
+  the Monster Skill mask's four neighbors on both levels and computes the
+  rows of every radius.
+- **Sprung traps:** the AI means to keep off each trap tile it has seen
+  sprung, but [[battle_move_start_next_post_move_event]] passes the layer as
+  the row, so it keeps off only the traps on row 0. The Developer's Cut
+  passes the tile.
+- **Origin searches:** the searches around the unit itself and through a
+  Reflect unit test the unit's own tile for the move-then-act pass too
+  ([[battle_ai_evaluate_self_target_origins]],
+  [[battle_ai_evaluate_reflected_target_origins]]). The first, suspended in
+  its first pass, skips the moved pass on resume; the second resumes without
+  its Reflect unit and mirrors through workspace bytes. The Developer's Cut
+  tests the tile each pass acts from, keeps the pass across a suspension and
+  reloads the Reflect unit.
 - **Unreachable or ineffective code:** Protect allies' fallback to Run like a
   rabbit never runs, and the 10-combination test of the origin search has no
   effect.
@@ -225,7 +245,8 @@ The other statuses weigh 0.
   own tile reads past the four directions.
 - **Ports:** the reflected search's resume relies on the caller's `$s2`, the
   Jump CT estimate at battle setup reads through a NULL acting unit, and the
-  Half of MP rounding differs between the menu and the AI.
+  Half of MP rounding differs between the menu and the AI (the Developer's
+  Cut's menu rounds down too).
 
 `QUIRKS.md` has each entry with its file.
 

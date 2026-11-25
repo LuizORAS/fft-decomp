@@ -154,9 +154,9 @@ void equip_item_sort_list_by_criteria(s32 mode, s16* list) {
 #endif
                 } else if (criterion == ITEM_SORT_KEY_MAGIC_EVADE) {
 #ifdef FIX_BUGS
-                    /* The edition keys only shields and accessories by their tables (QUIRKS.md). */
+                    /* The edition keys only shields and accessories, and no weapon, by their tables (QUIRKS.md). */
                     if (item_b < ITEM_ID_SHIELD_FIRST) {
-                        key_b = g_main_item_weapon_data[g_main_item_primary_data[item_b].secondary_data_id].evade;
+                        key_b = 0;
                     } else if (item_b < ITEM_ID_HEADGEAR_FIRST) {
                         key_b = g_main_item_shield_data[g_main_item_primary_data[item_b].secondary_data_id].magic_evade;
                     } else if (item_b >= ITEM_ID_ACCESSORY_FIRST && item_b < ITEM_ID_CONSUMABLE_FIRST) {

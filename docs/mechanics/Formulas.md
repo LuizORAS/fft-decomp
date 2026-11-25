@@ -24,13 +24,15 @@ runs that id's handler once per target and strike.
   Charging, Chicken and Frog. Magical: Magic Attack Up, Magic Defense Up, the
   target's Shell, Frog and Chicken. Both: Strengthen for the element (XA *
   5 / 4), the zodiac compatibility (best +50%, good +25%, bad -25%, worst
-  -50%) and Charge's power. A critical hit (4 in 100 while executing) grows
+  -50%; XA at least 1 after it, except with Serpentarius, which the
+  Developer's Cut floors too) and Charge's power. A critical hit (4 in 100 while executing) grows
   XA by up to XA - 1 and may knock the target back.
 - **Elements and weather.** After XA * YA, a storm cuts fire to 3/4 and
   raises lightning to 5/4, a snowstorm raises ice to 5/4; then the target's
   affinities: Absorb turns the damage into healing, Null nullifies the hit,
   Half halves and Weak doubles it. Oil should double fire damage but never
-  does (`QUIRKS.md`).
+  does (`QUIRKS.md`); in the Developer's Cut it doubles a fire ability's
+  damage before the affinities.
 - **Faith.** Magic scales by target Faith * attacker Faith / 10000; the
   Faith status counts as 100 and Innocent as 0. Some formulas skip Faith,
   and the Un-Truth formula scales by (100 - Faith) instead.
@@ -258,7 +260,20 @@ retail abilities, weapons, consumables or commands that select the formula.
 ## Quirks and debts
 
 - Oil never raises fire damage: [[battle_formula_apply_ability_element]]
-  doubles XA after the damage is stored (`QUIRKS.md`).
+  doubles XA after the damage is stored (`QUIRKS.md`). The Developer's Cut
+  doubles the stored damage; weapon strikes still skip Oil (not the spells
+  a weapon casts).
+- The Healing Staff ([[battle_formula_weapon_heal]]) applies the zodiac
+  compatibility twice, and the target's Defense Up and Protect cut its
+  healing (`QUIRKS.md`). The Developer's Cut applies the compatibility once.
+- [[battle_formula_apply_zodiac_compatibility]] returns for Serpentarius
+  before its floor of 1, so an XA already cut to 0 stays 0; only a fight
+  with Elidibus can meet it (`QUIRKS.md`). The Developer's Cut floors it too.
+- Please Eat ([[battle_formula_raise_level_by_one_add_status_on_caster]])
+  restores all HP and MP but keeps only the level change as its result type,
+  so no HP or MP number shows (`QUIRKS.md`). The Developer's Cut keeps the
+  healing on a living target: both numbers show, and the preview shows the HP
+  healing instead of the level.
 - The bow weather penalty reads the raw weather variable, so a snowstorm
   counts and the map's ignore-weather flag does not
   ([[battle_formula_apply_weather_effects_on_bows]], `QUIRKS.md`).

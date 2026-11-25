@@ -47,10 +47,18 @@ void battle_ai_load_ability_entry(const battle_ai_ability_entry_t* entry) {
         return;
     case ACTION_MENU_TYPE_ITEM_INVENTORY:
         status_id = g_main_item_secondary_data[ability_id - ABILITY_ID_ITEM_FIRST].status_infliction_id;
+#ifdef FIX_BUGS
+        /* The edition gives a thrown item the targeting's range of 4 (QUIRKS.md). */
+        if (unit->ability_flags.support[2] & BATTLE_SUPPORT_SET_3_THROW_ITEM)
+            ai->considered_ability.parameters.fields.range = 4;
+        else
+            ai->considered_ability.parameters.fields.range = 1;
+#else
         if (unit->ability_flags.support[2] & BATTLE_SUPPORT_SET_3_THROW_ITEM)
             ai->considered_ability.parameters.fields.range = unit->move;
         else
             ai->considered_ability.parameters.fields.range = 1;
+#endif
         ai->considered_ability.parameters.fields.aoe = 0;
         ai->considered_ability.parameters.fields.item_id
             = g_main_item_ability_item_ids[ability_id - ABILITY_ID_ITEM_FIRST];
@@ -149,11 +157,19 @@ void battle_ai_load_ability_entry(const battle_ai_ability_entry_t* entry) {
         if (secondary->flags_3 & ABILITY_SECONDARY_FLAG_3_PERSEVERE)
             goto copy_status;
     }
+#ifdef FIX_BUGS
+    /* The edition estimates the CT the charge takes: Non-Charge first, Short Charge rounded up (QUIRKS.md). */
+    if (unit->ability_flags.support[3] & BATTLE_SUPPORT_SET_4_NON_CHARGE)
+        ai->considered_ability.ct = 0;
+    else if (unit->ability_flags.support[3] & BATTLE_SUPPORT_SET_4_SHORT_CHARGE)
+        ai->considered_ability.ct = (ai->considered_ability.ct + 1) >> 1;
+#else
     /* Preserve the native support-byte masks, including their CT quirk. */
     if (unit->ability_flags.support[3] & BATTLE_SUPPORT_SET_4_MONSTER_SKILL)
         ai->considered_ability.ct >>= 1;
     else if (unit->ability_flags.support[3] & BATTLE_SUPPORT_SET_4_DEFEND)
         ai->considered_ability.ct = 0;
+#endif
 copy_status:
     battle_mem_copy_bytes(ai->considered_ability.parameters.fields.status_infliction,
         g_main_status_infliction_data[status_id].statuses,

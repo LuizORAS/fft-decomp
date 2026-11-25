@@ -20,7 +20,12 @@ void battle_formula_apply_ability_element(void) {
             & BATTLE_STATUS_BYTE_MASK(BATTLE_STATUS_ID_OIL))
         && (element & BATTLE_ELEMENT_FIRE)) {
         action = g_battle_action_target_data;
+#ifdef FIX_BUGS
+        /* The edition doubles the stored damage, as Weak does (QUIRKS.md). */
+        action->hp_damage = action->hp_damage * 2;
+#else
         g_battle_action_current_ability.xa = g_battle_action_current_ability.xa * 2;
+#endif
         action->status_changes.removal[BATTLE_STATUS_BYTE_INDEX(BATTLE_STATUS_ID_OIL)]
             |= BATTLE_STATUS_BYTE_MASK(BATTLE_STATUS_ID_OIL);
         if (battle_status_modify_inflictions(0) != 0) {

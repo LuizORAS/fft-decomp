@@ -830,7 +830,7 @@ functions:
   - {addr: 0x801210e8, size: 464, name: world_formation_build_record_list, hash: 93fb6fa91f4fa5c9}
   - {addr: 0x801212b8, size: 688, name: world_formation_save_records_to_party_data, hash: c0932d02a682df31}
   - {addr: 0x80121568, size: 236, name: world_item_get_ranking_value, hash: c162face50932c06}
-  - {addr: 0x80121654, size: 1548, name: world_item_sort_id_list, hash: cadb2570fbcc2eab, change: [FIX_BUGS], dc_hash: 3a0cac2fcec7ddad}
+  - {addr: 0x80121654, size: 1548, name: world_item_sort_id_list, hash: cadb2570fbcc2eab, change: [FIX_BUGS], dc_hash: e61be3c56979708a}
   - {addr: 0x80121c60, size: 872, name: world_formation_sort_roster, hash: 81bb011ed79bb2fb}
   - {addr: 0x80121fc8, size: 88, name: world_menu_load_sort_key_list, hash: e9c6e09b68b8a95e}
   - {addr: 0x80122020, size: 96, name: world_menu_store_sort_key_list, hash: baa6b7f2ddd835f6}
@@ -891,7 +891,7 @@ functions:
   - {addr: 0x80125a04, size: 760, name: world_unit_update_monster_breeding, hash: c79a4f9e25086f3b}
   - {addr: 0x80125cfc, size: 324, name: world_gfx_present_frame_and_swap_packet_buffer, hash: 424202a51ed5e48f}
   - {addr: 0x80125e40, size: 536, name: world_gfx_init_packet_pools, hash: 8b137ab6455bab7c}
-  - {addr: 0x80126058, size: 796, name: world_gfx_init_double_packet_buffers, hash: c2e0738092bc06ee}
+  - {addr: 0x80126058, size: 796, name: world_gfx_init_double_packet_buffers, hash: c2e0738092bc06ee, change: [FIX_BUGS], dc_hash: 025146a8b10d4f33}
   - {addr: 0x80126374, size: 52, name: world_script_set_vsync_mode_and_event_speed, hash: 5e5e9e13e61eff91}
   - {addr: 0x801263a8, size: 32, name: world_gfx_get_vsync_mode_or_one, hash: f20eb093659c8a8c}
   - {addr: 0x801263c8, size: 224, name: world_menu_init_scrollable_list_core, hash: 6a1458a19bfa2633, profile: gcc-2.6.3_O1_aspsx-2.34}

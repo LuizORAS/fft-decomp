@@ -485,7 +485,7 @@ functions:
   - {addr: 0x801c5a78, size: 108, name: bunit_gfx_init_rhombus_cursor_tpages, hash: e7aff691018bf714}
   - {addr: 0x801c5ae4, size: 916, name: bunit_gfx_update_rhombus_cursor_trail, hash: 83f9c117179ef1a2}
   - {addr: 0x801c5e78, size: 1020, name: bunit_gfx_draw_unit_sprite_and_name_plate, hash: 5270d99f55cecd6f}
-  - {addr: 0x801c6274, size: 188, name: bunit_unit_build_list_index_map, hash: 85b3813e1ad5d145}
+  - {addr: 0x801c6274, size: 188, name: bunit_unit_build_list_index_map, hash: 85b3813e1ad5d145, change: [FIX_BUGS], dc_hash: c8f50e4d4f355cfd}
   - {addr: 0x801c6330, size: 120, name: bunit_unit_build_reorderable_index_list, hash: f973b7be9f6b3a2c}
   - {addr: 0x801c63a8, size: 468, name: bunit_menu_run_reorder_list, hash: 814b235b2017a455}
   - {addr: 0x801c657c, size: 44, name: bunit_menu_clear_selection_records, hash: 98148178dd779b39}
@@ -510,7 +510,7 @@ functions:
   - {addr: 0x801c7444, size: 648, name: bunit_ability_build_list, hash: 373b01e6f8a27498}
   - {addr: 0x801c76cc, size: 444, name: bunit_gfx_submit_frame_and_swap_buffers, hash: 03562779b98bb33c}
   - {addr: 0x801c7888, size: 1560, name: bunit_gfx_init_packet_pools, hash: 534a0c774b97dee2}
-  - {addr: 0x801c7ea0, size: 1384, name: bunit_gfx_init_double_packet_buffers, hash: a4cfeb32963dd7b9}
+  - {addr: 0x801c7ea0, size: 1384, name: bunit_gfx_init_double_packet_buffers, hash: a4cfeb32963dd7b9, change: [FIX_BUGS], dc_hash: 781e47bb8a62e8fe}
   - {addr: 0x801c8408, size: 52, name: menu_set_vsync_mode_and_event_speed, hash: 33b6a2c8c1908b56, source: src/shared/menu/menu_set_vsync_mode_and_event_speed.c}
   - {addr: 0x801c843c, size: 32, name: menu_get_event_speed, hash: d1c5682dc9e305b3, source: src/shared/menu/menu_get_event_speed.c}
   - {addr: 0x801c845c, size: 212, name: bunit_menu_init_scrollable_list_core, hash: c2663ee9beede6f5}
@@ -1822,7 +1822,7 @@ functions:
   - {addr: 0x801c6ca0, size: 276, name: equip_unit_load_data_from_battle_stats, hash: e23d868f93ea3956}
   - {addr: 0x801c6db4, size: 600, name: equip_unit_commit_loadout_to_battle_stats, hash: 83c2cd7ae34a8020}
   - {addr: 0x801c700c, size: 236, name: equip_item_get_ranking_value, hash: 182f2f01a7256fdd}
-  - {addr: 0x801c70f8, size: 1492, name: equip_item_sort_list_by_criteria, hash: 34f1458a5685682d, change: [FIX_BUGS], dc_hash: 031c52c60265fe44}
+  - {addr: 0x801c70f8, size: 1492, name: equip_item_sort_list_by_criteria, hash: 34f1458a5685682d, change: [FIX_BUGS], dc_hash: 0b60f32670f03a45}
   - {addr: 0x801c76cc, size: 88, name: equip_menu_load_sort_key_list, hash: 680fa5ae6e9a89b3}
   - {addr: 0x801c7724, size: 96, name: equip_menu_store_sort_key_list, hash: 8b8d7d3c8a2297aa}
   - {addr: 0x801c7784, size: 88, name: equip_item_store_category_list, hash: 48c40016f726fb75}

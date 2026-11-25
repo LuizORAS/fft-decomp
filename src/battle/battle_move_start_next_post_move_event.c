@@ -107,7 +107,12 @@ s32 battle_move_start_next_post_move_event(void) {
         battle_unit_set_target_animation_from_attack_type(0, source);
         battle_effect_set_secondary_trap(source);
         battle_menu_init_system_function(BATTLE_MENU_SYSTEM_COMMAND_TRAP_RESULT, trap, source->stats->battle_id, 0, 1);
+#ifdef FIX_BUGS
+        /* The edition passes the tile as the AI records it: x, row, layer (QUIRKS.md). */
+        battle_ai_record_sprung_trap(casting->map_x, casting->map_y, casting->map_z);
+#else
         battle_ai_record_sprung_trap(casting->map_x, casting->map_z, casting->map_y);
+#endif
         return 1;
     }
     if (g_battle_move_post_move_events & BATTLE_MOVE_POST_EVENT_CHARGING_CANCEL) {

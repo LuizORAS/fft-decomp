@@ -55,6 +55,15 @@ it, the same source is meant to build:
   slots, the effect message queue, memory card transfers cut short, the item
   sorts and the number fields. `make scenario` shows each fix on both discs,
   calling game functions directly where no retail route reaches the bug.
+- **Build 3.1c** (tag `build-3.1c`): the Developer's Cut fixes 30 retail bugs
+  of gameplay and AI: what the AI estimates, reaches and chooses, formulas and
+  rules (Oil and fire, the Degenerator, the Healing Staff, Half of MP),
+  displays, a random enemy's armor, the errands' odds and pay, the unit list,
+  a restarted movie and the item sorts. Four more that the plan listed stay as
+  retail has them: three change nothing in the game and one would take the
+  variety of random enemy equipment. An audit checked the claims behind every
+  block, and `QUIRKS.md` says what War of the Lions (PSP) does with most of
+  them.
 
 ## Getting started
 

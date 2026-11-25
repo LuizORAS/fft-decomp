@@ -221,7 +221,7 @@ by" counts the retail abilities, weapons and items whose status set adds it
 | 0x0d | Blood Suck | 1, 0x04 | | 2 Blood Suck abilities | Counts as KO; out of the player's control |
 | 0x0e | Cursed | 1, 0x02 | | nothing | FFTPatcher's "Dark/Evil Looking": a darker palette and stance 2 (as Stop and Petrify), nothing else |
 | 0x0f | Treasure | 1, 0x01 | | a dead unit's counter | As Crystal: cancels everything, KO and lost, CT frozen; a chest that a unit can step on |
-| 0x10 | Oil | 2, 0x80 | | 5 abilities | Meant to double fire damage, but the doubling comes too late (`QUIRKS.md`); a darker palette |
+| 0x10 | Oil | 2, 0x80 | | 5 abilities | Meant to double fire damage, but the doubling comes too late (`QUIRKS.md`; the Developer's Cut doubles a fire ability's damage); a darker palette |
 | 0x11 | Float | 2, 0x40 | | Float; the Float movement ability (innate) | Earth-element actions are nullified ([[battle_formula_apply_ability_element]]); moves as Float ([[Movement rules]]) |
 | 0x12 | Reraise | 2, 0x20 | | 3 abilities | A dead unit revives with max HP / 10 at its turn; never with Undead |
 | 0x13 | Transparent | 2, 0x10 | | the Sunken State reaction | Its attacks ignore the target's evades ([[battle_formula_calculate_transparent]]); ends with HP damage, after it acts or after a Jump |
@@ -281,7 +281,8 @@ by" counts the retail abilities, weapons and items whose status set adds it
 
 ## Quirks and debts
 
-- Oil never raises fire damage (`QUIRKS.md`).
+- Oil never raises fire damage (`QUIRKS.md`); in the Developer's Cut a fire
+  ability's damage doubles.
 - The preview's 0x100 bit for an `EVENT_EXCLUDED` status changes nothing,
   and animation 0x21 belongs to a mirror bit that no status sets
   (`QUIRKS.md`).

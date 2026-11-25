@@ -17,6 +17,10 @@ void wldcore_proposition_determine_success(void) {
     const u8* job_table_b;
     const u8* tier_table_a;
     const u8* tier_table_b;
+#ifdef FIX_BUGS
+    /* The edition's level scores (QUIRKS.md). */
+    const u8* level_table;
+#endif
     party_unit_t* unit;
     s32 participant_count;
     s32 total;
@@ -74,14 +78,24 @@ void wldcore_proposition_determine_success(void) {
         g_wldcore_proposition_outcome.participant_scores[i]
             += tier_table_b[(g_wldcore_selected_proposition_row[0].job_list_index - 1) * 5 + tier];
 
+#ifdef FIX_BUGS
+        /* The edition fetches the level scores' own record (QUIRKS.md). */
+        level_table = wldcore_proposition_get_data_pointer(WLDCORE_PROPOSITION_DATA_LEVEL_SCORES);
+#endif
         value = unit->level;
         if (value != 0) {
             tier = (value - 1) / 10;
         } else {
             tier = 0;
         }
+#ifdef FIX_BUGS
+        /* The edition reads the level scores, not the bravery scores (QUIRKS.md). */
+        score = g_wldcore_proposition_outcome.participant_scores[i]
+            + level_table[(g_wldcore_selected_proposition_row[0].job_list_index - 1) * 10 + tier];
+#else
         score = g_wldcore_proposition_outcome.participant_scores[i]
             + tier_table_a[(g_wldcore_selected_proposition_row[0].job_list_index - 1) * 10 + tier];
+#endif
         total += score;
         g_wldcore_proposition_outcome.participant_scores[i] = score;
     }
@@ -100,6 +114,20 @@ void wldcore_proposition_determine_success(void) {
         return;
     }
 
+#ifdef FIX_BUGS
+    /* The edition tests each unit sent (QUIRKS.md). */
+    for (i = 0; i < participant_count; i++) {
+        unit = wldcore_unit_get_party_unit(
+            g_main_active_propositions[g_wldcore_proposition_outcome.proposition_index].participant_indices[i]);
+        if (g_wldcore_selected_proposition_row[0].preferred_job - 1
+            == wldcore_proposition_get_job_category(unit->job_id)) {
+            if (((rand() * 100) >> 15) < 0x3D) {
+                g_wldcore_proposition_outcome.result = WLDCORE_PROPOSITION_RESULT_SUCCESS;
+                return;
+            }
+        }
+    }
+#else
     unit = wldcore_unit_get_party_unit(
         g_main_active_propositions[g_wldcore_proposition_outcome.proposition_index].participant_indices[i]);
     for (i = 0; i < participant_count; i++) {
@@ -111,4 +139,5 @@ void wldcore_proposition_determine_success(void) {
             }
         }
     }
+#endif
 }

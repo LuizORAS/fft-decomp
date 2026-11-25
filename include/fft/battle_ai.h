@@ -52,6 +52,7 @@ enum {
 
 enum {
     BATTLE_AI_ABILITY_FLAG_2_EVADEABLE = 0x02,
+    BATTLE_AI_ABILITY_FLAG_2_AFFECTED_BY_FAITH = 0x04,
     BATTLE_AI_ABILITY_FLAG_2_UNDEAD_REVERSE = 0x20,
     BATTLE_AI_ABILITY_FLAG_2_TARGET_MAP_TILES = 0x80,
 };
@@ -319,6 +320,7 @@ typedef char battle_ai_weapon_data_must_be_8[sizeof(battle_ai_weapon_data_t) == 
 typedef enum battle_ai_decision_flags {
     BATTLE_AI_DECISION_DEAD_WITHOUT_RERAISE = 0x01,
     BATTLE_AI_DECISION_PETRIFIED = 0x02,
+    /* Built from Jump; Protect allies reads it as Blood Suck (QUIRKS.md). */
     BATTLE_AI_DECISION_JUMPING = 0x04,
     BATTLE_AI_DECISION_SPECIAL_BEHAVIOR = 0x08,
     BATTLE_AI_DECISION_AGGRESSIVE = 0x10,

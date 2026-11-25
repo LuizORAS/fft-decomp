@@ -196,7 +196,7 @@ functions:
   - {addr: 0x800794d0, size: 244, name: wldcore_proposition_step_message, hash: 4b01d85a59ee4969}
   - {addr: 0x800795c4, size: 604, name: wldcore_proposition_step_participant_message, hash: ab80ad9223197797, rodata: [{addr: 0x800671dc, size: 24, hash: f9c589d3d0cc9d4b}]}
   - {addr: 0x80079820, size: 36, name: wldcore_proposition_get_job_category, hash: 2ff3de5323a524e3}
-  - {addr: 0x80079844, size: 1064, name: wldcore_proposition_determine_success, hash: cf4e732c8358bf29}
+  - {addr: 0x80079844, size: 1064, name: wldcore_proposition_determine_success, hash: cf4e732c8358bf29, change: [FIX_BUGS], dc_hash: d66c0ee0cab864fe}
   - {addr: 0x80079c6c, size: 424, name: wldcore_proposition_calculate_base_jp_and_gil, hash: b052592ae6d24bc4}
   - {addr: 0x80079e14, size: 820, name: wldcore_proposition_roll_bonus_reward, hash: 70675445a9d2b128}
   - {addr: 0x8007a148, size: 352, name: wldcore_proposition_apply_extra_days_multiplier, hash: a82e6cd89335801f}
@@ -367,7 +367,7 @@ functions:
   - {addr: 0x8008c844, size: 84, name: wldcore_sound_novel_start_countdown_timer, hash: 1301853f97b18d7f}
   - {addr: 0x8008c898, size: 96, name: wldcore_sound_novel_play_background_sound, hash: 5a43066da8004887}
   - {addr: 0x8008c8f8, size: 112, name: wldcore_sound_novel_set_master_volume, hash: f09c779a64e008de}
-  - {addr: 0x8008c968, size: 176, name: wldcore_sound_novel_stop_music, hash: 9448637d40e4e6f5}
+  - {addr: 0x8008c968, size: 176, name: wldcore_sound_novel_stop_music, hash: 9448637d40e4e6f5, change: [FIX_BUGS], dc_hash: 61fa69c0a141e025}
   - {addr: 0x8008ca18, size: 80, name: wldcore_sound_novel_set_menu_brightness, hash: 366d11aaf33000b4}
   - {addr: 0x8008ca68, size: 128, name: wldcore_sound_novel_add_counter_delta_if_choice, hash: b71a1a8e28da8919}
   - {addr: 0x8008cae8, size: 72, name: wldcore_sound_novel_wait_for_fade, hash: 99b838a0e8a4a63b}

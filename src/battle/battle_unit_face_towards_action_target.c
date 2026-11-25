@@ -11,6 +11,10 @@
 void battle_unit_face_towards_action_target(battle_unit_t* unit, battle_unit_t* target) {
     VECTOR delta;
     battle_unit_t* other;
+#ifdef FIX_BUGS
+    /* The edition's facing in quarter turns, the rider's and the mount's (QUIRKS.md). */
+    s32 quarter_turns;
+#endif
 
     if (unit == 0) {
         return;
@@ -43,10 +47,24 @@ void battle_unit_face_towards_action_target(battle_unit_t* unit, battle_unit_t* 
     }
     battle_unit_save_facing_before_attack(unit);
     unit->facing = (ratan2(-delta.vz, delta.vx) - 0x200) & 0xc00;
+#ifdef FIX_BUGS
+    /* The edition gives the mount's battle stats the facing its sprite takes (QUIRKS.md). */
+    quarter_turns = unit->facing / 1024;
+    battle_unit_set_tile_position(unit->stats->battle_id, unit->map_x, unit->map_y, unit->map_z, quarter_turns);
+    if (unit->mount_state != BATTLE_UNIT_MOUNT_STATE_NONE) {
+        other = battle_unit_get_by_runtime_id(unit->mount_partner_runtime_id);
+        if (other != 0) {
+            other->facing = unit->facing;
+            battle_unit_set_tile_position(
+                other->stats->battle_id, unit->map_x, unit->map_y, unit->map_z, quarter_turns);
+        }
+    }
+#else
     battle_unit_set_tile_position(unit->stats->battle_id, unit->map_x, unit->map_y, unit->map_z, unit->facing / 1024);
     if (unit->mount_state != BATTLE_UNIT_MOUNT_STATE_NONE) {
         battle_unit_get_by_runtime_id(unit->mount_partner_runtime_id)->facing = unit->facing;
         battle_unit_set_tile_position(
             unit->stats->battle_id, unit->map_x, unit->map_y, unit->map_z, unit->facing / 1024);
     }
+#endif
 }

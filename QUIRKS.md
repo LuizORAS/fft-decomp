@@ -27,10 +27,18 @@ An entry an edition changes keeps describing the retail code and ends with
   never count toward it (the daily advance counts each one). It also misses a
   birthday that falls after December 31 inside the advance, and counts the year at
   December 31 where the daily advance counts it on March 21, with no cap at 99
-  where the daily advance stops.
+  where the daily advance stops. Only three events advance the date, one by 90 days,
+  when every proposition's days (16 at most) are over, and two by a year, whose
+  remainder of 0 days changes no proposition, so the Developer's Cut leaves it, as War
+  of the Lions (PSP) does.
 - `src/wldcore/wldcore_proposition_determine_success.c`: the preferred-job
   check resolves the party unit once, before its loop, from the scoring loop's
-  leftover (past-the-end) index, so it tests that one unit every pass.
+  leftover (past-the-end) index, so it tests that one unit every pass. With one or
+  two units sent the index names what an older errand left in the slot, or roster
+  slot 0; with three, the next record's `flags`, or a byte past the last record. A
+  value past the roster gives a null unit, whose job is read from kernel RAM. War
+  of the Lions (PSP) does the same.
+  Fixed under `FIX_BUGS`: the check tests each unit sent.
 - `src/wldcore/wldcore_sound_novel_calculate_completion_percent.c` (no caller): counts 0x1000 bits
   from `g_main_sound_novel_section_bits`, which holds 1280 (40 words), so it also counts the
   Move-Find item flags and most of the poached item quantities stored after it.
@@ -59,6 +67,8 @@ An entry an edition changes keeps describing the retail code and ends with
 - `src/battle/battle_target_clear_panels_on_untargetable_tiles.c`: visits only the lower layer's 256
   panels, so an untargetable upper-layer tile stays in range of a single-tile or DIRECT_TARGETING
   ability (the weapon range's `battle_target_clear_range_on_untargetable_tiles` covers both layers).
+  War of the Lions (PSP) does the same.
+  Fixed under `FIX_BUGS`: the loop visits both layers' 512 panels.
 - `src/battle/battle_target_mark_unit_panels_by_team.c`: its loop never advances the unit pointer,
   so it marks only the caster's tile; no retail ability sets the flags that call it
   (`ABILITY_SECONDARY_FLAG_1_ALLY_UNIT_PANELS`, `_ENEMY_UNIT_TILES`).
@@ -81,25 +91,43 @@ An entry an edition changes keeps describing the retail code and ends with
   target color uninitialized (no default case).
 - `src/battle/battle_ai_load_ability_entry.c`: the CT adjustments test the
   Monster Skill (`0x80`) and Defend (`0x40`) support bits; Short Charge and
-  Non-Charge were presumably intended.
-- `src/battle/battle_ai_evaluate_status_cancellation.c`: the Blood Suck branch
-  tests `BATTLE_AI_DECISION_JUMPING`, built from Jump (bit `0x04` of status
-  byte 0; Blood Suck is bit `0x04` of byte 1), so Protect allies skips Blood
-  Suck on a target that is not jumping.
+  Non-Charge were presumably intended. The halving also rounds down, where the
+  charge itself (`battle_action_prepare_attack`) rounds Short Charge up and
+  lets Non-Charge win over it. War of the Lions (PSP) tests the same two bits.
+  Fixed under `FIX_BUGS`: the estimate tests Non-Charge, then Short Charge, rounding up as the charge does.
+- `src/battle/battle_ai_evaluate_status_cancellation.c`,
+  `src/battle/battle_ai_simulate_action_and_score.c`: the Blood Suck branch
+  tests `BATTLE_AI_DECISION_JUMPING`, which the refresh builds from Jump (bit
+  `0x04` of status byte 0; Blood Suck is bit `0x04` of byte 1). Protect allies
+  tries the branch only for a target with Blood Suck, so its search for a cure
+  never runs unless the target is also jumping. The AI still cures Blood Suck
+  through its general pass over the same target's abilities, only without the
+  priority the search gives. War of the Lions (PSP) builds the bit from Jump too.
+  Fixed under `FIX_BUGS`: the refresh builds the bit from Blood Suck, so Protect allies looks for a cure first and, with none, turns to the ally most in peril, as for Dead and Petrify.
 - `src/battle/battle_ai_build_monster_skill_tile_mask.c`: the `-1` neighbor
   offsets are loaded unsigned (+255), so only `+x`/`+y` survive, and the level
-  loop runs for level 0 only.
+  loop runs for level 0 only. War of the Lions (PSP) does the same.
+  Fixed under `FIX_BUGS`: the offsets are read signed and both levels are marked.
 - `src/battle/battle_ai_build_targetable_tile_mask.c`: radii 8–15 index past
   the 8-entry template table into the following status weights. Jump Level 8
-  can reach this path with a non-arcing weapon.
+  can reach this path with a non-arcing weapon. War of the Lions (PSP) reads
+  past its eight rows too, into other data.
+  Fixed under `FIX_BUGS`: every row is computed from its half-width, as the eight templates give up to 7.
 - `src/battle/battle_ai_evaluate_reflected_target_origins.c`: the resume entry
-  skips the reflector pointer reload and depends on the caller's `$s2`.
+  skips the reflector pointer reload and depends on the caller's `$s2`, which holds
+  `&g_battle_ai_data_base`: until the loop reaches the next reflector, the origins mirror
+  through workspace bytes 0x47 and 0x48 (`best_action.command.target_id` and the low byte
+  of its `target_position.x`) instead of the reflector's tile. War of the Lions (PSP) reloads
+  the reflector.
+  Fixed under `FIX_BUGS`: the resume reloads the reflector from `reflector_unit_index`.
 - `src/battle/battle_ai_evaluate_math_targets.c`: the extra known-ability call
   in the special-ID loop discards its result.
 - `src/battle/battle_formula_apply_ability_element.c`: Oil doubles XA against fire, but every
   caller has already stored XA * YA as the HP damage, so Oil never raises fire damage (it is still
   marked for removal). Players know this as Oil having no effect in the PlayStation version.
   The weapon-element path (`battle_formula_apply_weapon_element`) does not test Oil at all.
+  War of the Lions (PSP) doubles the stored damage.
+  Fixed under `FIX_BUGS`: Oil doubles the stored damage of a fire ability, as Weak does (a target that absorbs fire heals twice as much); the Glacier Gun's fire spells and the spells Flame Rod and Flame Whip cast are abilities, and a weapon's strike still skips Oil.
 - `src/battle/battle_action_init_current_ability_strike_data.c`: the range-data
   guard `ability_id >= 0 || ability_id < ABILITY_ID_ITEM_FIRST` is always true
   (`&&` was presumably meant), so item ids read past the table; only the
@@ -120,7 +148,16 @@ An entry an edition changes keeps describing the retail code and ends with
   Fixed under `FIX_BUGS`: both split weapons at `ITEM_ID_SHIELD_FIRST` and key headgear and body armor 0.
 - `world_item_sort_id_list`, `equip_item_sort_list_by_criteria`: the magic-evade
   key reads 0 for the first weapon of a pair but the second weapon's evade, so two
-  weapons that tie on every earlier key compare one weapon's evade against 0.
+  weapons that tie on every earlier key compare one weapon's evade against 0. The
+  default key lists put it after type, price and ranking, where the Ancient and Sleep
+  Swords, the three elemental rods and the Healing and Wizard Staffs tie; War of the
+  Lions (PSP) reads 0 for both weapons. Opening a category keeps its stored order;
+  the sort order menus run the keys.
+  Fixed under `FIX_BUGS`: the key is 0 for both weapons.
+- `equip_item_sort_list_by_criteria` keeps the difference of two keys in an `s16`, where
+  `world_item_sort_id_list` uses 32 bits, so two items whose prices are more than 32,767
+  apart sort by price in reverse (18 items cost more than that, up to 60,000). Read in
+  the code, not seen in play.
 - `src/battle/battle_camera_step_real_coords_toward_target.c`: in the positive
   direction the Y (`vz`) step adds the vector component twice; X and Z add it
   once.
@@ -129,9 +166,16 @@ An entry an edition changes keeps describing the retail code and ends with
 - `src/battle/battle_gfx_build_next_action_result_display.c`: the CT-zero
   display case reads `y_shift` without setting it; only the HP/MP and
   stat-change cases assign it, so the sprite row depends on the leftover value.
+  It lives in `s8`, which neither caller sets and which holds the startup's
+  0x801ffff8 at every display but a weapon strike's (measured at Gariland's),
+  and no weapon strike queues CT 0. So CT 0 (Persuade, Return 2, Last Dance)
+  stands 24 pixels below Quick and Missed. War of the Lions (PSP) draws it at 16,
+  48 pixels below them.
+  Fixed under `FIX_BUGS`: CT 0 takes -32, the height of Quick and Missed.
 - `src/main/main_unit_calculate_random_equipment.c`: throwing and bomb item
   types index past the four equipment-category bytes into the first innate
-  status byte; that adjacent byte controls their eligibility.
+  status byte; that adjacent byte controls their eligibility. No job has the two
+  bits, so none is ever drawn.
 - `src/shared/menu/menu_text_render_encoded_ids_to_image.c` (BUNIT, CARD,
   EQUIP and JOBSTTS): the encoded-text branch tests
   its glyph counter (`col`) against the line width but never assigns it; the
@@ -370,17 +414,30 @@ An entry an edition changes keeps describing the retail code and ends with
   read from the bravery scores (proposition data record 5, three rows of
   five) with a ten-entry stride, so it runs on into the faith scores (record
   6). Record 7, three rows of ten level scores, is fetched by nothing: with
-  job list 1 a level 91-99 unit scores 5 where record 7 holds 50.
+  job list 1 a level 91-99 unit scores 5 where record 7 holds 50. A unit's score
+  also adds to its JP and gil. War of the Lions (PSP) does the same.
+  Fixed under `FIX_BUGS`: the level score is read from record 7, which changes the pay too.
 - `src/battle/battle_ai_add_usable_skillset_abilities.c`: the Faith test reads the AI flags of the
   ability considered last (`g_battle_ai_data_base.considered_ability`), not of the one being added, so
   for an innately Innocent unit (the Steel Giant job) it keeps or drops all of a skillset's default
-  abilities at once, by whatever that stale ability was.
+  abilities at once, by whatever that stale ability was. Its Work skillset has no Faith ability, so it can
+  only lose them, when the lists rebuild (at each event's end) after a Faith ability: one the AI weighed, or
+  one a battle menu's ability list left in the same memory. The one loadable battle that fields the job is
+  Nelveska Temple (Worker 7-New, slot 0), whose later events run only once Worker 7 is dead, so nothing
+  visible follows. War of the Lions (PSP) tests the same flags.
+  Fixed under `FIX_BUGS`: the test reads the Faith flag of the ability being added.
 - `src/battle/battle_target_validate_weapon_target.c`: the weapon-range flag
   is read from `g_main_ability_range_data[(u8)ability_id]`, so abilities
-  0x100 and up use the record of their id's low byte.
+  0x100 and up use the record of their id's low byte. Unreachable in retail: both callers test the
+  full id's flags first, and Shock (0x100), the one ability whose result would differ, has neither.
+  War of the Lions (PSP) reads the whole id.
+  Fixed under `FIX_BUGS`: the flag is read with the whole id.
 - `battle_unit_apply_level_up_down_ability`: a level-1 target of a level-down
-  (the Degenerator trap; formula 0x59 misses at level 1) is clamped back to
-  level 1 and still loses raw / (growth + 1) of every raw stat.
+  (the Degenerator trap, on Dolbodar Swamp, Fovoham Plains, Bervenia Volcano,
+  Zeklaus Desert and the Deep Dungeon's TERMINATE; formula 0x59 misses at level 1)
+  is clamped back to level 1 and still loses raw / (growth + 1) of every raw stat.
+  War of the Lions (PSP) does the same.
+  Fixed under `FIX_BUGS`: `battle_action_apply_tile_trap` misses a unit below level 2, as Level Blast does.
 - `suzuki_sound_set_reverb_mode`: a negative mode is meant to keep the current
   mode, but the stored mode still carries the 0x100 work-area flag that LIBSPU
   strips from its own copy only. It never equals the SPU's mode, so there is
@@ -406,12 +463,16 @@ An entry an edition changes keeps describing the retail code and ends with
 - `battle_formula_weapon_heal` (formula 0x07, the Healing Staff) applies
   zodiac compatibility twice, once itself and once inside
   `battle_formula_apply_physical_xa_modifiers`, whose Defense
-  Up and Protect steps also cut the healing to two thirds.
+  Up and Protect steps also cut the healing to two thirds. War of the Lions (PSP)
+  does the same.
+  Fixed under `FIX_BUGS`: the compatibility applies once, in the physical XA modifiers; the Defense Up and Protect cut stays.
 - `battle_formula_raise_level_by_one_add_status_on_caster` (formula 0x57,
   Please Eat) stores a full HP and MP heal (max-HP damage for an undead
   target) and then overwrites `attack_type` with the level change's:
   `battle_action_apply_target_result` still applies the
-  amounts, but `battle_gfx_prepare_post_action_display` shows no number.
+  amounts, but `battle_gfx_prepare_post_action_display` shows no number. War of the
+  Lions (PSP) stores the same type.
+  Fixed under `FIX_BUGS`: a living target keeps HP and MP healing beside the level change, so both numbers show after the action and the preview (`battle_menu_display_projected_action_effect`) shows the HP healing instead of the level; an undead target stays as retail.
 - `main_sound_unload_scenario_mus` releases a slot's music record and SMD
   without clearing `g_main_sound_music.state` when that slot is the playing
   one. The shop, formation and both save screens unload their own music this
@@ -448,13 +509,33 @@ An entry an edition changes keeps describing the retail code and ends with
   range that runs past the last cell.
 - `main_unit_calculate_entd_equipment`: the random body-armor roll tests
   `BATTLE_SUPPORT_SET_1_EQUIP_SHIELD` before asking for `ITEM_TYPE_ARMOR`;
-  Equip Armor is tested only for the helmet.
-- `battle_unit_store_coordinate_mount_animation_data` and
-  `battle_unit_restore_facing_after_attack`: for a mounted pair the second
+  Equip Armor is tested only for the helmet. No ENTD record or job fixes either
+  support; a Knight may draw either, and a few other jobs Equip Shield, almost
+  never (of them only Samurai and Lancers wear armor). War of the Lions (PSP)
+  keeps the retail test.
+  Fixed under `FIX_BUGS`: the body roll tests Equip Armor too.
+- `battle_unit_store_coordinate_mount_animation_data`,
+  `battle_unit_restore_facing_after_attack` and
+  `battle_unit_face_towards_action_target`: for a mounted pair the second
   `battle_unit_set_tile_position` call names the unit's own battle record again
-  (the first function finds its "mount" by the unit's own `unit_id`), so the
-  partner's battle stats take no tile or facing here. The second function also
-  writes the partner record's facing with no null test.
+  (the first function finds its "mount" by the unit's own `runtime_id`), so the
+  partner's battle stats take no tile or facing here. The tile never differs: a
+  mounted pair walks as its mount, and `battle_unit_set_tile_position` on the
+  mount carries the rider; a rider that moves alone dismounts on its first step;
+  and knockback skips a mounted pair. The facing does: a rider turned toward an
+  action turns the mount's sprite but not its stored facing. Turning back evens
+  them out, but `battle_unit_restore_facing_after_attack` skips a dead unit, so
+  a rider killed in the action it turned in (by a counter, for example) leaves
+  its mount's sprite facing the action and its stored facing, which the evasion
+  reads, where it was, until the mount next moves, acts, evades or is knocked
+  back, its next rider waits or an event ends (measured with direct calls, not in
+  play). War of the Lions (PSP) does the same.
+  The last two functions also write the partner record's facing with no null
+  test, which a port must not copy. The Developer's Cut leaves the first
+  unchanged: the tile never differs, and naming the rider there would rebuild the
+  pair's link, which a mount with Charm, Berserk or another status that bars
+  mounting would lose.
+  Fixed under `FIX_BUGS`: the two facing functions give the mount's battle stats the facing its sprite takes, and test that the mount exists.
 - `battle_gfx_release_reserved_vram_slot` tests owner bit 0x80
   (`BATTLE_GFX_VRAM_SLOT_OWNER_ATTACK_IMAGE`), which the EVTCHR (0xfe) and free
   (0xff) markers also carry, so the event instruction releases a saved EVTCHR
@@ -470,9 +551,13 @@ An entry an edition changes keeps describing the retail code and ends with
   `g_battle_map_pending_gns_records`: it reads
   `g_battle_map_saved_light_matrix` and can overwrite the first 20 bytes of
   `g_battle_map_local_light_matrix`.
-- `main_gfx_build_zodiac_primitives` and `menu_build_zodiac_primitives`:
-  the round-to-nearest step of the sprite scale adds 1, not `ONE`, to the 4.12
-  product before dividing, so it only rounds up a remainder of `ONE` - 1.
+- `main_gfx_build_zodiac_primitives`, `world_gfx_build_zodiac_primitives`,
+  `attack_gfx_build_zodiac_primitives` and `menu_build_zodiac_primitives` (CARD,
+  DEBUGCHR and REQUIRE): the round-to-nearest step of the sprite scale adds 1,
+  not `ONE`, to the 4.12 product before dividing, so it only rounds up a
+  remainder of `ONE` - 1. Every scale in the six tables is `ONE` or -`ONE` and
+  nothing writes them, so the remainder is always 0 and the step never runs.
+  The Developer's Cut leaves it unchanged.
 - Every copy of the ZODIAC backdrop builder (`main_gfx_build_zodiac_primitives`,
   `world_gfx_build_zodiac_primitives`, `attack_gfx_build_zodiac_primitives` and
   `menu_build_zodiac_primitives` in CARD, DEBUGCHR and REQUIRE) tags the dark quad
@@ -536,7 +621,8 @@ An entry an edition changes keeps describing the retail code and ends with
   values from the following 16-bit direction components.
 - `src/battle/battle_ai_evaluate_self_target_origins.c`: suspension during the
   first origin's target search marks the second-origin stage, so resuming skips
-  the moved-origin pass.
+  the moved-origin pass. War of the Lions (PSP) does the same.
+  Fixed under `FIX_BUGS`: `act_before_move` decides the pass, so a resumed first pass still runs the moved pass.
 - `battle_util_mul_div_s64` and `world_util_mul_div_s64` (hand-written) negate a
   negative divisor with the bit flip alone and add its 1 to the dividend's low
   word, and the carry of negating a negative product goes into the remainder
@@ -574,17 +660,26 @@ An entry an edition changes keeps describing the retail code and ends with
   that large.
 - `main_unit_calculate_random_equipment`: an item with a higher required level than
   any before it restarts the candidate list, but items scanned after it with a lower
-  level still join, so the pick is not limited to the highest level reached.
+  level still join, so the pick is not limited to the highest level reached: a level 20
+  Knight's body is the Gold Armor or one of three weaker robes. War of the Lions (PSP)
+  keeps the same rule. The Developer's Cut leaves it: the highest level alone would
+  take the variety the rule leaves by accident (an accessory from level 60 up would
+  always be the Bracer, a Ninja's weapon from level 33 up the Air Knife).
 - `battle_status_queue_runtime_graphics_flag_change`: removing Crystal falls into the
   Chicken case, so it queues the Chicken display bit for removal and leaves the
   Crystal bit set.
 - `battle_formula_apply_zodiac_compatibility` returns early when either unit is
   Serpentarius, before the floor of 1 that every other sign pair reaches, so an XA
-  already cut to 0 stays 0 and the hit deals 0 damage.
+  already cut to 0 stays 0 and the hit deals 0 damage. Only Elidibus (job 151) has
+  the sign, and XA 0 takes deliberate play, such as Protect cast on it and a hit of XA 1.
+  War of the Lions (PSP) does the same.
+  Fixed under `FIX_BUGS`: Serpentarius reaches the floor too and stays neutral.
 - `open_movie_update_stream_frame` restarts a stream whose ring has fewer than 16
   free sectors through `open_movie_start_cd_stream_read`, which reads with mode
   0x1a0; the first read in `open_movie_start_stream` uses 0x1e0, so the restart drops
-  `CdlModeRT` (0x40, XA-ADPCM playback).
+  `CdlModeRT` (0x40, XA-ADPCM playback). The ring fills when the decoder falls behind,
+  in any of the six movies; how often is unknown.
+  Fixed under `FIX_BUGS`: the restart reads with mode 0x1e0 too.
 - `battle_action_queue_unit_effect_messages` tests the 16-record capacity of
   `g_battle_action_post_effect_msgs` once, before it walks the unit's 11 reportable
   outcomes: with 15 records queued it can append ten more past the array, over
@@ -595,6 +690,8 @@ An entry an edition changes keeps describing the retail code and ends with
   `battle_ai_can_use_ability_at_coords` on the unit's current tile in both passes, so
   the starting tile also decides the move-then-act pass, which casts from the
   destination; `battle_ai_evaluate_before_and_after_move` tests the destination there.
+  War of the Lions (PSP) does the same.
+  Fixed under `FIX_BUGS`: each pass tests the tile it acts from, the unit's and then the destination.
 - `battle_target_select_random_tile_for_random_fire_abilities` has no test for an
   empty candidate list, and `battle_target_mark_hit_tiles` calls it for any result but
   -1: with no candidate it adds 0x100 to the stale `mark` of
@@ -612,14 +709,28 @@ An entry an edition changes keeps describing the retail code and ends with
   commands 0x66 and 0x68 that queue them, so they never run.
 - `battle_camera_execute_position_command`, target-average source: it sums the world
   coordinates of the unit targets only but divides by the whole target count, so
-  tile targets pull the average toward the map origin. The average is stored only
-  with an offset, which all four callers pass.
+  a tile target would pull the average toward the map origin and no target would
+  divide by zero. The average is stored only with an offset, which all four
+  callers pass. No play reaches either: an effect's targets are all units, one
+  tile or none. Five effects use the source, all in the child camera table (E033
+  Haste 2, E035 Slow 2, E160 Ultima, E384 Ulmaguest and E408 Nanoflare), whose
+  keyframes `battle_camera_find_active_keyframe` reads only with a target, and
+  the one tile needs an ability that animates on a miss or that Reflect bounced,
+  which none of the five is. The Developer's Cut leaves it unchanged.
 - `battle_unit_place_in_new_location` (WarpUnit, and
   `battle_script_warp_unit_display_to_paired_unit` with its WORLD twin) passes
   `unit->facing`, the quadrant shifted left 10, as the `u8` facing of
   `battle_unit_set_tile_position`, where its other callers divide by 1024. The low
   byte is 0, so a warped unit's battle stats face south while its sprite faces as
-  asked; facing evade reads the stats.
+  asked, until the event ends and `script_execute_event` copies every sprite's
+  facing back to the stats (an event that chains to another skips that copy). A
+  tile that takes no unit keeps the facing asked. Within the event the script code that reads a stats
+  facing is the paired warp (CallFunction 0x0f and 0x10, which the save menu's
+  0x06 also reaches), the copy of CallFunction 0x11 and the graphics load of a
+  unit (`battle_gfx_load_unit_graphics_by_battle_id`, from AddUnit and
+  CallFunction 0x0d and 0x11); ten of the 24 events that open the save menu warp
+  a unit to another facing first. War of the Lions (PSP) passes the same byte.
+  Fixed under `FIX_BUGS`: the stats take the facing in quarter turns.
 - `battle_move_animate_jump_start` and `battle_move_animate_jump_rise_with_sfx` size
   the rise as 0x120 minus the ground's (negative-up) y, the altitude of a point 0x120
   above the ground, but cover it from the unit's current height: a unit on ground h
@@ -657,9 +768,11 @@ An entry an edition changes keeps describing the retail code and ends with
   0 first.
 - `bunit_unit_build_list_index_map` maps a mount to its rider's list index
   (`bunit_unit_find_index_by_battle_id`), not the rider's grid cell, and the readers
-  copy the entry straight into `g_bunit_unit_grid_selected_cell`, so browsing onto
-  such a mount with L1/R1 puts the grid cursor on a later unit's cell (or past the
-  last).
+  copy the entry straight into `g_bunit_unit_grid_selected_cell`. They differ when a
+  ridden mount comes before the rider in the list: browsing onto the mount with L1/R1
+  then puts the grid cursor on a later unit's cell (or past the last), and leaving the
+  browsing selects that unit. War of the Lions (PSP) does the same.
+  Fixed under `FIX_BUGS`: a mount's entry is its rider's cell.
 - `bunit_menu_script_draw_plain_number`, `equip_menu_script_draw_plain_number` and
   `world_menu_script_draw_plain_number` count their blank cells down to -1 in an `s16`
   with no lower bound: a value with more digits than the field starts below -1 and
@@ -674,7 +787,9 @@ An entry an edition changes keeps describing the retail code and ends with
   `wldcore_sound_change_scenario_music` and the audio queue keep slot n's track in
   `tracks[n - 1]`. The novel always uses slot 2, so the store hits `current_slot`
   (zeroed next) and `tracks[1]` keeps the unloaded id: a later queued play of that
-  track switches to the empty slot without loading it.
+  track switches to the empty slot without loading it. The one novel a treasure
+  opens, the Germonik Scriptures, has no such instruction; two that none opens do.
+  Fixed under `FIX_BUGS`: the slot's own entry is cleared.
 - `wldcore_gfx_draw_animated_display_object`: a part with its own palette gets CLUT x
   `(clut_x + (word & 0xff0000)) >> 12`, shifting the cel's CLUT x origin out with the
   palette field; OPEN's `open_gfx_draw_animated_render_record` adds the origin after
@@ -861,7 +976,15 @@ written that way.
   previous and repeat globals reside elsewhere.
 - `battle_move_start_next_post_move_event` passes the mover's `map_x`, `map_z` (the
   layer) and `map_y` to `battle_ai_record_sprung_trap`, which stores x, y and level,
-  so the AI's sprung-trap tile holds the layer as y and the row as level.
+  so the AI's sprung-trap tile holds the layer as y and the row as level. The AI keeps
+  off the right tile only for a trap on row 0 of the lower layer; for row 1 it keeps off
+  a tile of the upper layer's row 0 (blocked on the three maps with such a trap), and from
+  row 2 its mask write lands in other AI masks (from row 14, its stage bytes), which the
+  retail traps (rows 0 to 13) leave to be rebuilt before use, but for row 13 (map 72), whose
+  write in the walkable tiles lands on a blocked tile. The list lasts until the AI workspace
+  resets, at the battle's start or a mid-battle event's end. War of the Lions (PSP) passes
+  them in the same order.
+  Fixed under `FIX_BUGS`: the tile is passed as x, row and layer.
 - `battle_menu_collect_monster_skill_abilities` returns 0 from its early exits but
   falls off its end after building a list, and writes no terminator after it; both
   ability-list builders (`battle_menu_build_ability_list` and its WORLD copy) ignore
@@ -1095,7 +1218,8 @@ translation unit. Share their types and constants through headers.
   `level_sum_money` and `bonus_money`.
 - `src/battle/battle_ai_load_ability_entry.c`: with Throw Item the AI gives an
   item a range of the unit's Move; `battle_target_set_panels_for_action` uses
-  4, and gives a Mime the same.
+  4, and gives a Mime the same. War of the Lions (PSP) uses the Move too.
+  Fixed under `FIX_BUGS`: Throw Item gives the item a range of 4.
 - `battle_map_run_gns_command_record`: command rows 0x85, 0x86, 0x88, 0x89, 0x8a
   and 0x8b skip the map-state comparison and are applied in file order, so the
   last of a kind wins: MAP017.GNS has one set-outdoor row followed by six
@@ -1237,12 +1361,20 @@ translation unit. Share their types and constants through headers.
   the bare Jump entry is written past the list's count, so the next entry (the next skillset's or Frog
   Attack) overwrites it and the unit has no Jump entry.
 - `src/battle/battle_ai_build_unit_ability_list.c`: the weapon kinds of both hands are ORed and only one
-  kind at a time is handled (none, damage, absorb, heal), so a unit holding two kinds (a Blood Sword with
-  another weapon under Two Swords) gets no target-team flag on its Attack entry.
+  kind at a time is handled (none, damage, absorb, heal), so a unit holding two kinds (a Blood Sword or
+  Healing Staff with another weapon under Two Swords) gets no target-team flag on its Attack entry. The AI
+  still attacks enemies with it, as the strike simulation scores the hits, but leaves it out of the unit's
+  reach toward an enemy and its share of harmful abilities. No ENTD unit with the ENTD's own equipment can
+  hold two kinds; a player's unit can, and the enemies' AI reads its list too, even played by hand. Guests
+  that take the roster's equipment are not ruled out. War of the Lions (PSP) handles one kind at a time too.
+  Fixed under `FIX_BUGS`: two kinds aim at enemies, as a damage weapon.
 - Half of MP: `battle_menu_get_unit_skillset_ability_data` lists the half rounded up and the menu grays
-  an ability by it, but `battle_action_check_and_consume_mp` and the AI use the half rounded down. Seven
+  and questions an ability by it, but `battle_action_check_and_consume_mp` and the AI use the half rounded down. Seven
   abilities have odd costs (Zodiac 99; Toad 2, Gravi 2, Flare 2, Blind 2, Confuse 2 and Sleep 2 at 35),
-  so a unit with exactly the lower half sees them grayed.
+  so a unit with exactly the lower half sees them grayed with the not-enough-MP warning. The player can
+  accept the warning and the action runs; only an ability of CT 0 is refused. War of the Lions (PSP)
+  rounds the same way.
+  Fixed under `FIX_BUGS`: the list shows the half rounded down, the cost the action pays, and grays and warns by it.
 - `src/battle/battle_ai_select_auto_battle_action.c`: Protect allies falls back to Run like a rabbit when
   `battle_ai_select_protect_allies_action` returns -2, which it never does.
 - `src/battle/battle_ai_evaluate_origins.c`: an ability without
@@ -1347,7 +1479,13 @@ translation unit. Share their types and constants through headers.
 - `bunit_gfx_init_double_packet_buffers` and `world_gfx_init_double_packet_buffers` set
   their draw and display environments 255 pixels wide where MAIN and CARD use 256, so
   the default drawing area ends at x = 254; `PutDispEnv` still picks the 256-pixel
-  mode.
+  mode. The last column of the formation screen and of the unit list stays black,
+  though their floor and fade cover all 256. It may be on purpose: the shops' background
+  is 255 wide and `g_world_shop_edge_tile_rect` blackens that column over everything
+  while it shows; the fitting room's unit choice hides both and draws the formation's
+  floor. The card screen and name entry, which share WORLD's buffers, look the same at
+  either width. War of the Lions (PSP) draws these screens 340 wide.
+  Fixed under `FIX_BUGS`: the environments are 256 wide, so the floor reaches the edge, in the fitting room too; the shops' black column stays.
 - `world_text_measure_entry_pixel_width` adds the operand of 0xE7
   (`TEXT_SET_X_POSITION`) to the width as an advance, while the renderers
   (`menu_text_render_encoded_ids_to_image`, `world_text_render_encoded_ids_to_image`,

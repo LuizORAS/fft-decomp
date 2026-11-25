@@ -294,6 +294,14 @@ retail. The same overlay draws the Status screen of a rider or a mount
 - DEBUGCHR's editor cannot keep job, equipment or ability edits.
 - While a banner thread stops, BUNIT's status indicators (and WORLD's) read RAM
   address 0 as a display record; the other overlays' copies have no caller.
+- The unit list and WORLD's formation screen draw 255 columns, so the screen's
+  last one stays black ([[bunit_gfx_init_double_packet_buffers]],
+  [[world_gfx_init_double_packet_buffers]], `QUIRKS.md`). The Developer's Cut
+  draws all 256.
+- In the unit list, when a ridden mount comes before the rider, L1/R1 onto the
+  mount puts the grid cursor on a later unit's cell, which leaving the browsing
+  selects ([[bunit_unit_build_list_index_map]], `QUIRKS.md`). The Developer's
+  Cut gives the mount its rider's cell.
 - EQUIP never fills the physical accessory evade slot of
   [[equip_unit_data_t]].
 - The `*_text_render_decimal_value` copies always place the value as one digit.

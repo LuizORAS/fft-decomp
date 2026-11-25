@@ -33,7 +33,12 @@ s32 battle_unit_place_in_new_location(u32 runtime_id, map_tile_coordinates_t* ti
         unit->real.vz = unit->world_coords.vz * ONE;
         unit->real.vy = unit->world_coords.vy * ONE;
         if (unit->stats != 0) {
+#ifdef FIX_BUGS
+            /* The edition gives the battle stats the facing in quarter turns (QUIRKS.md). */
+            battle_unit_set_tile_position(unit->stats->battle_id, unit->map_x, unit->map_y, unit->map_z, facing);
+#else
             battle_unit_set_tile_position(unit->stats->battle_id, unit->map_x, unit->map_y, unit->map_z, unit->facing);
+#endif
         }
         return 1;
     }

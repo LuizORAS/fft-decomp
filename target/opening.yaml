@@ -37,7 +37,7 @@ functions:
   - {addr: 0x8006792c, size: 116, name: open_movie_decode_next_frame, hash: 73568910087a3609}
   - {addr: 0x800679a0, size: 408, name: open_movie_acquire_next_frame, hash: 7fc290a0401086a3}
   - {addr: 0x80067b38, size: 152, name: open_movie_wait_for_mdec_output, hash: 6ff3dc5f70e0bfa1}
-  - {addr: 0x80067bd0, size: 76, name: open_movie_start_cd_stream_read, hash: c64a5247a99178b8}
+  - {addr: 0x80067bd0, size: 76, name: open_movie_start_cd_stream_read, hash: c64a5247a99178b8, change: [FIX_BUGS], dc_hash: 6169918bbc07db52}
   - {addr: 0x80067c1c, size: 360, name: open_movie_present_frame, hash: 78623003303c6f16}
   - {addr: 0x80067d84, size: 228, name: open_input_update_buttons_and_check_game_reset, hash: f473a15292edf5e0}
   - {addr: 0x80067e68, size: 40, name: open_gfx_start_overlay_fade_out, hash: a5ea42b5526a77a5}

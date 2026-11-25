@@ -12,10 +12,20 @@ void battle_target_clear_panels_on_untargetable_tiles(void) {
     i = 0;
     dst = g_battle_target_panels;
     src = g_battle_map_tile_data;
+#ifdef FIX_BUGS
+    /* The edition visits both layers' panels, as the weapon range does (QUIRKS.md). */
+    for (; i < MAP_TILE_COUNT; src++, i++, dst++) {
+        if (src->flags.untargetable) {
+            dst->remaining_range = 0;
+            dst->mark = 0;
+        }
+    }
+#else
     for (; i < 256; src++, i++, dst++) {
         if (src->flags.untargetable) {
             dst->remaining_range = 0;
             dst->mark = 0;
         }
     }
+#endif
 }

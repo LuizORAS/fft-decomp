@@ -162,13 +162,17 @@ Every town has a Bar ([[wldcore_bar_push_menu_level]]). Its menu
 
 - [[wldcore_proposition_determine_success]]:
   - the preferred-job promotion tests one unit (the scoring loop's leftover
-    index) every pass;
+    index) every pass; the Developer's Cut tests each unit sent;
   - the level score is read from the Brave scores and runs into the Faith
-    scores, while record 7, the real level scores, is never read.
+    scores, while record 7, the real level scores, is never read; the
+    Developer's Cut reads it, which changes the JP and gil too, as the score
+    adds to both.
 - [[wldcore_proposition_select_report_speaker]] leaves its result unset for
   a speaker mode outside 1-4 (no retail row has one).
 - An event's date advance does not count toward the jobs out
-  ([[wldcore_calendar_advance_days]]).
+  ([[wldcore_calendar_advance_days]]), which changes nothing: the retail
+  advances are 90 days, longer than any job, and a whole year, whose days
+  beyond the year are 0.
 - [[wldcore_proposition_step_result_level]] clears the in-progress bit with a
   mask that also drops the variable's high half.
 

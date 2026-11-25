@@ -12,16 +12,24 @@
  * suspend, else 0.
  *
  * Stored counters survive suspension, but the resume entry does not reload the reflector pointer;
- * later iterations use the caller's $s2 (QUIRKS.md). */
+ * later iterations use the caller's $s2, the AI workspace (QUIRKS.md). */
 s32 battle_ai_evaluate_reflected_target_origins(void) {
     battle_ai_data_t* ai = &g_battle_ai_data_base;
     battle_stats_t* reflector;
     battle_ai_unit_decision_t* decision;
     battle_ai_tile_mask_mode_e mode;
     s32 ct;
+#ifdef FIX_BUGS
+    /* The edition's tile the current pass acts from (QUIRKS.md). */
+    battle_ai_coords_t* origin;
+#endif
 
     if (g_battle_ai_data_base.resume_pending) {
         /* Resume: the target jumps into the middle of the origin loop. */
+#ifdef FIX_BUGS
+        /* The edition reloads the reflector the loop was on (QUIRKS.md). */
+        reflector = &g_battle_unit_stats[ai->reflector_unit_index];
+#endif
         goto evaluate_targets;
     }
     g_battle_ai_data_base.current_action.reflected_action = 1;
@@ -80,6 +88,22 @@ s32 battle_ai_evaluate_reflected_target_origins(void) {
                     battle_ai_update_tile_pickup();
                     ai->current_action.act_before_move = 1;
                     ai->reflected_origin_phase = 0;
+#ifdef FIX_BUGS
+                    /* The edition tests the tile each pass acts from: the unit's, then the destination (QUIRKS.md). */
+                    origin = &ai->acting_unit_coords;
+                    for (;;) {
+                        if (battle_ai_can_use_ability_at_coords(origin)) {
+                        evaluate_targets:
+                            if (battle_ai_evaluate_target_tiles() == -1)
+                                return -1;
+                        }
+                        if (ai->reflected_origin_phase != 0)
+                            break;
+                        ai->reflected_origin_phase = 1;
+                        ai->current_action.act_before_move = 0;
+                        origin = &ai->current_action.coords;
+                    }
+#else
                     for (;;) {
                         if (battle_ai_can_use_ability_at_coords(&ai->acting_unit_coords)) {
                         evaluate_targets:
@@ -91,6 +115,7 @@ s32 battle_ai_evaluate_reflected_target_origins(void) {
                         ai->reflected_origin_phase = 1;
                         ai->current_action.act_before_move = 0;
                     }
+#endif
                 }
             }
         }

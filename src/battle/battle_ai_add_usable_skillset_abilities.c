@@ -99,12 +99,21 @@ s32 battle_ai_add_usable_skillset_abilities(s32 unit_id, s32 skillset, s32 count
             if (max_mp < mp_cost) {
                 continue;
             }
+#ifdef FIX_BUGS
+            /* The edition tests the Faith flag of the ability it adds (QUIRKS.md). */
+            if ((g_main_ability_data[ability_id].ai_flags.flags_2 & BATTLE_AI_ABILITY_FLAG_2_AFFECTED_BY_FAITH)
+                && (unit->status_sets.innate[BATTLE_STATUS_BYTE_INDEX(BATTLE_STATUS_ID_INNOCENT)]
+                    & BATTLE_STATUS_BYTE_MASK(BATTLE_STATUS_ID_INNOCENT))) {
+                continue;
+            }
+#else
             /* Retail bug (QUIRKS.md): the flags are the ability considered last, not ability_id's. */
             if ((ai->considered_ability.ai_flags.word & BATTLE_AI_ABILITY_AFFECTED_BY_FAITH)
                 && (unit->status_sets.innate[BATTLE_STATUS_BYTE_INDEX(BATTLE_STATUS_ID_INNOCENT)]
                     & BATTLE_STATUS_BYTE_MASK(BATTLE_STATUS_ID_INNOCENT))) {
                 continue;
             }
+#endif
             flags = g_main_ability_range_data[ability_id].flags_4;
             if (flags & ABILITY_SECONDARY_FLAG_4_REQUIRES_SWORD) {
                 if (!(unit->equipped_flags & BATTLE_UNIT_EQUIPPED_FLAG_SWORD)) {

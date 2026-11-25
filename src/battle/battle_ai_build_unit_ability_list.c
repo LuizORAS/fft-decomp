@@ -47,6 +47,10 @@ void battle_ai_build_unit_ability_list(s32 unit_id) {
             weapon->fields.range = 1;
             /* Fall through to normal enemy targeting. */
         case BATTLE_AI_WEAPON_FORMULA_DAMAGE:
+#ifdef FIX_BUGS
+        /* The edition aims two weapon kinds at enemies, as a damage weapon (QUIRKS.md). */
+        default:
+#endif
             weapon->fields.flags_1 |= BATTLE_AI_ABILITY_FLAG_1_TARGET_ENEMIES;
             break;
         case BATTLE_AI_WEAPON_FORMULA_ABSORB_HP:

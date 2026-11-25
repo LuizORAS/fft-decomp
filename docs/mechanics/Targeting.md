@@ -135,7 +135,7 @@ hit (its area) and a preview, and the player confirms.
 
 - [[battle_target_clear_panels_on_untargetable_tiles]] visits only the lower
   layer, so an untargetable upper-layer tile stays in range of a single-tile
-  ability.
+  ability. The Developer's Cut clears both layers.
 - [[battle_target_mark_unit_panels_by_team]] never advances its unit pointer;
   no retail ability sets the flags that reach it.
 - The range data of items: `battle_action_init_current_ability_strike_data`

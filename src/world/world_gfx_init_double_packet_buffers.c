@@ -27,8 +27,14 @@ void world_gfx_init_double_packet_buffers(bunit_menu_gfx_context_t* buffers, u32
         g_world_gfx_packet_buffers[i].draw_areas = draw_areas + g_world_gfx_draw_area_capacity * i;
         g_world_gfx_packet_buffers[i].draw_modes = draw_modes + g_world_gfx_draw_mode_capacity * i;
         world_gfx_init_packet_pools(&g_world_gfx_packet_buffers[i]);
+#ifdef FIX_BUGS
+        /* The edition draws all 256 columns of the screen (QUIRKS.md). */
+        SetDefDrawEnv(&g_world_gfx_packet_buffers[i].draw_env, 0, i * 240, 256, 240);
+        SetDefDispEnv(&g_world_gfx_packet_buffers[i].disp_env, 0, i == 0 ? 240 : 0, 256, 240);
+#else
         SetDefDrawEnv(&g_world_gfx_packet_buffers[i].draw_env, 0, i * 240, 255, 240);
         SetDefDispEnv(&g_world_gfx_packet_buffers[i].disp_env, 0, i == 0 ? 240 : 0, 255, 240);
+#endif
         g_world_gfx_packet_buffers[i].draw_env.isbg = 0;
         g_world_gfx_packet_buffers[i].draw_env.dfe = 1;
         setRGB0(&g_world_gfx_packet_buffers[i].draw_env, 0, 0, 0);

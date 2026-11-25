@@ -124,6 +124,9 @@ pushes the next one, replaces itself (index - 1, then a push) or pops.
 - Nothing sets step 5 of the New Game controller, so the Music Test cannot be
   opened; community sources say the Japanese release opened it for a special
   name. Its titles and comments were left untranslated.
+- A movie whose decoder falls behind restarts its read without the mode bit of
+  the XA audio ([[open_movie_start_cd_stream_read]], `QUIRKS.md`). The
+  Developer's Cut keeps the bit.
 - February has 28 days in the birthday entry, so 29 February cannot be
   entered.
 - Three runtime flags are tested but never set: the soft-reset lock, the

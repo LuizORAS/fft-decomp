@@ -272,6 +272,9 @@ fades, the OPNTEX pictures and slideshows, and the `ENDING.XA` music.
   location script opcodes 16 and 17 test the date the other way round from
   scenario conditions 16 and 17.
 - CallFunction tests its selectors in sequence, so 0x06 also runs 0x0f's warp.
+- WarpUnit leaves the warped unit's battle stats facing south until the event
+  ends ([[battle_unit_place_in_new_location]], `QUIRKS.md`). The Developer's
+  Cut gives them the facing asked.
 - [[world_tutorial_command_end]] falls off its end while the fade runs.
 - [[wldcore_sound_novel_calculate_completion_percent]] (no caller) counts past
   its array.

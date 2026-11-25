@@ -121,7 +121,8 @@ font (`main_gfx_*`).
   releases a saved EVTCHR slot.
 - [[battle_gfx_draw_unit_shadow]] recalculates the shadow on every call.
 - The CT-zero display reads an unset row offset
-  ([[battle_gfx_build_next_action_result_display]]).
+  ([[battle_gfx_build_next_action_result_display]]), so CT 0 stands lower
+  than Quick and Missed. The Developer's Cut shows it at their height.
 - A unit off the map reads the null tile for its shadow and palette.
 
 ## Functions in scope

@@ -825,7 +825,7 @@ functions:
   - {addr: 0x8005b880, size: 496, name: main_unit_calculate_actual_stats, hash: 0715763bb40a644e, rodata: [{addr: 0x80059818, size: 20, hash: 7d8dcfa94afb51b6}]}
   - {addr: 0x8005ba70, size: 832, name: main_unit_calculate_abilities, hash: 7cf7a5b87413e65c}
   - {addr: 0x8005bdb0, size: 64, name: main_unit_store_monster_equipment, hash: f05ae65f8fd22982}
-  - {addr: 0x8005bdf0, size: 1164, name: main_unit_calculate_entd_equipment, hash: 3c68c7196313eb38}
+  - {addr: 0x8005bdf0, size: 1164, name: main_unit_calculate_entd_equipment, hash: 3c68c7196313eb38, change: [FIX_BUGS], dc_hash: a53870ebf25bb9c4}
   - {addr: 0x8005c27c, size: 284, name: main_unit_set_equippable_items, hash: a0da56e8a072742e}
   - {addr: 0x8005c398, size: 560, name: main_unit_set_equipment_stats, hash: 8bbdcd34209f742e}
   - {addr: 0x8005c5c8, size: 804, name: main_unit_set_equipment_attributes, hash: 692a362c43589a84}

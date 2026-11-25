@@ -102,7 +102,12 @@ s32 battle_menu_get_unit_skillset_ability_data(
             }
             mp = secondary->mp_cost;
             if (half_mp) {
+#ifdef FIX_BUGS
+                /* The edition lists the half rounded down, the cost the action pays (QUIRKS.md). */
+                mp = mp >> 1;
+#else
                 mp = (mp + 1) >> 1;
+#endif
             }
             ct = secondary->ct & 0x7f;
             attributes = secondary->flags_3;
