@@ -106,8 +106,13 @@ An entry an edition changes keeps describing the retail code and ends with
   Fixed under `FIX_BUGS`: the refresh builds the bit from Blood Suck, so Protect allies looks for a cure first and, with none, turns to the ally most in peril, as for Dead and Petrify.
 - `src/battle/battle_ai_build_monster_skill_tile_mask.c`: the `-1` neighbor
   offsets are loaded unsigned (+255), so only `+x`/`+y` survive, and the level
-  loop runs for level 0 only. War of the Lions (PSP) does the same.
-  Fixed under `FIX_BUGS`: the offsets are read signed and both levels are marked.
+  loop runs for level 0 only. It also compares whole heights within 2, where the
+  AI's final test (`battle_ai_can_use_ability_at_coords`) and the menu's check
+  (`battle_menu_has_monster_skill_supporter_at_tile`) count slopes, within 5 half
+  levels; in the AI's search over origin tiles only the mask tests the holder.
+  War of the Lions (PSP) does the same. Both AI tests leave out body height, Float
+  and water movement, which the menu's check counts.
+  Fixed under `FIX_BUGS`: the offsets are read signed, both levels are marked and the heights compare as in the AI's final test.
 - `src/battle/battle_ai_build_targetable_tile_mask.c`: radii 8–15 index past
   the 8-entry template table into the following status weights. Jump Level 8
   can reach this path with a non-arcing weapon. War of the Lions (PSP) reads

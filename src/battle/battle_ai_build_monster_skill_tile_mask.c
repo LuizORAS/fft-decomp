@@ -36,7 +36,7 @@ void battle_ai_build_monster_skill_tile_mask(void) {
             + unit->position.y * ai->map_max_x + unit->x]
                      .height;
 #ifdef FIX_BUGS
-        /* The edition reads the -1 offsets signed and marks both levels (QUIRKS.md). */
+        /* The edition reads the -1 offsets signed, marks both levels and counts slopes (QUIRKS.md). */
         for (direction = 0; direction < BATTLE_AI_CARDINAL_DIRECTION_COUNT; direction++) {
             x = unit->x + (s8)g_battle_ai_facing_tile_offsets.by_direction[direction][0];
             if (x < 0 || x >= ai->map_max_x)
@@ -44,11 +44,12 @@ void battle_ai_build_monster_skill_tile_mask(void) {
             y = unit->position.y + (s8)g_battle_ai_facing_tile_offsets.by_direction[direction][1];
             if (y < 0 || y >= ai->map_max_y)
                 continue;
+            ai->considered_unit_coords.fields.x = x;
+            ai->considered_unit_coords.fields.y = y;
             for (level = MAP_TERRAIN_LAYER_COUNT - 1; level >= 0; level--) {
-                if ((g_battle_map_tile_data[(level * MAP_TILES_PER_LAYER) + y * ai->map_max_x + x].height - height)
-                        >= -2
-                    && (g_battle_map_tile_data[(level * MAP_TILES_PER_LAYER) + y * ai->map_max_x + x].height - height)
-                        <= 2) {
+                ai->considered_unit_coords.fields.elevation = level;
+                height = battle_ai_get_unit_height_above_coords(&ai->considered_unit_coords, unit);
+                if (height >= -2 && height <= 2) {
                     /* The original's row write (below). */
                     level_base = level * sizeof(ai->targetable_tiles[0]) + (u32)ai;
                     row = (u16*)(level_base + ((u32)&ai->targetable_tiles - (u32)ai));

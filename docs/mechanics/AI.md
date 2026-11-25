@@ -221,10 +221,11 @@ The other statuses weigh 0.
   Level Jump loses its Jump entry, and a unit holding two weapon kinds gets
   no target team for Attack. The Developer's Cut tests the Faith of the
   ability it adds and aims two weapon kinds at enemies.
-- **Masks:** the Monster Skill mask loses two neighbors and the upper level,
-  and range radii 8-15 read past their templates. The Developer's Cut keeps
-  the Monster Skill mask's four neighbors on both levels and computes the
-  rows of every radius.
+- **Masks:** the Monster Skill mask loses two neighbors and the upper level
+  and compares whole heights where the AI's final test counts slopes, and range
+  radii 8-15 read past their templates. The Developer's Cut keeps the Monster
+  Skill mask's four neighbors on both levels, compares the heights as the final
+  test does and computes the rows of every radius.
 - **Sprung traps:** the AI means to keep off each trap tile it has seen
   sprung, but [[battle_move_start_next_post_move_event]] passes the layer as
   the row, so it keeps off only the traps on row 0. The Developer's Cut
