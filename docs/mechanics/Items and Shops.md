@@ -202,6 +202,11 @@ scope:
   and ranking, and in the item data only Cachusha and Barette tie, so retail
   puts Barette first. The Developer's Cut gives headgear and armor no evade and
   splits weapons from shields at the first shield (`QUIRKS.md`).
+- Their magic-evade key is 0 for the first weapon of a pair but the second's
+  weapon evade, so weapons that tie on the keys before it (the Ancient and
+  Sleep Swords, the elemental rods, the Healing and Wizard Staffs) change
+  places instead of comparing on the next key. The Developer's Cut gives both
+  0 (`QUIRKS.md`).
 - [[world_item_sort_id_list]] counts each unit's equipment by id, and an
   unpaid fitting-room item's flag sends its count 32 KB past the array; the
   Developer's Cut leaves it out of the count (`QUIRKS.md`).

@@ -141,7 +141,11 @@ An entry an edition changes keeps describing the retail code and ends with
   Fixed under `FIX_BUGS`: both split weapons at `ITEM_ID_SHIELD_FIRST` and key headgear and body armor 0.
 - `world_item_sort_id_list`, `equip_item_sort_list_by_criteria`: the magic-evade
   key reads 0 for the first weapon of a pair but the second weapon's evade, so two
-  weapons that tie on every earlier key compare one weapon's evade against 0.
+  weapons that tie on every earlier key compare one weapon's evade against 0. The
+  default key lists put it after type, price and ranking, where the Ancient and Sleep
+  Swords, the three elemental rods and the Healing and Wizard Staffs tie; War of the
+  Lions (PSP) reads 0 for both weapons.
+  Fixed under `FIX_BUGS`: the key is 0 for both weapons.
 - `src/battle/battle_camera_step_real_coords_toward_target.c`: in the positive
   direction the Y (`vz`) step adds the vector component twice; X and Z add it
   once.
