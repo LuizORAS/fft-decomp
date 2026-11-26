@@ -113,6 +113,12 @@ An entry an edition changes keeps describing the retail code and ends with
   War of the Lions (PSP) does the same. Both AI tests leave out body height, Float
   and water movement, which the menu's check counts.
   Fixed under `FIX_BUGS`: the offsets are read signed, both levels are marked and the heights compare as in the AI's final test.
+- `battle_menu_has_monster_skill_supporter_at_tile` takes a Monster Skill holder whose
+  `team_flags` match and refuses it outside the primary action (`battle_reaction_is_prevented`);
+  the AI's mask and final test take one whose `initial_team_flags` match the acting team and
+  test only the statuses of `MAIN_STATUS_CHECK_SET_PREVENT_REACTION`. The final test
+  (`battle_ai_can_use_ability_at_coords`) also accepts a holder on the tile itself, where the
+  mask and the menu take only the four neighbors.
 - `src/battle/battle_ai_build_targetable_tile_mask.c`: radii 8–15 index past
   the 8-entry template table into the following status weights. Jump Level 8
   can reach this path with a non-arcing weapon. War of the Lions (PSP) reads
@@ -162,7 +168,8 @@ An entry an edition changes keeps describing the retail code and ends with
 - `equip_item_sort_list_by_criteria` keeps the difference of two keys in an `s16`, where
   `world_item_sort_id_list` uses 32 bits, so two items whose prices are more than 32,767
   apart compare by price in reverse (18 items cost more than that, up to 60,000; 42 pairs
-  of one type are that far apart). Only the Order menu of Equip Change's item list runs
+  of one type are that far apart, and with Price picked first items of different types in
+  one tab compare by price too). Only the Order menu of Equip Change's item list runs
   the sort: with Type or Price picked, Thief Hat (35,000) ends after Flash, Triangle and
   Leather Hats and Ribbon (60,000) after Cachusha and Barette (seen in play, with the
   items put in RAM). The order goes to the page orders in MAIN, which WORLD's item, equip
