@@ -1196,7 +1196,14 @@ translation unit. Share their types and constants through headers.
   `0x194`; the engine plays the byte-identical script at `0x190` without the
   redirect.
 - Abilities no skillset lists: 0x16f (Attack), Reflect (0x1b8), Non-charge,
-  Teleport 2, Move Underwater and Silent Walk. Four ids with no name text are
+  Teleport 2, Move Underwater and Silent Walk. The code itself uses 0x16f
+  (the attack of a frog, and of a monster under Berserk,
+  `ABILITY_ID_FROG_ATTACK`) and 0x1b8 (the reaction id of an ability Reflect
+  sends back,
+  `battle_reaction_mark_reflected`); Teleport 2 is innate in the Holy Angel
+  and Arch Angel jobs, and Move Underwater in the Pisco Demon, Squidlarkin
+  and Mindflare; no job, skillset or ENTD unit gives Non-charge or Silent
+  Walk. Four ids with no name text are
   played as Altima's teleport effects (0x28, 0xb8, 0xdb, 0xdc), and 0x200 is
   the follow-up strike that resolves a knockback.
 - Skillset rows 0x86-0x8d, 0xa7 and 0xa8 have no name text but hold
