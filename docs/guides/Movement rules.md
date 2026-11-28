@@ -32,8 +32,8 @@ Each rule below names the code that applies it.
 | Teleport, Teleport 2 | The whole map is in range; Teleport fails beyond Move on a roll under 10 per extra tile, Teleport 2 never fails | [[battle_move_set_reachable_tiles]], [[battle_move_roll_teleport_success]] |
 | Float (ability) | Class Float, cost row 2; crosses lava; counts as Walk on Water against sinking and drowning | [[battle_move_store_unit_movement_to_scratchpad]] |
 | Float (status) | Class Float, like the ability, but without the lava, the sinking rule or the taller body | [[battle_move_store_unit_movement_to_scratchpad]], [[battle_move_get_effective_flags]] |
-| Walk on Water (the game's "Move in Water", 0x1f6) | Class water surface, cost row 3; does not sink or drown; stands on the water | [[battle_move_store_unit_movement_to_scratchpad]], [[battle_move_get_water_standing_offset]] |
-| Move in Water (the game's "Walk on Water", 0x1f7) | Class water depth one, cost row 3; does not sink or drown; stands one level below the surface | the same |
+| Walk on Water (0x1f6, "Move in Water" on the retail disc) | Class water surface, cost row 3; does not sink or drown; stands on the water | [[battle_move_store_unit_movement_to_scratchpad]], [[battle_move_get_water_standing_offset]] |
+| Move in Water (0x1f7, "Walk on Water" on the retail disc) | Class water depth one, cost row 3; does not sink or drown; stands one level below the surface | the same |
 | Move Underwater | Class underwater, cost row 4; does not drown | [[battle_move_store_unit_movement_to_scratchpad]] |
 | Move on Lava | Class lava, cost row 5; crosses lava | [[battle_move_store_unit_movement_to_scratchpad]] |
 | Cannot enter water (`BATTLE_MOVEMENT_SET_2_CANNOT_ENTER_WATER`) | Loses Move in Water and Move Underwater; cannot enter water without Walk on Water, Float or Fly, nor stay on it without Walk on Water or Float | [[battle_move_store_unit_movement_to_scratchpad]] |

@@ -1204,8 +1204,24 @@ translation unit. Share their types and constants through headers.
   0xa9, which it pairs with ability 0x16f, is empty.
 - The ability names "Move in Water" (0x1f6) and "Walk on Water" (0x1f7) are
   the reverse of what the abilities do: 0x1f6 keeps the unit on the surface
-  and 0x1f7 one level below it (`battle_unit_get_effective_height`,
-  `battle_move_store_unit_movement_to_scratchpad`).
+  and 0x1f7 1h below it (`battle_unit_get_effective_height`,
+  `battle_move_store_unit_movement_to_scratchpad`). 0x1f6's help, "Move or
+  stop on water", says what it does in the job help's words (the Morbol,
+  Ochu and Great Morbol, with 0x1f6 innate, "Move on water"; the Chocobos,
+  with 0x1f7, "Move in water"), but 0x1f7's, "Mover or stop over the surface
+  of the water", speaks of the surface too. The names stand in five places
+  (BATTLE, WORLD twice, `EVENT/WORLD.LZW` and `EVENT/SAMPLE.LZW`) and the
+  help in eight (`EVENT/ATCHELP.LZW` as plain text; `HELPMENU.OUT`,
+  `BUNIT.OUT`, `JOBSTTS.OUT`, WORLD twice, `EVENT/HELP.LZW` and
+  `EVENT/WLDHELP.LZW` compressed). No code loads `SAMPLE.LZW`, `HELP.LZW` or
+  `WLDHELP.LZW`, and WORLD's copy of the battle help is read only by
+  `world_menu_run_battle_help` and `world_menu_run_require_help`, which never
+  run. Fixed under `FIX_BUGS`: the edition swaps the names and gives 0x1f7
+  the help "Move and stop 1h below the surface of water" in every copy
+  (`target/edits.yaml`), and 0x1f6's help stays. A compressed copy keeps its
+  size: the entry after 0x1f7 is encoded again with its own text, and a
+  later entry that copied text from the old help copies the same text from
+  the new one.
 - Selling in the fur shop adds the sold copies to the poached stock
   (`world_shop_run_fur_sell_confirm_step`), so they can be bought back there.
 - `world_shop_run_fur_buy_quantity_menu` divides the gil on hand by

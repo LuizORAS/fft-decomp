@@ -252,8 +252,8 @@ need a Brave roll first; the [[Action]] page says when each one is checked.
 | 0x1f1 | (Cannot enter water) | Innate in monsters and several bosses: no Move in Water or Move Underwater, and no water without a way across it | [[battle_move_store_unit_movement_to_scratchpad]], [[battle_unit_validate_placement]] |
 | 0x1f2, 0x1f3 | Teleport, Teleport 2 | Moves without a path; Teleport can fail beyond Move | [[battle_move_get_effective_flags]], [[battle_move_roll_teleport_success]] |
 | 0x1f4, 0x1f5 | Any Weather, Any Ground | Weather-dependent surfaces cost 1, or every surface that can be entered | [[battle_move_store_unit_movement_to_scratchpad]] |
-| 0x1f6 | "Move in Water" | Walks on the water's surface (the game's names of 0x1f6 and 0x1f7 are swapped) | the same, [[battle_unit_get_effective_height]] |
-| 0x1f7 | "Walk on Water" | Moves in water one level deep | the same |
+| 0x1f6 | "Move in Water" ("Walk on Water" in the Developer's Cut) | Walks on the water's surface (the retail names of 0x1f6 and 0x1f7 are swapped, and 0x1f7's help speaks of the surface) | the same, [[battle_unit_get_effective_height]] |
+| 0x1f7 | "Walk on Water" ("Move in Water" in the Developer's Cut) | Moves in water 1h below the surface | the same |
 | 0x1f8, 0x1f9 | Move on Lava, Move Underwater | Their own terrain classes | [[battle_move_store_unit_movement_to_scratchpad]] |
 | 0x1fa | Float | Moves as Float and gives the Float status | the same, [[main_status_update_unit_flags_and_ct]] |
 | 0x1fb | Fly | Moves as Fly | [[battle_move_get_effective_flags]] |
@@ -281,6 +281,12 @@ The [[Movement rules]] guide details the movement classes.
   above.
 - **Its animation and effect:** [[g_battle_ability_animation_data]] and
   [[g_battle_effect_ability_files]] (disc data).
+- **Its name and help:** game text, in several copies on the disc (the
+  [[Text]] page). A change of the same size is a `target/edits.yaml` row in
+  each copy, as the Developer's Cut's text of 0x1f6 and 0x1f7 shows; in a
+  compressed copy, the new text must encode in the same bytes (the entries
+  after it may be encoded again with their own text), and a later entry
+  that copies from the changed bytes must copy the same text from elsewhere.
 - The [[Changing an ability]] guide walks through a change.
 - **Today's limits:** the original build keeps every byte; a change goes behind
   an option into the Developer's Cut, where code can grow and move and
@@ -289,8 +295,14 @@ The [[Movement rules]] guide details the movement classes.
 ## Quirks and debts
 
 - The game's names are swapped for two movement abilities ("Move in Water"
-  walks on the surface, "Walk on Water" moves in the water), and "Equip
-  Knife" equips katanas. The code names the bits by what they do.
+  walks on the surface, "Walk on Water" moves in the water), and the help
+  of "Walk on Water" speaks of the surface too; the Developer's Cut swaps the
+  names and gives 0x1f7 a help that says what it does, in every copy
+  (`target/edits.yaml`). "Equip Knife" equips katanas, and its support bit
+  is `BATTLE_SUPPORT_SET_1_EQUIP_KATANA`. The two water abilities' bits keep
+  the retail names (`BATTLE_MOVEMENT_SET_3_MOVE_IN_WATER` is 0x1f6), and the
+  effective-movement bits they give say what they do
+  (`BATTLE_EFFECTIVE_MOVEMENT_ON_WATER`).
 - Silent Walk sets an effective-movement bit that nothing reads, and no job
   learns it or has it innate. Reaction 0x1bb and supports 0x1e1, 0x1e4 and
   0x1e5 have blank names and no code.
