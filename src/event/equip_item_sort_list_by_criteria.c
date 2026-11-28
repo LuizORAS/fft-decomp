@@ -26,7 +26,12 @@ void equip_item_sort_list_by_criteria(s32 mode, s16* list) {
     s16 criterion;
     s32 key_a;
     s32 key_b;
+#ifdef FIX_BUGS
+    /* The edition keeps a difference of two prices whole (QUIRKS.md). */
+    s32 diff;
+#else
     s16 diff;
+#endif
 
     count = 0;
     while (list[count] != -1) {

@@ -109,7 +109,7 @@ Each `EFFECT/E*.BIN` file and the ability (or effect id past the abilities) it i
 
 | File | Effect of |
 |---|---|
-| `E000.BIN` | ability 0 and of effect id 0x225, one of the ids past the abilities |
+| `E000.BIN` | nothing: no entry of `g_battle_effect_disc_entries` holds its sector; entry 0, which ability 0 and effect id 0x225 name, loads `E001.BIN` ([[Ability Effects]]) |
 | `E004.BIN` | `ABILITY_ID_WHITE_MAGIC_CURE_4` |
 | `E005.BIN` | `ABILITY_ID_WHITE_MAGIC_RAISE` |
 | `E006.BIN` | `ABILITY_ID_WHITE_MAGIC_RAISE_2` |

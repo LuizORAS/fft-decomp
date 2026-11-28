@@ -106,8 +106,19 @@ An entry an edition changes keeps describing the retail code and ends with
   Fixed under `FIX_BUGS`: the refresh builds the bit from Blood Suck, so Protect allies looks for a cure first and, with none, turns to the ally most in peril, as for Dead and Petrify.
 - `src/battle/battle_ai_build_monster_skill_tile_mask.c`: the `-1` neighbor
   offsets are loaded unsigned (+255), so only `+x`/`+y` survive, and the level
-  loop runs for level 0 only. War of the Lions (PSP) does the same.
-  Fixed under `FIX_BUGS`: the offsets are read signed and both levels are marked.
+  loop runs for level 0 only. It also compares whole heights within 2, where the
+  AI's final test (`battle_ai_can_use_ability_at_coords`) and the menu's check
+  (`battle_menu_has_monster_skill_supporter_at_tile`) count slopes, within 5 half
+  levels; in the AI's search over origin tiles only the mask tests the holder.
+  War of the Lions (PSP) does the same. Both AI tests leave out body height, Float
+  and water movement, which the menu's check counts.
+  Fixed under `FIX_BUGS`: the offsets are read signed, both levels are marked and the heights compare as in the AI's final test.
+- `battle_menu_has_monster_skill_supporter_at_tile` takes a Monster Skill holder whose
+  `team_flags` match and refuses it outside the primary action (`battle_reaction_is_prevented`);
+  the AI's mask and final test take one whose `initial_team_flags` match the acting team and
+  test only the statuses of `MAIN_STATUS_CHECK_SET_PREVENT_REACTION`. The final test
+  (`battle_ai_can_use_ability_at_coords`) also accepts a holder on the tile itself, where the
+  mask and the menu take only the four neighbors.
 - `src/battle/battle_ai_build_targetable_tile_mask.c`: radii 8–15 index past
   the 8-entry template table into the following status weights. Jump Level 8
   can reach this path with a non-arcing weapon. War of the Lions (PSP) reads
@@ -156,8 +167,15 @@ An entry an edition changes keeps describing the retail code and ends with
   Fixed under `FIX_BUGS`: the key is 0 for both weapons.
 - `equip_item_sort_list_by_criteria` keeps the difference of two keys in an `s16`, where
   `world_item_sort_id_list` uses 32 bits, so two items whose prices are more than 32,767
-  apart sort by price in reverse (18 items cost more than that, up to 60,000). Read in
-  the code, not seen in play.
+  apart compare by price in reverse (18 items cost more than that, up to 60,000; 42 pairs
+  of one type are that far apart, and with Price picked first items of different types in
+  one tab compare by price too). Only the Order menu of Equip Change's item list runs
+  the sort: with Type or Price picked, Thief Hat (35,000) ends after Flash, Triangle and
+  Leather Hats and Ribbon (60,000) after Cachusha and Barette (seen in play, with the
+  items put in RAM). The order goes to the page orders in MAIN, which WORLD's item, equip
+  and sell lists follow and the save holds. War of the Lions (PSP) keeps 16 bits in this
+  sort and 32 in WORLD's.
+  Fixed under `FIX_BUGS`: the difference keeps 32 bits; an order already stored is not repaired.
 - `src/battle/battle_camera_step_real_coords_toward_target.c`: in the positive
   direction the Y (`vz`) step adds the vector component twice; X and Z add it
   once.
@@ -1178,7 +1196,14 @@ translation unit. Share their types and constants through headers.
   `0x194`; the engine plays the byte-identical script at `0x190` without the
   redirect.
 - Abilities no skillset lists: 0x16f (Attack), Reflect (0x1b8), Non-charge,
-  Teleport 2, Move Underwater and Silent Walk. Four ids with no name text are
+  Teleport 2, Move Underwater and Silent Walk. The code itself uses 0x16f
+  (the attack of a frog, and of a monster under Berserk,
+  `ABILITY_ID_FROG_ATTACK`) and 0x1b8 (the reaction id of an ability Reflect
+  sends back,
+  `battle_reaction_mark_reflected`); Teleport 2 is innate in the Holy Angel
+  and Arch Angel jobs, and Move Underwater in the Pisco Demon, Squidlarkin
+  and Mindflare; no job, skillset or ENTD unit gives Non-charge or Silent
+  Walk. Four ids with no name text are
   played as Altima's teleport effects (0x28, 0xb8, 0xdb, 0xdc), and 0x200 is
   the follow-up strike that resolves a knockback.
 - Skillset rows 0x86-0x8d, 0xa7 and 0xa8 have no name text but hold
@@ -1186,8 +1211,24 @@ translation unit. Share their types and constants through headers.
   0xa9, which it pairs with ability 0x16f, is empty.
 - The ability names "Move in Water" (0x1f6) and "Walk on Water" (0x1f7) are
   the reverse of what the abilities do: 0x1f6 keeps the unit on the surface
-  and 0x1f7 one level below it (`battle_unit_get_effective_height`,
-  `battle_move_store_unit_movement_to_scratchpad`).
+  and 0x1f7 1h below it (`battle_unit_get_effective_height`,
+  `battle_move_store_unit_movement_to_scratchpad`). 0x1f6's help, "Move or
+  stop on water", says what it does in the job help's words (the Morbol,
+  Ochu and Great Morbol, with 0x1f6 innate, "Move on water"; the Chocobos,
+  with 0x1f7, "Move in water"), but 0x1f7's, "Mover or stop over the surface
+  of the water", speaks of the surface too. The names stand in five places
+  (BATTLE, WORLD twice, `EVENT/WORLD.LZW` and `EVENT/SAMPLE.LZW`) and the
+  help in eight (`EVENT/ATCHELP.LZW` as plain text; `HELPMENU.OUT`,
+  `BUNIT.OUT`, `JOBSTTS.OUT`, WORLD twice, `EVENT/HELP.LZW` and
+  `EVENT/WLDHELP.LZW` compressed). No code loads `SAMPLE.LZW`, `HELP.LZW` or
+  `WLDHELP.LZW`, and WORLD's copy of the battle help is read only by
+  `world_menu_run_battle_help` and `world_menu_run_require_help`, which never
+  run. Fixed under `FIX_BUGS`: the edition swaps the names and gives 0x1f7
+  the help "Move and stop 1h below the surface of water" in every copy
+  (`target/edits.yaml`), and 0x1f6's help stays. A compressed copy keeps its
+  size: the entry after 0x1f7 is encoded again with its own text, and a
+  later entry that copied text from the old help copies the same text from
+  the new one.
 - Selling in the fur shop adds the sold copies to the poached stock
   (`world_shop_run_fur_sell_confirm_step`), so they can be bought back there.
 - `world_shop_run_fur_buy_quantity_menu` divides the gil on hand by

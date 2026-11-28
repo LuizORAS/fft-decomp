@@ -302,6 +302,11 @@ retail. The same overlay draws the Status screen of a rider or a mount
   mount puts the grid cursor on a later unit's cell, which leaving the browsing
   selects ([[bunit_unit_build_list_index_map]], `QUIRKS.md`). The Developer's
   Cut gives the mount its rider's cell.
+- EQUIP's item sort keeps the difference of two prices in 16 bits, so the Order
+  menu can put an item after one that costs over 32,767 gil less, such as Ribbon
+  after Cachusha ([[equip_item_sort_list_by_criteria]], `QUIRKS.md`). WORLD's
+  item, equip and sell lists follow the order it stores. The Developer's Cut
+  keeps 32 bits.
 - EQUIP never fills the physical accessory evade slot of
   [[equip_unit_data_t]].
 - The `*_text_render_decimal_value` copies always place the value as one digit.
